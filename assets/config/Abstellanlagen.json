@@ -1,0 +1,140 @@
+{
+  "name": "Abstellanlagen",
+  "db_name": "Abstellanlagen.db",
+  "db_tabellenname": "abstellanlagen",
+  "spreadsheet_id": "1ULqk5oKgA78pprCupGxApRKTHDTl9fJzECXYEO4QXJ8",
+  "shareToken": "AOVP0rQZIEqQOiIUX3O86yxslicTgrKTPZqJI38QuPJkss9_FWn2MrXN4DnB0Ne1B36BPWG3uL6uaABf0dTd2ns0PrgTy_xolYIe0OFCJdxZPg4FPWXiwEifK1eHXekQd0I",
+  "protected": false,
+  "gps": {
+    "min_lat": 48.0,
+    "max_lat": 48.25,
+    "min_lon": 11.4,
+    "max_lon": 11.8,
+    "center_lat": 48.137235,
+    "center_lon": 11.57554,
+    "nachkommastellen": 5,
+    "min_zoom": 11
+  },
+  "daten": {
+    "protected": false,
+    "felder": [
+      {
+        "name": "ort",
+        "hint_text": "Standort",
+        "helper_text": "Platz, Straße, Haltestelle,..",
+        "type": "string"
+      },
+      {
+        "name": "wetter",
+        "hint_text": "Witterung",
+        "helper_text": "Wetter ist gut/mittel/schlecht",
+        "type": "string",
+        "limited": [
+          "gut",
+          "mittel",
+          "schlecht"
+        ]
+      },
+      {
+        "name": "anzahl",
+        "hint_text": "Anzahl Stellplätze",
+        "helper_text": "Stellplätze inkl. Lastenradstellplätze",
+        "type": "int"
+      },
+      {
+        "name": "auslastung",
+        "hint_text": "Auslastung %",
+        "helper_text": "Belegungsgrad in Prozent",
+        "type": "prozent"
+      },
+      {
+        "name": "wildparker",
+        "hint_text": "Wildparker",
+        "helper_text": "Anzahl Wildparker",
+        "type": "int"
+      },
+      {
+        "name": "lastenrad",
+        "hint_text": "Lastenradplätze",
+        "helper_text": "Anzahl Lastenrad-Stellplätze",
+        "type": "int"
+      },
+      {
+        "name": "abschließbar",
+        "hint_text": "Abschließbar?",
+        "helper_text": "Ist der Fahrrad-Rahmen abschließbar?",
+        "type": "bool"
+      },
+      {
+        "name": "anlehnbar",
+        "hint_text": "Anlehnbar?",
+        "helper_text": "Kann das Fahrrad angelehnt werden?",
+        "type": "bool"
+      },
+      {
+        "name": "abstand",
+        "hint_text": "Abstand ok?",
+        "helper_text": "Seitenabstand größer 70cm?",
+        "type": "bool"
+      },
+      {
+        "name": "ausparken",
+        "hint_text": "Ausparken sicher?",
+        "helper_text": "Ist das Ausparken sicher?",
+        "type": "bool"
+      },
+      {
+        "name": "geschützt",
+        "hint_text": "Witterungsgeschützt?",
+        "helper_text": "Ist die Anlage witterungsgeschützt?",
+        "type": "bool"
+      },
+      {
+        "name": "zustand",
+        "hint_text": "Qualität",
+        "helper_text": "Qualität der Anlage: hoch/mittel/niedrig",
+        "type": "string",
+        "comment": "nächste Zeile nicht ändern, ist hart codiert!",
+        "limited": [
+          "hoch",
+          "mittel",
+          "niedrig"
+        ]
+      },
+      {
+        "name": "bemerkung",
+        "hint_text": "Bemerkung",
+        "helper_text": "Sonstiges",
+        "type": "string"
+      }
+    ]
+  },
+  "zusatz": {
+    "protected": false,
+    "felder": [
+      {
+        "name": "wetter",
+        "hint_text": "Witterung",
+        "helper_text": "Wetter ist gut/mittel/schlecht",
+        "type": "string",
+        "limited": [
+          "gut",
+          "mittel",
+          "schlecht"
+        ]
+      },
+      {
+        "name": "auslastung",
+        "hint_text": "Auslastung %",
+        "helper_text": "Belegungsgrad in Prozent",
+        "type": "prozent"
+      },
+      {
+        "name": "bemerkung",
+        "hint_text": "Bemerkung",
+        "helper_text": "Sonstiges",
+        "type": "string"
+      }
+    ]
+  }
+}

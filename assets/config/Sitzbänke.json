@@ -1,0 +1,58 @@
+{
+  "name": "Sitzbänke",
+  "db_name": "Sitzbänke.db",
+  "db_tabellenname": "sitzbänke",
+  "spreadsheet_id": "15Y0A9R5H8djy9M7wvR928Tof5AGuvBDIt-QeIyNbGuM",
+  "shareToken": "AOVP0rQYbn_wnkdSq6kRR2O7bIsjk446Ci9dsLhmDcuhIfgWcgTi4kH8XNXt1w4DACkvxYuQsThiKaWiw6MxPfzUMYpOm1fIK7Yfy4vLPCWYlvk4zXMMJQmUKizSw48y0pI",
+  "gps": {
+    "min_lat": 48.1,
+    "max_lat": 48.2,
+    "min_lon": 11.5,
+    "max_lon": 11.6,
+    "center_lat": 48.137235,
+    "center_lon": 11.57554,
+    "nachkommastellen": 5,
+    "min_zoom": 12
+  },
+  "daten": {
+    "protected": false,
+    "felder": [
+      {
+        "name": "material",
+        "hint_text": "Material",
+        "helper_text": "Holz, Eisen, Plastik, Beton, Sonstiges",
+        "limited": [
+          "Holz",
+          "Eisen",
+          "Plastik",
+          "Beton",
+          "Sonstiges"
+        ],
+        "type": "string"
+      },
+      {
+        "name": "plätze",
+        "hint_text": "Anzahl der Sitzplätze",
+        "helper_text": "Zahl",
+        "type": "int"
+      },
+      {
+        "name": "zustand",
+        "hint_text": "Zustand",
+        "helper_text": "gut/beschädigt/unbrauchbar",
+        "limited": [
+          "gut",
+          "beschädigt",
+          "unbrauchbar"
+        ],
+        "type": "string"
+      },
+      {
+        "name": "bemerkung",
+        "hint_text": "Bemerkung",
+        "helper_text": "sonstiges",
+        "type": "string"
+      }
+    ]
+  }
+}

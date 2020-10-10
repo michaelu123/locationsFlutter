@@ -1,0 +1,52 @@
+{
+  "name": "Abstellplätze",
+  "db_name": "Abstellplätze.db",
+  "db_tabellenname": "abstellplätze",
+  "spreadsheet_id": "1fcI_RFccnq6eLx95VqCiKkPSvm4QSvSYr6HxFLzMPUM",
+  "shareToken": "AOVP0rRbGb0U7qiIvr0CRxpHquum9vbkxuIp0O_tr7B-0001o6WQ39lbvyVTzBWZZDSnNon3wNMdSFkgM5BYiRDzAOho4Tq7JBoPwkLfMd2jU-YsSF_efxWzjq_6h3B0yXo",
+  "protected": false,
+  "gps": {
+    "min_lat": 48.0,
+    "max_lat": 48.25,
+    "min_lon": 11.4,
+    "max_lon": 11.8,
+    "center_lat": 48.137235,
+    "center_lon": 11.57554,
+    "nachkommastellen": 5,
+    "min_zoom": 11
+  },
+  "daten": {
+    "protected": false,
+    "felder": [
+      {
+        "name": "ort",
+        "hint_text": "Ort",
+        "helper_text": "Platz, Straße, Haltestelle",
+        "type": "string"
+      }
+    ]
+  },
+  "zusatz": {
+    "protected": false,
+    "felder": [
+      {
+        "name": "begründung",
+        "hint_text": "Begründung",
+        "helper_text": "Umsteigen, Geschäft, Firma",
+        "type": "string"
+      },
+      {
+        "name": "anzahl",
+        "hint_text": "Ständer",
+        "helper_text": "Gewünschte Anzahl an Ständern",
+        "type": "int"
+      },
+      {
+        "name": "bemerkung",
+        "hint_text": "Bemerkung",
+        "helper_text": "Sonstiges",
+        "type": "string"
+      }
+    ]
+  }
+}

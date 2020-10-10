@@ -1,0 +1,59 @@
+{
+  "name": "Alte Bäume",
+  "db_name": "Altebäume.db",
+  "db_tabellenname": "altebäume",
+  "spreadsheet_id": "1bo0h8Ctos6pMXCeRCkSrleaN2Kzpjzhq61iVLcX6RQ0",
+  "shareToken": "AOVP0rSx8wXLOvvyvHRkp3r1MFkf6QI7uYdc3Z3x9doPp3Tz09tblryWfBkwBZCJDc2g7z0HXt7Kbq4yT60oSvNCKMyW-in-uGlEQwhe8sAnjW3OvIc1810oJMwktG6QJAM",
+  "protected": false,
+  "gps": {
+    "min_lat": 48.0,
+    "max_lat": 48.25,
+    "min_lon": 11.4,
+    "max_lon": 11.8,
+    "center_lat": 48.137235,
+    "center_lon": 11.57554,
+    "nachkommastellen": 5,
+    "min_zoom": 11
+  },
+  "daten": {
+    "protected": false,
+    "felder": [
+      {
+        "name": "ort",
+        "hint_text": "Ort",
+        "helper_text": "Platz, Straße, Park",
+        "type": "string"
+      },
+      {
+        "name": "Art",
+        "hint_text": "Art",
+        "helper_text": "Buche, Eiche, Fichte, Tanne",
+        "type": "string"
+      },
+      {
+        "name": "umfang",
+        "hint_text": "Stammumfang",
+        "helper_text": "Stammumfang in cm",
+        "type": "int"
+      },
+      {
+        "name": "höhe",
+        "hint_text": "Baumhöhe",
+        "helper_text": "Geschätzte Höhe in m",
+        "type": "int"
+      },
+      {
+        "name": "zustand",
+        "hint_text": "Zustand",
+        "helper_text": "gut/geschädigt/krank",
+        "type": "string"
+      },
+      {
+        "name": "bemerkung",
+        "hint_text": "Bemerkung",
+        "helper_text": "Sonstiges",
+        "type": "string"
+      }
+    ]
+  }
+}
