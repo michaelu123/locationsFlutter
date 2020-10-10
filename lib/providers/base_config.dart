@@ -37,18 +37,8 @@ class BaseConfig with ChangeNotifier {
     print("setBaseConfig $base ${map.keys}");
     baseConfigJS = map;
     baseJS = baseConfigJS[base];
-    datenFelder = baseJS["daten"]["felder"];
-    datenFelder.addAll(dates);
-    dynamic z = baseJS["zusatz"];
-    if (z != null) {
-      z = z["felder"];
-    }
-    if (z != null) {
-      zusatzFelder = z;
-      zusatzFelder.addAll(dates);
-    } else {
-      zusatzFelder = null;
-    } // something like ?. operator for arrays?
+    datenFelder = getDatenFelder();
+    zusatzFelder = getZusatzFelder();
     print("baseJS $baseJS");
     this.base = base;
   }
@@ -66,11 +56,28 @@ class BaseConfig with ChangeNotifier {
   }
 
   List getDatenFelder() {
-    return baseJS["daten"]["felder"];
+    datenFelder = baseJS["daten"]["felder"];
+    if (datenFelder[datenFelder.length - 1]["name"] != "modified") {
+      datenFelder.addAll(dates);
+    }
+    return datenFelder;
   }
 
   List getZusatzFelder() {
-    return baseJS["zusatz"]["felder"];
+    dynamic z = baseJS["zusatz"];
+    if (z != null) {
+      z = z["felder"];
+    }
+    if (z != null) {
+      // something like ?. operator for arrays?
+      zusatzFelder = z;
+      if (zusatzFelder[zusatzFelder.length - 1]["name"] != "modified") {
+        zusatzFelder.addAll(dates);
+      }
+    } else {
+      zusatzFelder = [];
+    }
+    return zusatzFelder;
   }
 
   String getName() {

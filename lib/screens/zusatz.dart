@@ -16,7 +16,8 @@ class ZusatzScreen extends StatefulWidget {
   _ZusatzScreenState createState() => _ZusatzScreenState();
 }
 
-class _ZusatzScreenState extends State<ZusatzScreen> with Felder {
+class _ZusatzScreenState extends State<ZusatzScreen>
+    with Felder, SingleTickerProviderStateMixin {
   @override
   void dispose() {
     super.dispose();
@@ -48,13 +49,12 @@ class _ZusatzScreenState extends State<ZusatzScreen> with Felder {
         ],
       ),
       body: Consumer<LocData>(
-        builder: (ctx, locData, _) {
-          print("6build");
+        builder: (ctx, locDaten, _) {
+          //print("6build ${DateTime.now()}");
           if (focusHandlers == null) {
-            initFelder(context, locData, true);
-          } else {
-            setFelder(locData, true);
+            initFelder(context, true);
           }
+          setFelder(locDaten, true);
           return Column(children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -75,7 +75,7 @@ class _ZusatzScreenState extends State<ZusatzScreen> with Felder {
                     backgroundColor: Colors.amber,
                   ),
                   onPressed: () {
-                    locData.useZusatz(false);
+                    locDaten.useZusatz(false);
                     Navigator.of(context).pushNamed(DatenScreen.routeName);
                   },
                   child: Text(
@@ -101,37 +101,46 @@ class _ZusatzScreenState extends State<ZusatzScreen> with Felder {
                 IconButton(
                   iconSize: 40,
                   icon: Icon(Icons.arrow_back),
-                  onPressed: locData.decIndex,
+                  onPressed: locDaten.canDec() ? locDaten.decIndex : null,
                 ),
                 IconButton(
                   iconSize: 40,
                   icon: Icon(Icons.add),
-                  onPressed: null,
+                  onPressed: () {
+                    locDaten.addZusatz();
+                  },
                 ),
                 IconButton(
                   iconSize: 40,
                   icon: Icon(Icons.arrow_forward),
-                  onPressed: locData.incIndex,
+                  onPressed: locDaten.canInc() ? locDaten.incIndex : null,
                 ),
               ],
             ),
-            Expanded(
-              child: GestureDetector(
-                onHorizontalDragEnd: (details) {
-                  if (details.primaryVelocity < 0) {
-                    locData.incIndex();
-                  } else {
-                    locData.decIndex();
-                  }
-                },
-                child: ListView.builder(
-                  itemCount: felder.length,
-                  itemBuilder: (ctx, index) {
-                    return textFields[index];
-                  },
+            if (locDaten.isEmpty())
+              Center(
+                child: Text(
+                  "Noch keine Daten eingetragen",
                 ),
               ),
-            ),
+            if (!locDaten.isEmpty())
+              Expanded(
+                child: GestureDetector(
+                  onHorizontalDragEnd: (details) {
+                    if (details.primaryVelocity < 0) {
+                      locDaten.incIndex();
+                    } else {
+                      locDaten.decIndex();
+                    }
+                  },
+                  child: ListView.builder(
+                    itemCount: felder.length,
+                    itemBuilder: (ctx, index) {
+                      return textFields[index];
+                    },
+                  ),
+                ),
+              ),
           ]);
         },
       ),

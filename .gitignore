@@ -53,3 +53,4 @@ app.*.map.json
 pubspec.lock
 README.md
 test/widget_test.dart
+.vscode/launch.json

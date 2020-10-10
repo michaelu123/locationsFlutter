@@ -10,7 +10,7 @@ class Felder {
   List<TextField> textFields;
   List<TextEditingController> controllers;
 
-  void initFelder(BuildContext context, LocData locData, bool useZusatz) {
+  void initFelder(BuildContext context, bool useZusatz) {
     print("1initFel");
     List felder = useZusatz ? BaseConfig.zusatzFelder : BaseConfig.datenFelder;
     int felderLength = felder.length;
@@ -40,9 +40,8 @@ class Felder {
     controllers = List.generate(
       felderLength,
       (index) {
-        final feld = felder[index];
         return TextEditingController(
-          text: locData.getFeldText(feld['name'], feld["type"]),
+          text: "",
         );
       },
     );
@@ -87,12 +86,12 @@ class Felder {
     print("2initFel");
   }
 
-  void setFelder(LocData locData, bool useZusatz) {
+  void setFelder(LocData locDaten, bool useZusatz) {
     List felder = useZusatz ? BaseConfig.zusatzFelder : BaseConfig.datenFelder;
     int felderLength = felder.length;
     for (int i = 0; i < felderLength; i++) {
       final feld = felder[i];
-      controllers[i].text = locData.getFeldText(feld['name'], feld["type"]);
+      controllers[i].text = locDaten.getFeldText(feld['name'], feld["type"]);
     }
   }
 

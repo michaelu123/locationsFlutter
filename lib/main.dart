@@ -73,7 +73,7 @@ class MyApp extends StatelessWidget {
                 print("snap ${snap.data.keys}");
                 baseConfig.setInitially(snap.data, "Abstellanlagen");
                 print("8mb");
-                return DatenScreen();
+                return KartenScreen();
               },
             ),
             routes: {

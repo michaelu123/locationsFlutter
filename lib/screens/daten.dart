@@ -95,8 +95,8 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
                   backgroundColor: Colors.amber,
                 ),
                 onPressed: () {
-                  final locData = Provider.of<LocData>(context, listen: false);
-                  locData.useZusatz(true);
+                  final locDaten = Provider.of<LocData>(context, listen: false);
+                  locDaten.useZusatz(true);
                   Navigator.of(context).pushNamed(ZusatzScreen.routeName);
                 },
                 child: Text(
@@ -118,9 +118,12 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
           ),
           Expanded(
             child: Consumer<LocData>(
-              builder: (ctx, locData, _) {
-                print("6build");
-                if (focusHandlers == null) initFelder(context, locData, false);
+              builder: (ctx, locDaten, _) {
+                print("6build ${DateTime.now()}");
+                if (focusHandlers == null) {
+                  initFelder(context, false);
+                }
+                setFelder(locDaten, false);
                 return ListView.builder(
                   itemCount: felder.length,
                   itemBuilder: (ctx, index) {
