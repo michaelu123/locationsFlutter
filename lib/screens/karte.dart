@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
+import 'package:locations/providers/map_center.dart';
 import 'package:locations/screens/account.dart';
 import 'package:locations/screens/bilder.dart';
 import 'package:locations/screens/daten.dart';
@@ -19,9 +20,13 @@ class KartenScreen extends StatefulWidget {
 }
 
 class _KartenScreenState extends State<KartenScreen> with Felder {
+  double mapLat = 0, mapLon = 0;
+  final mapController = MapController();
+
   @override
   Widget build(BuildContext context) {
     final baseConfig = Provider.of<BaseConfig>(context);
+    final mapCenter = Provider.of<MapCenter>(context, listen: false);
 
     return Scaffold(
       drawer: AppConfig(),
@@ -107,38 +112,94 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                   'Bilder',
                 ),
               ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                ),
+                onPressed: () {},
+                child: Text(
+                  'GPS Fix',
+                ),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                ),
+                onPressed: () {
+                  mapController.move(MapCenter.marienplatz(), 16);
+                  // final mapCenter =
+                  //     Provider.of<MapCenter>(context, listen: false);
+                  // mapCenter.setCenter(MapCenter.marienplatz());
+                },
+                child: Text(
+                  'Zentrieren',
+                ),
+              ),
             ],
           ),
           Expanded(
-            child: FlutterMap(
-                options: MapOptions(
-                  plugins: [CrossHairMapPlugin()],
-                  center: LatLng(51.5, -0.09),
-                  zoom: 13.0,
-                ),
-                layers: [
-                  TileLayerOptions(
-                      urlTemplate:
-                          "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                      subdomains: ['a', 'b', 'c']),
-                  MarkerLayerOptions(
-                    markers: [
-                      Marker(
-                        width: 20.0,
-                        height: 20.0,
-                        point: LatLng(51.5, -0.09),
-                        builder: (ctx) => Container(
-                          child: FlutterLogo(),
+            child: Stack(
+              children: [
+                FlutterMap(
+                  mapController: mapController,
+                  options: MapOptions(
+                    swPanBoundary: LatLng(48.0, 11.4),
+                    nePanBoundary: LatLng(48.25, 11.8),
+                    onPositionChanged: (pos, b) {
+                      // onPositionChanged is called too early during build, must defer
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        mapCenter.setCenter(pos.center);
+                        setState(() {
+                          mapLat = pos.center.latitude;
+                          mapLon = pos.center.longitude;
+                        });
+                      });
+                    },
+                    plugins: [CrossHairMapPlugin()],
+                    center: MapCenter.marienplatz(),
+                    zoom: 16.0,
+                    minZoom: 11,
+                    maxZoom: 19,
+                  ),
+                  layers: [
+                    TileLayerOptions(
+                        minZoom: 11,
+                        maxZoom: 19,
+                        urlTemplate:
+                            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                        subdomains: ['a', 'b', 'c']),
+                    MarkerLayerOptions(
+                      markers: [
+                        Marker(
+                          width: 20.0,
+                          height: 20.0,
+                          point: LatLng(48.137235, 11.57554),
+                          builder: (ctx) => Container(
+                            child: FlutterLogo(),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  CrossHairLayerOptions(
-                    crossHair: CrossHair(
-                      color: Colors.black,
+                      ],
                     ),
-                  ),
-                ]),
+                    CrossHairLayerOptions(
+                      crossHair: CrossHair(
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
+                const Positioned(
+                  child: const Text("© OpenStreetMap-Mitwirkende"),
+                  bottom: 10,
+                  left: 10,
+                ),
+                Positioned(
+                  child: Text(
+                      "${mapLat.toStringAsFixed(6)} ${mapLon.toStringAsFixed(6)}"),
+                  bottom: 10,
+                  right: 10,
+                ),
+              ],
+            ),
           ),
         ],
       ),

@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
-import 'package:locations/screens/account.dart';
 import 'package:provider/provider.dart';
 
+import 'package:locations/providers/map_center.dart';
+import 'package:locations/screens/account.dart';
 import 'package:locations/providers/base_config.dart';
 import 'package:locations/providers/loc_data.dart';
 import 'package:locations/screens/zusatz.dart';
@@ -26,6 +27,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (BuildContext context) => LocData(),
+        ),
+        ChangeNotifierProvider(
+          create: (BuildContext context) => MapCenter(),
         ),
       ],
       child: Consumer<BaseConfig>(
