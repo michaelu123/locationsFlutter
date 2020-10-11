@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
+import 'package:location/location.dart';
 import 'package:locations/providers/map_center.dart';
 import 'package:locations/screens/account.dart';
 import 'package:locations/screens/bilder.dart';
@@ -116,7 +117,12 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                 style: TextButton.styleFrom(
                   backgroundColor: Colors.amber,
                 ),
-                onPressed: () {},
+                onPressed: () async {
+                  final locData = await Location().getLocation();
+                  mapController.move(
+                      LatLng(locData.latitude, locData.longitude),
+                      mapController.zoom);
+                },
                 child: Text(
                   'GPS Fix',
                 ),
@@ -126,7 +132,8 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                   backgroundColor: Colors.amber,
                 ),
                 onPressed: () {
-                  mapController.move(MapCenter.marienplatz(), 16);
+                  mapController.move(
+                      MapCenter.marienplatz(), mapController.zoom);
                   // final mapCenter =
                   //     Provider.of<MapCenter>(context, listen: false);
                   // mapCenter.setCenter(MapCenter.marienplatz());
@@ -150,6 +157,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         mapCenter.setCenter(pos.center);
                         setState(() {
+                          // for the Text at the bottom of the screen
                           mapLat = pos.center.latitude;
                           mapLon = pos.center.longitude;
                         });
@@ -168,18 +176,19 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                         urlTemplate:
                             "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                         subdomains: ['a', 'b', 'c']),
-                    MarkerLayerOptions(
-                      markers: [
-                        Marker(
-                          width: 20.0,
-                          height: 20.0,
-                          point: LatLng(48.137235, 11.57554),
-                          builder: (ctx) => Container(
-                            child: FlutterLogo(),
-                          ),
+                    MarkerLayerOptions(markers: [
+                      Marker(
+                        //anchorPos: AnchorPos.exactly(Anchor(0, 20)),
+                        anchorPos: AnchorPos.align(AnchorAlign.top),
+                        width: 30.0,
+                        height: 30.0,
+                        point: LatLng(48.137235, 11.57554),
+                        builder: (ctx) => ImageIcon(
+                          AssetImage("assets/icons/red48.png"),
+                          color: Colors.red,
                         ),
-                      ],
-                    ),
+                      ),
+                    ]),
                     CrossHairLayerOptions(
                       crossHair: CrossHair(
                         color: Colors.black,
