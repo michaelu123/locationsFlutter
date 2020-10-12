@@ -1,10 +1,7 @@
 import 'package:flutter/foundation.dart';
+import 'package:locations/providers/db.dart';
 
 class LocData with ChangeNotifier {
-  LocData() {
-    print("LocData constructor");
-  }
-
   // data read from / written to DB
   static Map locDefDaten = {
     "ort": "Zuhause",
@@ -40,13 +37,17 @@ class LocData with ChangeNotifier {
   ];
 
   Map locDaten = locDefDaten;
+  List locImages = [];
+  int imageIndex;
   List locZusatz = locDefZusatz;
   bool isZusatz = false;
   int zusatzIndex = 0;
 
-  void useZusatz(bool b) {
-    if (isZusatz == b) return;
-    isZusatz = b;
+  void dataFor(String table, Map data) {
+    isZusatz = table == "zusatz";
+    locDaten = data["daten"].length > 0 ? data["daten"][0] : {};
+    locZusatz = data["zusatz"];
+    locImages = data["images"];
     notifyListeners();
   }
 
@@ -55,8 +56,6 @@ class LocData with ChangeNotifier {
     notifyListeners();
   }
 
-  List locImages = [];
-  int imageIndex;
   void setImageIndex(int x) {
     imageIndex = x;
     notifyListeners();
@@ -76,19 +75,21 @@ class LocData with ChangeNotifier {
     isZusatz = false;
   }
 
-  setFeld(String name, String type, Object val) {
+  Future<void> setFeld(String name, String type, Object val) async {
     if (isZusatz) {
       print("setZusatz $name $type $val $zusatzIndex");
       final v = locZusatz[zusatzIndex][name];
       if (v != val) {
         locZusatz[zusatzIndex][name] = val;
+        await LocationsDB.set("zusatz", name, val);
         print("LocZusatz $zusatzIndex $name changed from $v to $val");
       }
     } else {
-      print("setDaten $name $type $val}");
+      print("setDaten $name $type $val");
       final v = locDaten[name];
       if (v != val) {
         locDaten[name] = val;
+        await LocationsDB.set("daten", name, val);
         print("LocDatum $name changed from $v to $val");
       }
     }

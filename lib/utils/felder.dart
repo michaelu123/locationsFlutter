@@ -24,10 +24,8 @@ class Felder {
       (index) {
         void cb() {
           var fn = focusNodes[index];
-          print("focus $index ${fn.hasFocus}");
           if (!fn.hasFocus) {
             final l = fixText(controllers[index].text, felder[index]);
-            print("Text $l");
             controllers[index].text = l[0];
             // can call Provider here because cb is called in other context
             Provider.of<LocData>(context, listen: false)
@@ -98,6 +96,7 @@ class Felder {
   }
 
   void deleteFelder() {
+    if (focusNodes == null) return;
     print("1delfel");
     for (var i = 0; i < focusNodes.length; i++) {
       focusNodes[i].removeListener(focusHandlers[i]);

@@ -1,9 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
 import 'package:locations/providers/db.dart';
 import 'package:locations/providers/settings.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:path/path.dart' as path;
 
 import 'package:locations/providers/map_center.dart';
 import 'package:locations/screens/account.dart';
@@ -21,7 +24,6 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    print("1mb");
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
@@ -39,7 +41,6 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<BaseConfig>(
         builder: (ctx, baseConfig, _) {
-          print("2mb");
           return Consumer<Settings>(
             builder: (ctx, settings, _) {
               return MaterialApp(
@@ -63,16 +64,12 @@ class MyApp extends StatelessWidget {
                       ? null
                       : readConfig(baseConfig, settings),
                   builder: (ctx, snap) {
-                    print("3mb");
                     if (snap.connectionState == ConnectionState.waiting) {
-                      print("4mb");
                       return Center(
                         child: CircularProgressIndicator(),
                       );
                     }
-                    print("5mb");
                     if (snap.hasError) {
-                      print("6mb");
                       return Center(
                         child: Text(
                           "error ${snap.error}",
@@ -82,7 +79,6 @@ class MyApp extends StatelessWidget {
                         ),
                       );
                     }
-                    print("7mb");
                     return KartenScreen();
                   },
                 ),
@@ -103,7 +99,6 @@ class MyApp extends StatelessWidget {
 
   Future<void> readConfig(baseConfig, settings) async {
     // read all assets/config/*.json files
-    print("1rc");
     var bc = Map<String, dynamic>();
     // I cannot obtain list of bundle content, therefore I need a TOC file...
     String content = await rootBundle.loadString("assets/config/content.json");
@@ -115,6 +110,22 @@ class MyApp extends StatelessWidget {
       final name = content2JS['name'];
       bc[name] = content2JS;
     });
+
+    // allow external storage config files
+    final extPath = await getExternalStorageDirectory();
+    final configPath = path.join(extPath.path, "config");
+    Directory configDir = Directory(configPath);
+    if (await configDir.exists()) {
+      List<File> configFiles = await configDir.list().toList();
+      await Future.forEach(configFiles, (f) async {
+        if (f.path.endsWith(".json")) {
+          final content2 = await f.readAsString();
+          final Map content2JS = json.decode(content2);
+          final name = content2JS['name'];
+          bc[name] = content2JS;
+        }
+      });
+    }
     print("bc ${bc.keys}");
     await settings.getSharedPreferences();
     baseConfig.setInitially(bc, settings.initialBase());

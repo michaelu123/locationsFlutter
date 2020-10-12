@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:locations/providers/db.dart';
 import 'package:locations/screens/zusatz.dart';
 import 'package:locations/screens/bilder.dart';
 import 'package:locations/screens/karte.dart';
@@ -6,7 +7,6 @@ import 'package:provider/provider.dart';
 
 import 'package:locations/providers/base_config.dart';
 import 'package:locations/providers/loc_data.dart';
-import 'package:locations/screens/account.dart';
 import 'package:locations/utils/felder.dart';
 
 class DatenScreen extends StatefulWidget {
@@ -24,21 +24,13 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
 
   @override
   Widget build(BuildContext context) {
-    print("1build");
     final baseConfig = Provider.of<BaseConfig>(context);
     final felder = baseConfig.getDatenFelder();
 
-    print("2build $felder");
     return Scaffold(
       appBar: AppBar(
         title: Text(baseConfig.getName() + "/Daten"),
         actions: [
-          IconButton(
-            icon: Icon(Icons.account_box),
-            onPressed: () {
-              Navigator.of(context).pushNamed(AccountScreen.routeName);
-            },
-          ),
           IconButton(
             icon: Icon(Icons.delete),
             onPressed: null,
@@ -69,9 +61,10 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
                 style: TextButton.styleFrom(
                   backgroundColor: Colors.amber,
                 ),
-                onPressed: () {
+                onPressed: () async {
                   final locDaten = Provider.of<LocData>(context, listen: false);
-                  locDaten.useZusatz(true);
+                  final map = await LocationsDB.dataFor2();
+                  locDaten.dataFor("zusatz", map);
                   Navigator.of(context).pushNamed(ZusatzScreen.routeName);
                 },
                 child: Text(
@@ -94,7 +87,6 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
           Expanded(
             child: Consumer<LocData>(
               builder: (ctx, locDaten, _) {
-                print("6build ${DateTime.now()}");
                 if (focusHandlers == null) {
                   initFelder(context, baseConfig, false);
                 }

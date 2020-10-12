@@ -127,7 +127,6 @@ class BaseConfig extends ChangeNotifier {
 
   bool isInited() {
     bool b = baseConfigJS != null;
-    print("isInited $b");
     return b;
   }
 
@@ -136,17 +135,15 @@ class BaseConfig extends ChangeNotifier {
     if (base == null || base == "") {
       base = map.keys.toList()[0];
     }
-    print("setBaseConfig $base ${map.keys}");
     baseConfigJS = map;
     _setFelder(base);
   }
 
   void _setFelder(abase) {
-    print("setBase $base $abase");
+    print("setFelder $base $abase");
     if (base == abase) return;
     base = abase;
     baseJS = baseConfigJS[base];
-    print("baseJS $baseJS");
 
     _datenFelder = [...baseJS["daten"]["felder"], ...dates];
     dynamic z = baseJS["zusatz"];
@@ -197,16 +194,22 @@ class BaseConfig extends ChangeNotifier {
 
   String getName() {
     final name = baseJS["name"];
-    // print("getName $name");
     return name;
   }
 
   List<String> getNames() {
-    print("getNames");
     return baseConfigJS.keys.toList();
   }
 
   String getDbName() {
     return baseJS["db_name"];
+  }
+
+  Map getGPS() {
+    return baseJS["gps"];
+  }
+
+  int stellen() {
+    return baseJS["gps"]["nachkommastellen"];
   }
 }

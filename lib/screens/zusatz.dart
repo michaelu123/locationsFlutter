@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:locations/providers/db.dart';
 import 'package:locations/providers/loc_data.dart';
 import 'package:locations/screens/bilder.dart';
 import 'package:locations/screens/daten.dart';
@@ -6,7 +7,6 @@ import 'package:locations/screens/karte.dart';
 import 'package:provider/provider.dart';
 
 import 'package:locations/providers/base_config.dart';
-import 'package:locations/screens/account.dart';
 import 'package:locations/utils/felder.dart';
 
 class ZusatzScreen extends StatefulWidget {
@@ -25,22 +25,13 @@ class _ZusatzScreenState extends State<ZusatzScreen>
 
   @override
   Widget build(BuildContext context) {
-    print("1build");
     final baseConfig = Provider.of<BaseConfig>(context);
     final felder = baseConfig.getZusatzFelder();
 
-    print("2build $felder");
     return Scaffold(
-      // drawer: AppConfig(),
       appBar: AppBar(
         title: Text(baseConfig.getName() + "/Zusatz"),
         actions: [
-          IconButton(
-            icon: Icon(Icons.account_box),
-            onPressed: () {
-              Navigator.of(context).pushNamed(AccountScreen.routeName);
-            },
-          ),
           IconButton(
             icon: Icon(Icons.delete),
             onPressed: null,
@@ -49,7 +40,6 @@ class _ZusatzScreenState extends State<ZusatzScreen>
       ),
       body: Consumer<LocData>(
         builder: (ctx, locDaten, _) {
-          //print("6build ${DateTime.now()}");
           if (focusHandlers == null) {
             initFelder(context, baseConfig, true);
           }
@@ -73,8 +63,11 @@ class _ZusatzScreenState extends State<ZusatzScreen>
                   style: TextButton.styleFrom(
                     backgroundColor: Colors.amber,
                   ),
-                  onPressed: () {
-                    locDaten.useZusatz(false);
+                  onPressed: () async {
+                    final locDaten =
+                        Provider.of<LocData>(context, listen: false);
+                    final map = await LocationsDB.dataFor2();
+                    locDaten.dataFor("daten", map);
                     Navigator.of(context).pushNamed(DatenScreen.routeName);
                   },
                   child: Text(
@@ -105,9 +98,9 @@ class _ZusatzScreenState extends State<ZusatzScreen>
                 IconButton(
                   iconSize: 40,
                   icon: Icon(Icons.add),
-                  onPressed: () {
-                    locDaten.addZusatz();
-                  },
+                  onPressed: baseConfig.getZusatzFelder().length > 0
+                      ? locDaten.addZusatz
+                      : null,
                 ),
                 IconButton(
                   iconSize: 40,

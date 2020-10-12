@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
 import 'package:location/location.dart';
+import 'package:locations/providers/db.dart';
 import 'package:locations/providers/map_center.dart';
 import 'package:locations/providers/settings.dart';
 import 'package:locations/screens/account.dart';
@@ -28,6 +29,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   @override
   Widget build(BuildContext context) {
     final baseConfig = Provider.of<BaseConfig>(context);
+    final configGPS = baseConfig.getGPS();
     final mapCenter = Provider.of<MapCenter>(context, listen: false);
 
     return Scaffold(
@@ -53,7 +55,6 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
             icon: Icon(Icons.more_vert),
             // child: Text('Auswahl der Datenbasis'),
             itemBuilder: (_) {
-              print("3build");
               final List keys = baseConfig.getNames();
               return List.generate(
                 keys.length,
@@ -64,14 +65,12 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
               );
             },
             onSelected: (String selectedValue) {
-              print("4build");
               if (baseConfig.setBase(selectedValue)) {
                 Provider.of<LocData>(context, listen: false).clearLocData();
                 Provider.of<Settings>(context, listen: false)
                     .setConfigValue("base", selectedValue);
-
+                LocationsDB.setBase(baseConfig);
                 deleteFelder();
-                print("5build");
               }
             },
           ),
@@ -86,7 +85,11 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                 style: TextButton.styleFrom(
                   backgroundColor: Colors.amber,
                 ),
-                onPressed: () {
+                onPressed: () async {
+                  final locDaten = Provider.of<LocData>(context, listen: false);
+                  final map = await LocationsDB.dataFor(
+                      mapLat, mapLon, baseConfig.stellen());
+                  locDaten.dataFor("daten", map);
                   Navigator.of(context).pushNamed(DatenScreen.routeName);
                 },
                 child: Text(
@@ -97,9 +100,11 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                 style: TextButton.styleFrom(
                   backgroundColor: Colors.amber,
                 ),
-                onPressed: () {
+                onPressed: () async {
                   final locDaten = Provider.of<LocData>(context, listen: false);
-                  locDaten.useZusatz(true);
+                  final map = await LocationsDB.dataFor(
+                      mapLat, mapLon, baseConfig.stellen());
+                  locDaten.dataFor("zusatz", map);
                   Navigator.of(context).pushNamed(ZusatzScreen.routeName);
                 },
                 child: Text(
@@ -137,7 +142,11 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                 ),
                 onPressed: () {
                   mapController.move(
-                      MapCenter.marienplatz(), mapController.zoom);
+                      LatLng(
+                        configGPS["center_lat"],
+                        configGPS["center_lon"],
+                      ),
+                      mapController.zoom);
                   // final mapCenter =
                   //     Provider.of<MapCenter>(context, listen: false);
                   // mapCenter.setCenter(MapCenter.marienplatz());
@@ -154,8 +163,14 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                 FlutterMap(
                   mapController: mapController,
                   options: MapOptions(
-                    swPanBoundary: LatLng(48.0, 11.4),
-                    nePanBoundary: LatLng(48.25, 11.8),
+                    swPanBoundary: LatLng(
+                      configGPS["min_lat"],
+                      configGPS["min_lon"],
+                    ), // LatLng(48.0, 11.4),
+                    nePanBoundary: LatLng(
+                      configGPS["max_lat"],
+                      configGPS["max_lon"],
+                    ), // LatLng(48.25, 11.8),
                     onPositionChanged: (pos, b) {
                       // onPositionChanged is called too early during build, must defer
                       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -168,14 +183,17 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                       });
                     },
                     plugins: [CrossHairMapPlugin()],
-                    center: MapCenter.marienplatz(),
+                    center: LatLng(
+                      configGPS["center_lat"],
+                      configGPS["center_lon"],
+                    ),
                     zoom: 16.0,
-                    minZoom: 11,
+                    minZoom: configGPS["min_zoom"] * 1.0,
                     maxZoom: 19,
                   ),
                   layers: [
                     TileLayerOptions(
-                        minZoom: 11,
+                        minZoom: configGPS["min_zoom"] * 1.0,
                         maxZoom: 19,
                         urlTemplate:
                             "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -188,8 +206,8 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                         height: 30.0,
                         point: LatLng(48.137235, 11.57554),
                         builder: (ctx) => ImageIcon(
-                          AssetImage("assets/icons/red48.png"),
-                          color: Colors.red,
+                          AssetImage("assets/icons/red_plus48.png"),
+                          color: Colors.blue,
                         ),
                       ),
                     ]),
