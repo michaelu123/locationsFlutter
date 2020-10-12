@@ -1,6 +1,10 @@
 import 'package:flutter/foundation.dart';
 
 class LocData with ChangeNotifier {
+  LocData() {
+    print("LocData constructor");
+  }
+
   // data read from / written to DB
   static Map locDefDaten = {
     "ort": "Zuhause",

@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 
-class BaseConfig with ChangeNotifier {
-  static List datenFelder; // nasty hack, see daten.dart
-  static List zusatzFelder;
-  static List dbDatenFelder;
-  static List dbZusatzFelder;
-  static List dbImagesFelder = [
+class BaseConfig extends ChangeNotifier {
+  List _datenFelder;
+  List _zusatzFelder;
+  List _dbDatenFelder;
+  List _dbZusatzFelder;
+  List _dbImagesFelder = [
     {
       "name": "creator",
       "type": "string",
@@ -43,10 +43,6 @@ class BaseConfig with ChangeNotifier {
   Map<String, dynamic> baseConfigJS;
   Map<String, dynamic> baseJS;
   String base = "";
-
-  BaseConfig() {
-    print("BC constructor");
-  }
 
   List dates = [
     {
@@ -96,7 +92,7 @@ class BaseConfig with ChangeNotifier {
 
   final List dbZusatzPlus = [
     {
-      "nr": "creator",
+      "name": "nr",
       "type": "string",
     },
     {
@@ -137,63 +133,66 @@ class BaseConfig with ChangeNotifier {
 
   void setInitially(Map map, String base) {
     if (baseConfigJS != null) return;
+    if (base == null || base == "") {
+      base = map.keys.toList()[0];
+    }
     print("setBaseConfig $base ${map.keys}");
     baseConfigJS = map;
-    setFelder(base);
+    _setFelder(base);
   }
 
-  void setFelder(abase) {
+  void _setFelder(abase) {
     print("setBase $base $abase");
     if (base == abase) return;
     base = abase;
     baseJS = baseConfigJS[base];
     print("baseJS $baseJS");
 
-    datenFelder = [...baseJS["daten"]["felder"], ...dates];
+    _datenFelder = [...baseJS["daten"]["felder"], ...dates];
     dynamic z = baseJS["zusatz"];
     if (z != null) {
       z = z["felder"];
     }
     if (z != null) {
-      zusatzFelder = [...z, ...dates];
+      _zusatzFelder = [...z, ...dates];
     } else {
-      zusatzFelder = [];
+      _zusatzFelder = [];
     }
-    dbDatenFelder = [...dbDatenPlus, ...baseJS["daten"]["felder"]];
+    _dbDatenFelder = [...dbDatenPlus, ...baseJS["daten"]["felder"]];
     if (z != null) {
-      dbZusatzFelder = [...dbZusatzPlus, ...z];
+      _dbZusatzFelder = [...dbZusatzPlus, ...z];
     } else {
-      dbZusatzFelder = [];
+      _dbZusatzFelder = [];
     }
   }
 
   bool setBase(String abase) {
     print("setBase $base $abase");
     if (base == abase) return false;
-    setFelder(abase);
+    _setFelder(abase);
     print("notify");
     notifyListeners();
     return true;
   }
 
   List getDatenFelder() {
-    return datenFelder;
+    return _datenFelder;
   }
 
   List getZusatzFelder() {
-    return zusatzFelder;
+    return _zusatzFelder;
   }
 
   List getDbDatenFelder() {
-    return dbDatenFelder;
+    return _dbDatenFelder;
   }
 
   List getDbZusatzFelder() {
-    return dbZusatzFelder;
+    return _dbZusatzFelder;
   }
 
   List getDbImagesFelder() {
-    return dbImagesFelder;
+    return _dbImagesFelder;
   }
 
   String getName() {
@@ -205,5 +204,9 @@ class BaseConfig with ChangeNotifier {
   List<String> getNames() {
     print("getNames");
     return baseConfigJS.keys.toList();
+  }
+
+  String getDbName() {
+    return baseJS["db_name"];
   }
 }

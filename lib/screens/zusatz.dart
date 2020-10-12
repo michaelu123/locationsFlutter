@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 
 import 'package:locations/providers/base_config.dart';
 import 'package:locations/screens/account.dart';
-import 'package:locations/widgets/app_config.dart';
 import 'package:locations/utils/felder.dart';
 
 class ZusatzScreen extends StatefulWidget {
@@ -32,7 +31,7 @@ class _ZusatzScreenState extends State<ZusatzScreen>
 
     print("2build $felder");
     return Scaffold(
-      drawer: AppConfig(),
+      // drawer: AppConfig(),
       appBar: AppBar(
         title: Text(baseConfig.getName() + "/Zusatz"),
         actions: [
@@ -52,9 +51,9 @@ class _ZusatzScreenState extends State<ZusatzScreen>
         builder: (ctx, locDaten, _) {
           //print("6build ${DateTime.now()}");
           if (focusHandlers == null) {
-            initFelder(context, true);
+            initFelder(context, baseConfig, true);
           }
-          setFelder(locDaten, true);
+          setFelder(locDaten, baseConfig, true);
           return Column(children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -10,9 +10,10 @@ class Felder {
   List<TextField> textFields;
   List<TextEditingController> controllers;
 
-  void initFelder(BuildContext context, bool useZusatz) {
+  void initFelder(BuildContext context, BaseConfig baseConfig, bool useZusatz) {
     print("1initFel");
-    List felder = useZusatz ? BaseConfig.zusatzFelder : BaseConfig.datenFelder;
+    List felder =
+        useZusatz ? baseConfig.getZusatzFelder() : baseConfig.getDatenFelder();
     int felderLength = felder.length;
     focusNodes = List.generate(
       felderLength,
@@ -86,8 +87,9 @@ class Felder {
     print("2initFel");
   }
 
-  void setFelder(LocData locDaten, bool useZusatz) {
-    List felder = useZusatz ? BaseConfig.zusatzFelder : BaseConfig.datenFelder;
+  void setFelder(LocData locDaten, BaseConfig baseConfig, bool useZusatz) {
+    List felder =
+        useZusatz ? baseConfig.getZusatzFelder() : baseConfig.getDatenFelder();
     int felderLength = felder.length;
     for (int i = 0; i < felderLength; i++) {
       final feld = felder[i];

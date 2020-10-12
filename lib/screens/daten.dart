@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:locations/providers/base_config.dart';
 import 'package:locations/providers/loc_data.dart';
 import 'package:locations/screens/account.dart';
-import 'package:locations/widgets/app_config.dart';
 import 'package:locations/utils/felder.dart';
 
 class DatenScreen extends StatefulWidget {
@@ -31,7 +30,6 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
 
     print("2build $felder");
     return Scaffold(
-      drawer: AppConfig(),
       appBar: AppBar(
         title: Text(baseConfig.getName() + "/Daten"),
         actions: [
@@ -48,29 +46,6 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
           IconButton(
             icon: Icon(Icons.add_a_photo),
             onPressed: null,
-          ),
-          PopupMenuButton(
-            icon: Icon(Icons.more_vert),
-            // child: Text('Auswahl der Datenbasis'),
-            itemBuilder: (_) {
-              print("3build");
-              final List keys = baseConfig.getNames();
-              return List.generate(
-                keys.length,
-                (index) => PopupMenuItem(
-                  child: Text(keys[index]),
-                  value: keys[index] as String,
-                ),
-              );
-            },
-            onSelected: (String selectedValue) {
-              print("4build");
-              if (baseConfig.setBase(selectedValue)) {
-                Provider.of<LocData>(context, listen: false).clearLocData();
-                deleteFelder();
-                print("5build");
-              }
-            },
           ),
         ],
       ),
@@ -121,9 +96,9 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
               builder: (ctx, locDaten, _) {
                 print("6build ${DateTime.now()}");
                 if (focusHandlers == null) {
-                  initFelder(context, false);
+                  initFelder(context, baseConfig, false);
                 }
-                setFelder(locDaten, false);
+                setFelder(locDaten, baseConfig, false);
                 return ListView.builder(
                   itemCount: felder.length,
                   itemBuilder: (ctx, index) {

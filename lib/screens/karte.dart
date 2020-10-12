@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
 import 'package:location/location.dart';
 import 'package:locations/providers/map_center.dart';
+import 'package:locations/providers/settings.dart';
 import 'package:locations/screens/account.dart';
 import 'package:locations/screens/bilder.dart';
 import 'package:locations/screens/daten.dart';
@@ -66,6 +67,9 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
               print("4build");
               if (baseConfig.setBase(selectedValue)) {
                 Provider.of<LocData>(context, listen: false).clearLocData();
+                Provider.of<Settings>(context, listen: false)
+                    .setConfigValue("base", selectedValue);
+
                 deleteFelder();
                 print("5build");
               }

@@ -2,12 +2,16 @@ import 'package:flutter/foundation.dart';
 import 'package:latlong/latlong.dart';
 
 class MapCenter extends ChangeNotifier {
+  MapCenter() {
+    print("MapCenter constructor");
+  }
+
   LatLng center = marienplatz();
 
   void setCenter(LatLng latLng) {
     if (latLng == center) return;
     center = latLng;
-    print("setCenter $this");
+    // print("setCenter $this");
     notifyListeners();
   }
 
@@ -16,7 +20,7 @@ class MapCenter extends ChangeNotifier {
   }
 
   LatLng latLng(String x) {
-    print("latLng $x $this");
+    // print("latLng $x $this");
     return center;
   }
 
