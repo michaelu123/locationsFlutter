@@ -3,6 +3,7 @@ import 'package:sqflite/sqflite.dart' as sql;
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqlite_api.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:intl/intl.dart';
 
 // only dir visible in astro: getExternalStorageDirectory
 
@@ -15,6 +16,8 @@ class LocationsDB {
   static double lat, lon;
   static int stellen;
   static String latRound, lonRound;
+
+  static DateFormat dateFormatter = DateFormat('yyyy.MM.dd HH:mm:ss');
 
   static Future<void> setBase(BaseConfig baseConfig) async {
     if (db != null) await db.close();
@@ -49,7 +52,7 @@ class LocationsDB {
       stmt += " PRIMARY KEY (lat_round, lon_round)";
     } else if (table == "zusatz") {
       stmt +=
-          "PRIMARY KEY (nr), UNIQUE(creator, created, modified, lat_round, lon_round)";
+          "PRIMARY KEY(nr), UNIQUE(creator, created, modified, lat_round, lon_round)";
     } else {
       stmt += "PRIMARY KEY (image_path)";
     }
@@ -99,7 +102,7 @@ class LocationsDB {
     return db.query(table);
   }
 
-  static Future<Map> dataFor2() async {
+  static Future<Map> dataForSameLoc() async {
     return dataFor(lat, lon, stellen);
   }
 
@@ -144,32 +147,51 @@ class LocationsDB {
       whereArgs: [latRound, lonRound],
     );
     return {
+      // res is readOnly
       "daten": makeWritableList(resD),
       "zusatz": makeWritableList(resZ),
       "images": makeWritableList(resI),
     };
   }
 
-  static Future<void> set(String table, String name, Object val) async {
-    int res = await db.update(
-      table,
-      {name: val},
-      where: "lat_round=? and lon_round=?",
-      whereArgs: [latRound, lonRound],
-      conflictAlgorithm: sql.ConflictAlgorithm.replace,
-    );
-    print("res1 $res");
+  static Future<int> updateDB(String table, String name, Object val,
+      {int nr}) async {
+    String where;
+    List whereArgs;
+    if (table == "zusatz") {
+      where = "nr=? and lat_round=? and lon_round=?";
+      whereArgs = [nr, latRound, lonRound];
+    } else {
+      where = "lat_round=? and lon_round=?";
+      whereArgs = [latRound, lonRound];
+    }
+    int res = 0;
+    final now = dateFormatter.format(DateTime.now());
+    if (table != "zusatz" || nr != null) {
+      res = await db.update(
+        table,
+        {name: val, "modified": now},
+        where: where,
+        whereArgs: whereArgs,
+        conflictAlgorithm: sql.ConflictAlgorithm.replace,
+      );
+      print("res1 $res"); // res = number of updated rows
+    }
     if (res == 0) {
       res = await db.insert(table, {
+        // nr is autoincremented
         "lat": lat,
         "lon": lon,
         "lat_round": latRound,
         "lon_round": lonRound,
-        "created": "xxx",
-        "modified": "xxx",
+        "creator": "Muh",
+        "created": now,
+        "modified": now,
         name: val,
       });
       print("res2 $res");
+      return res; // res = the created rowid
     }
+    return null;
   }
 }

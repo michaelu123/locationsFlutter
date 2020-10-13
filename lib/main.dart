@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
           return Consumer<Settings>(
             builder: (ctx, settings, _) {
               return MaterialApp(
-                title: 'Flutter Demo',
+                title: 'Locations',
                 theme: ThemeData(
                   // This is the theme of your application.
                   //

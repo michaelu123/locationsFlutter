@@ -63,7 +63,7 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
                 ),
                 onPressed: () async {
                   final locDaten = Provider.of<LocData>(context, listen: false);
-                  final map = await LocationsDB.dataFor2();
+                  final map = await LocationsDB.dataForSameLoc();
                   locDaten.dataFor("zusatz", map);
                   Navigator.of(context).pushNamed(ZusatzScreen.routeName);
                 },

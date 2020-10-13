@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
@@ -14,7 +16,68 @@ import 'package:locations/widgets/app_config.dart';
 import 'package:locations/providers/base_config.dart';
 import 'package:locations/providers/loc_data.dart';
 import 'package:locations/widgets/crosshair.dart';
+// import 'package:locations/widgets/markers.dart';
 import 'package:provider/provider.dart';
+
+var markers = [
+  Marker(
+    //anchorPos: AnchorPos.exactly(Anchor(0, 20)),
+    anchorPos: AnchorPos.align(AnchorAlign.top),
+    width: 40.0,
+    height: 36.0,
+    point: LatLng(48.137235, 11.57554),
+    // builder: (ctx) => ImageIcon(
+    //   AssetImage("assets/icons/red_plus48.png"),
+    //   color: Colors.blue,
+    // ),
+    builder: (ctx) => Icon(
+      //Icons.location_pin,
+      Icons.location_on_outlined,
+      //Icons.add_location,
+      //Icons.location_on,
+      color: Colors.blue,
+      size: 40,
+    ),
+  ),
+  Marker(
+    //anchorPos: AnchorPos.exactly(Anchor(0, 20)),
+    anchorPos: AnchorPos.align(AnchorAlign.top),
+    width: 40.0,
+    height: 36.0,
+    point: LatLng(48.136251, 11.572614),
+    // builder: (ctx) => ImageIcon(
+    //   AssetImage("assets/icons/red_plus48.png"),
+    //   color: Colors.blue,
+    // ),
+    builder: (ctx) => Icon(
+      //Icons.location_pin,
+      Icons.location_on_outlined,
+      //Icons.add_location,
+      //Icons.location_on,
+      color: Colors.blue,
+      size: 40,
+    ),
+  ),
+  Marker(
+    //anchorPos: AnchorPos.exactly(Anchor(0, 20)),
+    anchorPos: AnchorPos.align(AnchorAlign.top),
+    width: 40.0,
+    height: 36.0,
+    point: LatLng(48.133, 11.565),
+    // builder: (ctx) => ImageIcon(
+    //   AssetImage("assets/icons/red_plus48.png"),
+    //   color: Colors.blue,
+    // ),
+    builder: (ctx) => Icon(
+      //Icons.location_pin,
+      Icons.location_on_outlined,
+      //Icons.add_location,
+      //Icons.location_on,
+      color: Colors.blue,
+      size: 40,
+    ),
+  ),
+];
 
 class KartenScreen extends StatefulWidget {
   static String routeName = "/karte";
@@ -26,11 +89,44 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   double mapLat = 0, mapLon = 0;
   final mapController = MapController();
 
+  // strange that FlutterMap does not have Marker.onTap...
+  // see flutter_map_marker_popup for more elaborated code.
+  void onTapped(LatLng latlng, LocData locData, int stellen) {
+    double nearestLat = 0;
+    double nearestLon = 0;
+    double nearestDist = double.maxFinite;
+    markers.forEach((m) {
+      final dlat = (m.point.latitude - latlng.latitude);
+      final dlon = (m.point.longitude - latlng.longitude);
+      final dist = sqrt(dlat * dlat + dlon * dlon);
+      if (dist < nearestDist) {
+        nearestLat = m.point.latitude;
+        nearestLon = m.point.longitude;
+        nearestDist = dist;
+      }
+    });
+    double zoom = mapController.zoom;
+    // for zoom 19, I think 0.0001 is a good minimum distance
+    // if the zoom goes down by 1, the distance halves.
+    // 19:1 18:2 17:4 16:8...
+    nearestDist = nearestDist / pow(2, 19 - zoom);
+    // print("onTapped $zoom, $nearestDist $nearestLat $nearestLon");
+    if (nearestDist < 0.0001) {
+      mapController.move(LatLng(nearestLat, nearestLon), mapController.zoom);
+      Future.delayed(const Duration(milliseconds: 500), () async {
+        final map = await LocationsDB.dataFor(mapLat, mapLon, stellen);
+        locData.dataFor("daten", map);
+        Navigator.of(context).pushNamed(DatenScreen.routeName);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final baseConfig = Provider.of<BaseConfig>(context);
     final configGPS = baseConfig.getGPS();
     final mapCenter = Provider.of<MapCenter>(context, listen: false);
+    final locData = Provider.of<LocData>(context, listen: false);
 
     return Scaffold(
       drawer: AppConfig(),
@@ -66,7 +162,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
             },
             onSelected: (String selectedValue) {
               if (baseConfig.setBase(selectedValue)) {
-                Provider.of<LocData>(context, listen: false).clearLocData();
+                locData.clearLocData();
                 Provider.of<Settings>(context, listen: false)
                     .setConfigValue("base", selectedValue);
                 LocationsDB.setBase(baseConfig);
@@ -86,10 +182,9 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                   backgroundColor: Colors.amber,
                 ),
                 onPressed: () async {
-                  final locDaten = Provider.of<LocData>(context, listen: false);
                   final map = await LocationsDB.dataFor(
                       mapLat, mapLon, baseConfig.stellen());
-                  locDaten.dataFor("daten", map);
+                  locData.dataFor("daten", map);
                   Navigator.of(context).pushNamed(DatenScreen.routeName);
                 },
                 child: Text(
@@ -101,10 +196,9 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                   backgroundColor: Colors.amber,
                 ),
                 onPressed: () async {
-                  final locDaten = Provider.of<LocData>(context, listen: false);
                   final map = await LocationsDB.dataFor(
                       mapLat, mapLon, baseConfig.stellen());
-                  locDaten.dataFor("zusatz", map);
+                  locData.dataFor("zusatz", map);
                   Navigator.of(context).pushNamed(ZusatzScreen.routeName);
                 },
                 child: Text(
@@ -127,9 +221,9 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                   backgroundColor: Colors.amber,
                 ),
                 onPressed: () async {
-                  final locData = await Location().getLocation();
+                  final locationData = await Location().getLocation();
                   mapController.move(
-                      LatLng(locData.latitude, locData.longitude),
+                      LatLng(locationData.latitude, locationData.longitude),
                       mapController.zoom);
                 },
                 child: Text(
@@ -147,9 +241,6 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                         configGPS["center_lon"],
                       ),
                       mapController.zoom);
-                  // final mapCenter =
-                  //     Provider.of<MapCenter>(context, listen: false);
-                  // mapCenter.setCenter(MapCenter.marienplatz());
                 },
                 child: Text(
                   'Zentrieren',
@@ -182,14 +273,29 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                         });
                       });
                     },
-                    plugins: [CrossHairMapPlugin()],
-                    center: LatLng(
-                      configGPS["center_lat"],
-                      configGPS["center_lon"],
-                    ),
+                    plugins: [
+                      CrossHairMapPlugin(),
+                    ],
+                    center: LocationsDB.lat == null
+                        ? LatLng(
+                            configGPS["center_lat"],
+                            configGPS["center_lon"],
+                          )
+                        : LatLng(
+                            // use this if coming back from Daten/Zusatz
+                            LocationsDB.lat,
+                            LocationsDB.lon,
+                          ),
                     zoom: 16.0,
                     minZoom: configGPS["min_zoom"] * 1.0,
                     maxZoom: 19,
+                    onTap: (latlng) {
+                      onTapped(
+                        latlng,
+                        locData,
+                        baseConfig.stellen(),
+                      );
+                    },
                   ),
                   layers: [
                     TileLayerOptions(
@@ -198,19 +304,9 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                         urlTemplate:
                             "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                         subdomains: ['a', 'b', 'c']),
-                    MarkerLayerOptions(markers: [
-                      Marker(
-                        //anchorPos: AnchorPos.exactly(Anchor(0, 20)),
-                        anchorPos: AnchorPos.align(AnchorAlign.top),
-                        width: 30.0,
-                        height: 30.0,
-                        point: LatLng(48.137235, 11.57554),
-                        builder: (ctx) => ImageIcon(
-                          AssetImage("assets/icons/red_plus48.png"),
-                          color: Colors.blue,
-                        ),
-                      ),
-                    ]),
+                    MarkerLayerOptions(
+                      markers: markers,
+                    ),
                     CrossHairLayerOptions(
                       crossHair: CrossHair(
                         color: Colors.black,

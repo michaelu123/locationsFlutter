@@ -3,43 +3,10 @@ import 'package:locations/providers/db.dart';
 
 class LocData with ChangeNotifier {
   // data read from / written to DB
-  static Map locDefDaten = {
-    "ort": "Zuhause",
-    "wetter": "gut",
-    "anzahl": 111,
-    "abstand": 1,
-    "created": "2020.01.01",
-    "modified": "2020.12.31",
-  };
-
-  static List locDefZusatz = [
-    {
-      "wetter": "gut",
-      "auslastung": 10,
-      "bemerkung": "Keine",
-      "created": "2020.01.02",
-      "modified": "2020.12.31",
-    },
-    {
-      "wetter": "mittel",
-      "auslastung": 20,
-      "bemerkung": "Keine",
-      "created": "2020.01.03",
-      "modified": "2020.12.31",
-    },
-    {
-      "wetter": "schlecht",
-      "auslastung": 30,
-      "bemerkung": "Keine",
-      "created": "2020.01.04",
-      "modified": "2020.12.31",
-    },
-  ];
-
-  Map locDaten = locDefDaten;
+  Map locDaten = {};
   List locImages = [];
   int imageIndex;
-  List locZusatz = locDefZusatz;
+  List locZusatz = [];
   bool isZusatz = false;
   int zusatzIndex = 0;
 
@@ -80,16 +47,19 @@ class LocData with ChangeNotifier {
       print("setZusatz $name $type $val $zusatzIndex");
       final v = locZusatz[zusatzIndex][name];
       if (v != val) {
+        int nr = locZusatz[zusatzIndex]["nr"];
         locZusatz[zusatzIndex][name] = val;
-        await LocationsDB.set("zusatz", name, val);
-        print("LocZusatz $zusatzIndex $name changed from $v to $val");
+        nr = await LocationsDB.updateDB("zusatz", name, val, nr: nr);
+        print(
+            "LocZusatz index=$zusatzIndex nr=$nr $name changed from $v to $val");
+        if (nr != null) locZusatz[zusatzIndex]["nr"] = nr;
       }
     } else {
       print("setDaten $name $type $val");
       final v = locDaten[name];
       if (v != val) {
         locDaten[name] = val;
-        await LocationsDB.set("daten", name, val);
+        await LocationsDB.updateDB("daten", name, val);
         print("LocDatum $name changed from $v to $val");
       }
     }

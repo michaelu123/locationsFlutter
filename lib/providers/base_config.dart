@@ -93,7 +93,7 @@ class BaseConfig extends ChangeNotifier {
   final List dbZusatzPlus = [
     {
       "name": "nr",
-      "type": "string",
+      "type": "int",
     },
     {
       "name": "creator",
