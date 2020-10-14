@@ -6,7 +6,7 @@ class LocData with ChangeNotifier {
   // data read from / written to DB
   Map locDaten = {};
   List locImages = [];
-  int imageIndex;
+  int imagesIndex = 0;
   List locZusatz = [];
   bool isZusatz = false;
   int zusatzIndex = 0;
@@ -19,16 +19,6 @@ class LocData with ChangeNotifier {
     notifyListeners();
   }
 
-  void setZusatzIndex(int x) {
-    zusatzIndex = x;
-    notifyListeners();
-  }
-
-  void setImageIndex(int x) {
-    imageIndex = x;
-    notifyListeners();
-  }
-
   void clearLocData() {
     locDaten = {};
     locZusatz = [];
@@ -38,38 +28,56 @@ class LocData with ChangeNotifier {
 
   Future<void> setFeld(
       Markers markers, String name, String type, Object val) async {
+    Map res;
     if (isZusatz) {
       print("setZusatz $name $type $val $zusatzIndex");
       final v = locZusatz[zusatzIndex][name];
       if (v != val) {
         int nr = locZusatz[zusatzIndex]["nr"];
         locZusatz[zusatzIndex][name] = val;
-        nr = await LocationsDB.updateDB("zusatz", name, val, nr: nr);
-        print(
-            "LocZusatz index=$zusatzIndex nr=$nr $name changed from $v to $val");
+        res = await LocationsDB.updateDB("zusatz", name, val, nr: nr);
+        nr = res["nr"];
+        //print(
+        //    "LocZusatz index=$zusatzIndex nr=$nr $name changed from $v to $val");
         if (nr != null) locZusatz[zusatzIndex]["nr"] = nr;
+        final created = res["created"];
+        if (created != null) {
+          locZusatz[zusatzIndex]["created"] = created;
+          locZusatz[zusatzIndex]["modified"] = created;
+        }
+        final modified = res["modified"];
+        if (modified != null) {
+          locZusatz[zusatzIndex]["modified"] = modified;
+        }
+        notifyListeners();
       }
     } else {
       print("setDaten $name $type $val");
       final v = locDaten[name];
       if (v != val) {
         locDaten[name] = val;
-        await LocationsDB.updateDB("daten", name, val);
-        print("LocDatum $name changed from $v to $val");
+        res = await LocationsDB.updateDB("daten", name, val);
+        // print("LocDatum $name changed from $v to $val");
+        final created = res["created"];
+        if (created != null) {
+          locDaten["created"] = created;
+          locDaten["modified"] = created;
+        }
+        final modified = res["modified"];
+        if (modified != null) {
+          locDaten["modified"] = modified;
+        }
+        notifyListeners();
       }
     }
 
     final coord = Coord();
     coord.lat = LocationsDB.lat;
     coord.lon = LocationsDB.lon;
-    coord.quality = qualityOf(locDaten);
+    coord.quality = LocationsDB.qualityOf(locDaten);
     coord.hasImage = locImages.length > 0;
     markers.current(coord);
     // no notify
-  }
-
-  int qualityOf(Map row) {
-    return 0;
   }
 
   String getFeldText(String name, String type) {
@@ -86,14 +94,14 @@ class LocData with ChangeNotifier {
     return t.toString();
   }
 
-  void decIndex() {
+  void decIndexZusatz() {
     if (zusatzIndex > 0) {
       zusatzIndex--;
       notifyListeners();
     }
   }
 
-  void incIndex() {
+  void incIndexZusatz() {
     if (zusatzIndex < locZusatz.length - 1) {
       zusatzIndex++;
       notifyListeners();
@@ -110,11 +118,58 @@ class LocData with ChangeNotifier {
     notifyListeners();
   }
 
-  bool canDec() {
+  bool canDecZusatz() {
     return zusatzIndex > 0;
   }
 
-  bool canInc() {
+  bool canIncZusatz() {
     return zusatzIndex < (locZusatz.length - 1);
+  }
+
+  int deleteZusatz() {
+    int nr = locZusatz[zusatzIndex]["nr"];
+    locZusatz.removeAt(zusatzIndex);
+    if (zusatzIndex >= locZusatz.length) zusatzIndex = locZusatz.length - 1;
+    notifyListeners();
+    return nr;
+  }
+
+  void decIndexImages() {
+    if (imagesIndex > 0) {
+      imagesIndex--;
+      notifyListeners();
+    }
+  }
+
+  void incIndexImages() {
+    if (imagesIndex < locImages.length - 1) {
+      imagesIndex++;
+      notifyListeners();
+    }
+  }
+
+  bool isEmptyImages() {
+    return (locImages.length) == 0;
+  }
+
+  void addImage(Map map) {
+    locImages.add(map);
+    notifyListeners();
+  }
+
+  bool canDecImages() {
+    return imagesIndex > 0;
+  }
+
+  bool canIncImages() {
+    return imagesIndex < (locImages.length - 1);
+  }
+
+  String deleteImage() {
+    String imgPath = locImages[imagesIndex]["image_path"];
+    locImages.removeAt(imagesIndex);
+    if (imagesIndex >= locImages.length) imagesIndex = locImages.length - 1;
+    notifyListeners();
+    return imgPath;
   }
 }

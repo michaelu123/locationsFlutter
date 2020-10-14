@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:locations/providers/base_config.dart';
 import 'package:sqflite/sqflite.dart' as sql;
 import 'package:path/path.dart' as path;
@@ -75,7 +77,14 @@ class LocationsDB {
 
   static Future<Database> database() async {
 // only dir visible in Astro: getExternalStorageDirectory
+
     final extPath = await getExternalStorageDirectory();
+
+    // while we are at the extstor:
+    final imgDirPath = path.join(extPath.path, "images");
+    final imageDir = Directory(imgDirPath);
+    imageDir.create(recursive: true);
+
     final dbPath = path.join(extPath.path, "db", dbName);
     // await sql.deleteDatabase(dbPath);
     final db = await sql.openDatabase(
@@ -160,7 +169,7 @@ class LocationsDB {
     };
   }
 
-  static Future<int> updateDB(String table, String name, Object val,
+  static Future<Map> updateDB(String table, String name, Object val,
       {int nr}) async {
     String where;
     List whereArgs;
@@ -171,34 +180,33 @@ class LocationsDB {
       where = "lat_round=? and lon_round=?";
       whereArgs = [latRound, lonRound];
     }
-    int res = 0;
     final now = dateFormatter.format(DateTime.now());
     if (table != "zusatz" || nr != null) {
-      res = await db.update(
+      int res = await db.update(
         table,
         {name: val, "modified": now},
         where: where,
         whereArgs: whereArgs,
         conflictAlgorithm: sql.ConflictAlgorithm.replace,
       );
-      print("res1 $res"); // res = number of updated rows
+      // res = number of updated rows
+      if (res != 0) {
+        return {"modified": now};
+      }
     }
-    if (res == 0) {
-      res = await db.insert(table, {
-        // nr is autoincremented
-        "lat": lat,
-        "lon": lon,
-        "lat_round": latRound,
-        "lon_round": lonRound,
-        "creator": "Muh",
-        "created": now,
-        "modified": now,
-        name: val,
-      });
-      print("res2 $res");
-      return res; // res = the created rowid
-    }
-    return null;
+    int res = await db.insert(table, {
+      // nr is autoincremented
+      "lat": lat,
+      "lon": lon,
+      "lat_round": latRound,
+      "lon_round": lonRound,
+      "creator": "Muh",
+      "created": now,
+      "modified": now,
+      name: val,
+    });
+    // res = the created rowid
+    return {"nr": res, "created": now};
   }
 
   // works only for Abstellanlagen...
@@ -233,17 +241,19 @@ class LocationsDB {
       key = '${res["lat_round"]}:${res["lon_round"]}';
       map[key] = coord;
     }
-    final resZ = await db.query("zusatz");
-    for (final res in resZ) {
-      key = '${res["lat_round"]}:${res["lon_round"]}';
-      var coord = map[key];
-      if (coord == null) {
-        final coord = Coord();
-        coord.lat = res["lat"];
-        coord.lon = res["lon"];
-        coord.quality = 0;
-        coord.hasImage = false;
-        map[key] = coord;
+    if (hasZusatz) {
+      final resZ = await db.query("zusatz");
+      for (final res in resZ) {
+        key = '${res["lat_round"]}:${res["lon_round"]}';
+        var coord = map[key];
+        if (coord == null) {
+          final coord = Coord();
+          coord.lat = res["lat"];
+          coord.lon = res["lon"];
+          coord.quality = 0;
+          coord.hasImage = false;
+          map[key] = coord;
+        }
       }
     }
     final resI = await db.query("images");
@@ -262,4 +272,23 @@ class LocationsDB {
     print("2readCoords");
     return map.values.toList();
   }
+
+  static void deleteAll(double lat, double lon) {
+    String where = "lat_round=? and lon_round=?";
+    List whereArgs = [
+      lat.toStringAsFixed(stellen),
+      lon.toStringAsFixed(stellen),
+    ];
+    db.delete("daten", where: where, whereArgs: whereArgs);
+    db.delete("images", where: where, whereArgs: whereArgs);
+    db.delete("zusatz", where: where, whereArgs: whereArgs);
+  }
+
+  static void deleteZusatz(int nr) {
+    String where = "nr=? and lat_round=? and lon_round=?";
+    List whereArgs = [nr, latRound, lonRound];
+    db.delete("zusatz", where: where, whereArgs: whereArgs);
+  }
+
+  static void deleteImage(String imgPath) {}
 }

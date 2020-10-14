@@ -12,7 +12,7 @@ class Felder {
   List<TextEditingController> controllers;
 
   void initFelder(BuildContext context, BaseConfig baseConfig, bool useZusatz) {
-    print("1initFel");
+    print("initFelder");
     List felder =
         useZusatz ? baseConfig.getZusatzFelder() : baseConfig.getDatenFelder();
     int felderLength = felder.length;
@@ -29,9 +29,10 @@ class Felder {
             final l = fixText(controllers[index].text, felder[index]);
             controllers[index].text = l[0];
             // can call Provider here because cb is called in other context
-            final locData = Provider.of<LocData>(context, listen: false);
-            final markers = Provider.of<Markers>(context, listen: false);
-            locData.setFeld(markers, felder[index]['name'], felder[index]["type"], l[1]);
+            final locDataNL = Provider.of<LocData>(context, listen: false);
+            final markersNL = Provider.of<Markers>(context, listen: false);
+            locDataNL.setFeld(
+                markersNL, felder[index]['name'], felder[index]["type"], l[1]);
           }
         }
 
@@ -63,11 +64,11 @@ class Felder {
           onSubmitted: (text) {
             final l = fixText(text, feld);
             controllers[index].text = l[0];
-            print("onsubmitted $text");
+            // print("onsubmitted $text");
 
-            final locData = Provider.of<LocData>(context, listen: false);
-            final markers = Provider.of<Markers>(context, listen: false);
-            locData.setFeld(markers, feld['name'], feldType, l[1]);
+            final locDataNL = Provider.of<LocData>(context, listen: false);
+            final markersNL = Provider.of<Markers>(context, listen: false);
+            locDataNL.setFeld(markersNL, feld['name'], feldType, l[1]);
             int x1 = (index + 1) % felderLength;
             if (controllers[x1].text == "") {
               FocusScope.of(context).requestFocus(focusNodes[x1]);
@@ -86,7 +87,6 @@ class Felder {
     for (int i = 0; i < felderLength; i++) {
       focusNodes[i].addListener(focusHandlers[i]);
     }
-    print("2initFel");
   }
 
   void setFelder(LocData locDaten, BaseConfig baseConfig, bool useZusatz) {
@@ -101,13 +101,12 @@ class Felder {
 
   void deleteFelder() {
     if (focusNodes == null) return;
-    print("1delfel");
+    print("deleteFelder");
     for (var i = 0; i < focusNodes.length; i++) {
       focusNodes[i].removeListener(focusHandlers[i]);
       // focusNodes[i].dispose();
       // controllers[i].dispose();
     }
-    print("2delfel");
     focusNodes = null;
     controllers = null;
     focusHandlers = null;

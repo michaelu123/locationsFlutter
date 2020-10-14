@@ -9,6 +9,7 @@ class Markers extends ChangeNotifier {
   static int stellen;
 
   Future<void> readMarkers(int astellen) async {
+    _markers = {};
     stellen = astellen;
     List<Coord> coords = await LocationsDB.readCoords();
     coords.forEach((coord) {
@@ -46,5 +47,12 @@ class Markers extends ChangeNotifier {
 
   List<Marker> markers() {
     return _markers.values.toList();
+  }
+
+  void deleteLoc(double lat, double lon) {
+    final key =
+        "${lat.toStringAsFixed(stellen)}:${lon.toStringAsFixed(stellen)}";
+    _markers.remove(key);
+    notifyListeners();
   }
 }

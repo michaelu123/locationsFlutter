@@ -212,4 +212,8 @@ class BaseConfig extends ChangeNotifier {
   int stellen() {
     return baseJS["gps"]["nachkommastellen"];
   }
+
+  bool hasZusatz() {
+    return _zusatzFelder.length > 0;
+  }
 }

@@ -1,22 +1,24 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/services.dart' show rootBundle;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:locations/providers/base_config.dart';
 import 'package:locations/providers/db.dart';
+import 'package:locations/providers/loc_data.dart';
+import 'package:locations/providers/map_center.dart';
 import 'package:locations/providers/markers.dart';
+import 'package:locations/providers/photos.dart';
 import 'package:locations/providers/settings.dart';
+import 'package:locations/screens/account.dart';
+import 'package:locations/screens/bilder.dart';
+import 'package:locations/screens/daten.dart';
+import 'package:locations/screens/karte.dart';
+import 'package:locations/screens/splash_screen.dart';
+import 'package:locations/screens/zusatz.dart';
+import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:path/path.dart' as path;
-
-import 'package:locations/providers/map_center.dart';
-import 'package:locations/screens/account.dart';
-import 'package:locations/providers/base_config.dart';
-import 'package:locations/providers/loc_data.dart';
-import 'package:locations/screens/zusatz.dart';
-import 'package:locations/screens/bilder.dart';
-import 'package:locations/screens/karte.dart';
-import 'package:locations/screens/daten.dart';
 
 void main() {
   runApp(MyApp());
@@ -41,6 +43,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (BuildContext context) => Markers(),
+        ),
+        ChangeNotifierProvider(
+          create: (BuildContext context) => Photos(),
         ),
       ],
       child: Consumer<BaseConfig>(
@@ -69,9 +74,7 @@ class MyApp extends StatelessWidget {
                       : readConfig(baseConfig, settings),
                   builder: (ctx, snap) {
                     if (snap.connectionState == ConnectionState.waiting) {
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
+                      return SplashScreen();
                     }
                     if (snap.hasError) {
                       return Center(
@@ -87,7 +90,7 @@ class MyApp extends StatelessWidget {
                   },
                 ),
                 routes: {
-                  BilderScreen.routeName: (ctx) => BilderScreen(),
+                  ImagesScreen.routeName: (ctx) => ImagesScreen(),
                   DatenScreen.routeName: (ctx) => DatenScreen(),
                   ZusatzScreen.routeName: (ctx) => ZusatzScreen(),
                   KartenScreen.routeName: (ctx) => KartenScreen(),

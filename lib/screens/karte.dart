@@ -11,6 +11,7 @@ import 'package:locations/providers/settings.dart';
 import 'package:locations/screens/account.dart';
 import 'package:locations/screens/bilder.dart';
 import 'package:locations/screens/daten.dart';
+import 'package:locations/screens/splash_screen.dart';
 import 'package:locations/screens/zusatz.dart';
 import 'package:locations/utils/felder.dart';
 import 'package:locations/widgets/app_config.dart';
@@ -34,9 +35,9 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   @override
   void initState() {
     super.initState();
-    final baseConfig = Provider.of<BaseConfig>(context, listen: false);
-    final markers = Provider.of<Markers>(context, listen: false);
-    markersFuture = markers.readMarkers(baseConfig.stellen());
+    final baseConfigNL = Provider.of<BaseConfig>(context, listen: false);
+    final markersNL = Provider.of<Markers>(context, listen: false);
+    markersFuture = markersNL.readMarkers(baseConfigNL.stellen());
   }
 
   // strange that FlutterMap does not have Marker.onTap...
@@ -72,11 +73,17 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
     }
   }
 
+  void deleteLoc(Markers markers) {
+    LocationsDB.deleteAll(mapLat, mapLon);
+    markers.deleteLoc(mapLat, mapLon);
+    // LocationsServer.deleteLoc(mapLat, mapLon);
+  }
+
   @override
   Widget build(BuildContext context) {
     final baseConfig = Provider.of<BaseConfig>(context);
-    final mapCenter = Provider.of<MapCenter>(context, listen: false);
-    final locData = Provider.of<LocData>(context, listen: false);
+    final mapCenterNL = Provider.of<MapCenter>(context, listen: false);
+    final locDataNL = Provider.of<LocData>(context, listen: false);
     final configGPS = baseConfig.getGPS();
 
     return Scaffold(
@@ -92,11 +99,8 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
           ),
           IconButton(
             icon: Icon(Icons.delete),
-            onPressed: null,
-          ),
-          IconButton(
-            icon: Icon(Icons.add_a_photo),
-            onPressed: null,
+            onPressed: () =>
+                deleteLoc(Provider.of<Markers>(context, listen: false)),
           ),
           PopupMenuButton(
             icon: Icon(Icons.more_vert),
@@ -113,11 +117,14 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
             },
             onSelected: (String selectedValue) {
               if (baseConfig.setBase(selectedValue)) {
-                locData.clearLocData();
+                locDataNL.clearLocData();
                 Provider.of<Settings>(context, listen: false)
                     .setConfigValue("base", selectedValue);
-                LocationsDB.setBase(baseConfig);
-                deleteFelder();
+                LocationsDB.setBase(baseConfig).then((_) {
+                  // deleteFelder();
+                  Provider.of<Markers>(context, listen: false)
+                      .readMarkers(baseConfig.stellen());
+                });
               }
             },
           ),
@@ -135,33 +142,34 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                 onPressed: () async {
                   final map = await LocationsDB.dataFor(
                       mapLat, mapLon, baseConfig.stellen());
-                  locData.dataFor("daten", map);
+                  locDataNL.dataFor("daten", map);
                   Navigator.of(context).pushNamed(DatenScreen.routeName);
                 },
                 child: Text(
                   'Daten',
                 ),
               ),
-              TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.amber,
+              if (baseConfig.hasZusatz())
+                TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                  ),
+                  onPressed: () async {
+                    final map = await LocationsDB.dataFor(
+                        mapLat, mapLon, baseConfig.stellen());
+                    locDataNL.dataFor("zusatz", map);
+                    Navigator.of(context).pushNamed(ZusatzScreen.routeName);
+                  },
+                  child: Text(
+                    'Zusatzdaten',
+                  ),
                 ),
-                onPressed: () async {
-                  final map = await LocationsDB.dataFor(
-                      mapLat, mapLon, baseConfig.stellen());
-                  locData.dataFor("zusatz", map);
-                  Navigator.of(context).pushNamed(ZusatzScreen.routeName);
-                },
-                child: Text(
-                  'Zusatzdaten',
-                ),
-              ),
               TextButton(
                 style: TextButton.styleFrom(
                   backgroundColor: Colors.amber,
                 ),
                 onPressed: () {
-                  Navigator.of(context).pushNamed(BilderScreen.routeName);
+                  Navigator.of(context).pushNamed(ImagesScreen.routeName);
                 },
                 child: Text(
                   'Bilder',
@@ -206,9 +214,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                   future: markersFuture,
                   builder: (ctx, snap) {
                     if (snap.connectionState == ConnectionState.waiting) {
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
+                      return SplashScreen();
                     }
                     if (snap.hasError) {
                       return Center(
@@ -236,7 +242,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                             onPositionChanged: (pos, b) {
                               // onPositionChanged is called too early during build, must defer
                               WidgetsBinding.instance.addPostFrameCallback((_) {
-                                mapCenter.setCenter(pos.center);
+                                mapCenterNL.setCenter(pos.center);
                                 setState(() {
                                   // for the Text at the bottom of the screen
                                   mapLat = pos.center.latitude;
@@ -264,7 +270,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                               onTapped(
                                 markers.markers(),
                                 latlng,
-                                locData,
+                                locDataNL,
                                 baseConfig.stellen(),
                               );
                             },
@@ -309,26 +315,3 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
     );
   }
 }
-
-/*
-
-                FutureBuilder(
-                  future: readMarkers(),
-                  builder: (ctx, snap) {
-                    if (snap.connectionState == ConnectionState.waiting) {
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
-                    if (snap.hasError) {
-                      return Center(
-                        child: Text(
-                          "error ${snap.error}",
-                          style: TextStyle(
-                            fontSize: 20,
-                          ),
-                        ),
-                      );
-                    }
-                    return 
-*/

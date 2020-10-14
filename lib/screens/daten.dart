@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:locations/providers/db.dart';
+import 'package:locations/providers/markers.dart';
+import 'package:locations/providers/photos.dart';
 import 'package:locations/screens/zusatz.dart';
 import 'package:locations/screens/bilder.dart';
 import 'package:locations/screens/karte.dart';
@@ -17,6 +19,13 @@ class DatenScreen extends StatefulWidget {
 
 class _DatenScreenState extends State<DatenScreen> with Felder {
   @override
+  void initState() {
+    super.initState();
+    final baseConfigNL = Provider.of<BaseConfig>(context, listen: false);
+    initFelder(context, baseConfigNL, false);
+  }
+
+  @override
   void dispose() {
     super.dispose();
     deleteFelder();
@@ -32,12 +41,13 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
         title: Text(baseConfig.getName() + "/Daten"),
         actions: [
           IconButton(
-            icon: Icon(Icons.delete),
-            onPressed: null,
-          ),
-          IconButton(
             icon: Icon(Icons.add_a_photo),
-            onPressed: null,
+            onPressed: () {
+              final photosNL = Provider.of<Photos>(context, listen: false);
+              final markersNL = Provider.of<Markers>(context, listen: false);
+              final locDataNL = Provider.of<LocData>(context, listen: false);
+              photosNL.takePicture(markersNL, locDataNL);
+            },
           ),
         ],
       ),
@@ -57,26 +67,28 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
                   'Karte',
                 ),
               ),
-              TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.amber,
+              if (baseConfig.hasZusatz())
+                TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                  ),
+                  onPressed: () async {
+                    final locDataNL =
+                        Provider.of<LocData>(context, listen: false);
+                    final map = await LocationsDB.dataForSameLoc();
+                    locDataNL.dataFor("zusatz", map);
+                    Navigator.of(context).pushNamed(ZusatzScreen.routeName);
+                  },
+                  child: Text(
+                    'Zusatzdaten',
+                  ),
                 ),
-                onPressed: () async {
-                  final locDaten = Provider.of<LocData>(context, listen: false);
-                  final map = await LocationsDB.dataForSameLoc();
-                  locDaten.dataFor("zusatz", map);
-                  Navigator.of(context).pushNamed(ZusatzScreen.routeName);
-                },
-                child: Text(
-                  'Zusatzdaten',
-                ),
-              ),
               TextButton(
                 style: TextButton.styleFrom(
                   backgroundColor: Colors.amber,
                 ),
                 onPressed: () {
-                  Navigator.of(context).pushNamed(BilderScreen.routeName);
+                  Navigator.of(context).pushNamed(ImagesScreen.routeName);
                 },
                 child: Text(
                   'Bilder',
@@ -87,9 +99,6 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
           Expanded(
             child: Consumer<LocData>(
               builder: (ctx, locDaten, _) {
-                if (focusHandlers == null) {
-                  initFelder(context, baseConfig, false);
-                }
                 setFelder(locDaten, baseConfig, false);
                 return ListView.builder(
                   itemCount: felder.length,
