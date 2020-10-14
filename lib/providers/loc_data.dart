@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:locations/providers/db.dart';
+import 'package:locations/providers/markers.dart';
 
 class LocData with ChangeNotifier {
   // data read from / written to DB
@@ -28,13 +29,6 @@ class LocData with ChangeNotifier {
     notifyListeners();
   }
 
-  void setLocData(double lat, double lon) {
-    locDaten = {};
-    locZusatz = [];
-    locImages = [];
-    notifyListeners();
-  }
-
   void clearLocData() {
     locDaten = {};
     locZusatz = [];
@@ -42,7 +36,8 @@ class LocData with ChangeNotifier {
     isZusatz = false;
   }
 
-  Future<void> setFeld(String name, String type, Object val) async {
+  Future<void> setFeld(
+      Markers markers, String name, String type, Object val) async {
     if (isZusatz) {
       print("setZusatz $name $type $val $zusatzIndex");
       final v = locZusatz[zusatzIndex][name];
@@ -63,7 +58,18 @@ class LocData with ChangeNotifier {
         print("LocDatum $name changed from $v to $val");
       }
     }
+
+    final coord = Coord();
+    coord.lat = LocationsDB.lat;
+    coord.lon = LocationsDB.lon;
+    coord.quality = qualityOf(locDaten);
+    coord.hasImage = locImages.length > 0;
+    markers.current(coord);
     // no notify
+  }
+
+  int qualityOf(Map row) {
+    return 0;
   }
 
   String getFeldText(String name, String type) {

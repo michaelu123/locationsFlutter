@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
 import 'package:locations/providers/db.dart';
+import 'package:locations/providers/markers.dart';
 import 'package:locations/providers/settings.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -37,6 +38,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (BuildContext context) => MapCenter(),
+        ),
+        ChangeNotifierProvider(
+          create: (BuildContext context) => Markers(),
         ),
       ],
       child: Consumer<BaseConfig>(

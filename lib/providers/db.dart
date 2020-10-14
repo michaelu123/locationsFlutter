@@ -5,7 +5,12 @@ import 'package:sqflite/sqlite_api.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 
-// only dir visible in astro: getExternalStorageDirectory
+class Coord {
+  double lat;
+  double lon;
+  int quality;
+  bool hasImage;
+}
 
 class LocationsDB {
   static String dbName;
@@ -69,6 +74,7 @@ class LocationsDB {
   }
 
   static Future<Database> database() async {
+// only dir visible in Astro: getExternalStorageDirectory
     final extPath = await getExternalStorageDirectory();
     final dbPath = path.join(extPath.path, "db", dbName);
     // await sql.deleteDatabase(dbPath);
@@ -193,5 +199,67 @@ class LocationsDB {
       return res; // res = the created rowid
     }
     return null;
+  }
+
+  // works only for Abstellanlagen...
+  static int qualityOf(Map row) {
+    var good = 0;
+    for (final f in [
+      "abschließbar",
+      "anlehnbar",
+      "abstand",
+      "ausparken",
+      "geschützt",
+    ]) {
+      if (row[f] == 1) good += 1;
+    }
+    if (good == 5 && row["zustand"] == "hoch") return 2;
+    if (good >= 2 && row["zustand"] != null && row["zustand"] != "niedrig")
+      return 1;
+    return 0;
+  }
+
+  static Future<List<Coord>> readCoords() async {
+    print("1readCoords");
+    String key;
+    Map<String, Coord> map = {};
+    final resD = await db.query("daten");
+    for (final res in resD) {
+      final coord = Coord();
+      coord.lat = res["lat"];
+      coord.lon = res["lon"];
+      coord.quality = qualityOf(res);
+      coord.hasImage = false;
+      key = '${res["lat_round"]}:${res["lon_round"]}';
+      map[key] = coord;
+    }
+    final resZ = await db.query("zusatz");
+    for (final res in resZ) {
+      key = '${res["lat_round"]}:${res["lon_round"]}';
+      var coord = map[key];
+      if (coord == null) {
+        final coord = Coord();
+        coord.lat = res["lat"];
+        coord.lon = res["lon"];
+        coord.quality = 0;
+        coord.hasImage = false;
+        map[key] = coord;
+      }
+    }
+    final resI = await db.query("images");
+    for (final res in resI) {
+      key = '${res["lat_round"]}:${res["lon_round"]}';
+      var coord = map[key];
+      if (coord == null) {
+        final coord = Coord();
+        coord.lat = res["lat"];
+        coord.lon = res["lon"];
+        coord.quality = 0;
+        map[key] = coord;
+      }
+      coord.hasImage = true;
+    }
+    print("2readCoords");
+    return map.values.toList();
   }
 }

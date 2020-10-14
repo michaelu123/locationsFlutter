@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:locations/providers/markers.dart';
 import 'package:provider/provider.dart';
 
 import 'package:locations/providers/base_config.dart';
@@ -28,8 +29,9 @@ class Felder {
             final l = fixText(controllers[index].text, felder[index]);
             controllers[index].text = l[0];
             // can call Provider here because cb is called in other context
-            Provider.of<LocData>(context, listen: false)
-                .setFeld(felder[index]['name'], felder[index]["type"], l[1]);
+            final locData = Provider.of<LocData>(context, listen: false);
+            final markers = Provider.of<Markers>(context, listen: false);
+            locData.setFeld(markers, felder[index]['name'], felder[index]["type"], l[1]);
           }
         }
 
@@ -62,8 +64,10 @@ class Felder {
             final l = fixText(text, feld);
             controllers[index].text = l[0];
             print("onsubmitted $text");
-            Provider.of<LocData>(context, listen: false)
-                .setFeld(feld['name'], feldType, l[1]);
+
+            final locData = Provider.of<LocData>(context, listen: false);
+            final markers = Provider.of<Markers>(context, listen: false);
+            locData.setFeld(markers, feld['name'], feldType, l[1]);
             int x1 = (index + 1) % felderLength;
             if (controllers[x1].text == "") {
               FocusScope.of(context).requestFocus(focusNodes[x1]);

@@ -6,6 +6,7 @@ import 'package:latlong/latlong.dart';
 import 'package:location/location.dart';
 import 'package:locations/providers/db.dart';
 import 'package:locations/providers/map_center.dart';
+import 'package:locations/providers/markers.dart';
 import 'package:locations/providers/settings.dart';
 import 'package:locations/screens/account.dart';
 import 'package:locations/screens/bilder.dart';
@@ -19,66 +20,6 @@ import 'package:locations/widgets/crosshair.dart';
 // import 'package:locations/widgets/markers.dart';
 import 'package:provider/provider.dart';
 
-var markers = [
-  Marker(
-    //anchorPos: AnchorPos.exactly(Anchor(0, 20)),
-    anchorPos: AnchorPos.align(AnchorAlign.top),
-    width: 40.0,
-    height: 36.0,
-    point: LatLng(48.137235, 11.57554),
-    // builder: (ctx) => ImageIcon(
-    //   AssetImage("assets/icons/red_plus48.png"),
-    //   color: Colors.blue,
-    // ),
-    builder: (ctx) => Icon(
-      //Icons.location_pin,
-      Icons.location_on_outlined,
-      //Icons.add_location,
-      //Icons.location_on,
-      color: Colors.blue,
-      size: 40,
-    ),
-  ),
-  Marker(
-    //anchorPos: AnchorPos.exactly(Anchor(0, 20)),
-    anchorPos: AnchorPos.align(AnchorAlign.top),
-    width: 40.0,
-    height: 36.0,
-    point: LatLng(48.136251, 11.572614),
-    // builder: (ctx) => ImageIcon(
-    //   AssetImage("assets/icons/red_plus48.png"),
-    //   color: Colors.blue,
-    // ),
-    builder: (ctx) => Icon(
-      //Icons.location_pin,
-      Icons.location_on_outlined,
-      //Icons.add_location,
-      //Icons.location_on,
-      color: Colors.blue,
-      size: 40,
-    ),
-  ),
-  Marker(
-    //anchorPos: AnchorPos.exactly(Anchor(0, 20)),
-    anchorPos: AnchorPos.align(AnchorAlign.top),
-    width: 40.0,
-    height: 36.0,
-    point: LatLng(48.133, 11.565),
-    // builder: (ctx) => ImageIcon(
-    //   AssetImage("assets/icons/red_plus48.png"),
-    //   color: Colors.blue,
-    // ),
-    builder: (ctx) => Icon(
-      //Icons.location_pin,
-      Icons.location_on_outlined,
-      //Icons.add_location,
-      //Icons.location_on,
-      color: Colors.blue,
-      size: 40,
-    ),
-  ),
-];
-
 class KartenScreen extends StatefulWidget {
   static String routeName = "/karte";
   @override
@@ -88,10 +29,20 @@ class KartenScreen extends StatefulWidget {
 class _KartenScreenState extends State<KartenScreen> with Felder {
   double mapLat = 0, mapLon = 0;
   final mapController = MapController();
+  Future markersFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    final baseConfig = Provider.of<BaseConfig>(context, listen: false);
+    final markers = Provider.of<Markers>(context, listen: false);
+    markersFuture = markers.readMarkers(baseConfig.stellen());
+  }
 
   // strange that FlutterMap does not have Marker.onTap...
   // see flutter_map_marker_popup for more elaborated code.
-  void onTapped(LatLng latlng, LocData locData, int stellen) {
+  void onTapped(
+      List<Marker> markers, LatLng latlng, LocData locData, int stellen) {
     double nearestLat = 0;
     double nearestLon = 0;
     double nearestDist = double.maxFinite;
@@ -124,9 +75,9 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   @override
   Widget build(BuildContext context) {
     final baseConfig = Provider.of<BaseConfig>(context);
-    final configGPS = baseConfig.getGPS();
     final mapCenter = Provider.of<MapCenter>(context, listen: false);
     final locData = Provider.of<LocData>(context, listen: false);
+    final configGPS = baseConfig.getGPS();
 
     return Scaffold(
       drawer: AppConfig(),
@@ -251,68 +202,93 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
           Expanded(
             child: Stack(
               children: [
-                FlutterMap(
-                  mapController: mapController,
-                  options: MapOptions(
-                    swPanBoundary: LatLng(
-                      configGPS["min_lat"],
-                      configGPS["min_lon"],
-                    ), // LatLng(48.0, 11.4),
-                    nePanBoundary: LatLng(
-                      configGPS["max_lat"],
-                      configGPS["max_lon"],
-                    ), // LatLng(48.25, 11.8),
-                    onPositionChanged: (pos, b) {
-                      // onPositionChanged is called too early during build, must defer
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        mapCenter.setCenter(pos.center);
-                        setState(() {
-                          // for the Text at the bottom of the screen
-                          mapLat = pos.center.latitude;
-                          mapLon = pos.center.longitude;
-                        });
-                      });
-                    },
-                    plugins: [
-                      CrossHairMapPlugin(),
-                    ],
-                    center: LocationsDB.lat == null
-                        ? LatLng(
-                            configGPS["center_lat"],
-                            configGPS["center_lon"],
-                          )
-                        : LatLng(
-                            // use this if coming back from Daten/Zusatz
-                            LocationsDB.lat,
-                            LocationsDB.lon,
-                          ),
-                    zoom: 16.0,
-                    minZoom: configGPS["min_zoom"] * 1.0,
-                    maxZoom: 19,
-                    onTap: (latlng) {
-                      onTapped(
-                        latlng,
-                        locData,
-                        baseConfig.stellen(),
+                FutureBuilder(
+                  future: markersFuture,
+                  builder: (ctx, snap) {
+                    if (snap.connectionState == ConnectionState.waiting) {
+                      return Center(
+                        child: CircularProgressIndicator(),
                       );
-                    },
-                  ),
-                  layers: [
-                    TileLayerOptions(
-                        minZoom: configGPS["min_zoom"] * 1.0,
-                        maxZoom: 19,
-                        urlTemplate:
-                            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                        subdomains: ['a', 'b', 'c']),
-                    MarkerLayerOptions(
-                      markers: markers,
-                    ),
-                    CrossHairLayerOptions(
-                      crossHair: CrossHair(
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
+                    }
+                    if (snap.hasError) {
+                      return Center(
+                        child: Text(
+                          "error ${snap.error}",
+                          style: TextStyle(
+                            fontSize: 20,
+                          ),
+                        ),
+                      );
+                    }
+                    return Consumer<Markers>(
+                      builder: (_, markers, __) {
+                        return FlutterMap(
+                          mapController: mapController,
+                          options: MapOptions(
+                            swPanBoundary: LatLng(
+                              configGPS["min_lat"],
+                              configGPS["min_lon"],
+                            ), // LatLng(48.0, 11.4),
+                            nePanBoundary: LatLng(
+                              configGPS["max_lat"],
+                              configGPS["max_lon"],
+                            ), // LatLng(48.25, 11.8),
+                            onPositionChanged: (pos, b) {
+                              // onPositionChanged is called too early during build, must defer
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                mapCenter.setCenter(pos.center);
+                                setState(() {
+                                  // for the Text at the bottom of the screen
+                                  mapLat = pos.center.latitude;
+                                  mapLon = pos.center.longitude;
+                                });
+                              });
+                            },
+                            plugins: [
+                              CrossHairMapPlugin(),
+                            ],
+                            center: LocationsDB.lat == null
+                                ? LatLng(
+                                    configGPS["center_lat"],
+                                    configGPS["center_lon"],
+                                  )
+                                : LatLng(
+                                    // use this if coming back from Daten/Zusatz
+                                    LocationsDB.lat,
+                                    LocationsDB.lon,
+                                  ),
+                            zoom: 16.0,
+                            minZoom: configGPS["min_zoom"] * 1.0,
+                            maxZoom: 19,
+                            onTap: (latlng) {
+                              onTapped(
+                                markers.markers(),
+                                latlng,
+                                locData,
+                                baseConfig.stellen(),
+                              );
+                            },
+                          ),
+                          layers: [
+                            TileLayerOptions(
+                                minZoom: configGPS["min_zoom"] * 1.0,
+                                maxZoom: 19,
+                                urlTemplate:
+                                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                                subdomains: ['a', 'b', 'c']),
+                            MarkerLayerOptions(
+                              markers: markers.markers(),
+                            ),
+                            CrossHairLayerOptions(
+                              crossHair: CrossHair(
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
                 ),
                 const Positioned(
                   child: const Text("© OpenStreetMap-Mitwirkende"),
@@ -333,3 +309,26 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
     );
   }
 }
+
+/*
+
+                FutureBuilder(
+                  future: readMarkers(),
+                  builder: (ctx, snap) {
+                    if (snap.connectionState == ConnectionState.waiting) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                    if (snap.hasError) {
+                      return Center(
+                        child: Text(
+                          "error ${snap.error}",
+                          style: TextStyle(
+                            fontSize: 20,
+                          ),
+                        ),
+                      );
+                    }
+                    return 
+*/
