@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:locations/providers/db.dart';
 import 'package:locations/providers/markers.dart';
 import 'package:locations/providers/photos.dart';
+import 'package:locations/providers/settings.dart';
 import 'package:locations/screens/zusatz.dart';
 import 'package:locations/screens/bilder.dart';
 import 'package:locations/screens/karte.dart';
@@ -46,7 +47,12 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
               final photosNL = Provider.of<Photos>(context, listen: false);
               final markersNL = Provider.of<Markers>(context, listen: false);
               final locDataNL = Provider.of<LocData>(context, listen: false);
-              photosNL.takePicture(markersNL, locDataNL);
+              final settingsNL = Provider.of<Settings>(context, listen: false);
+              photosNL.takePicture(
+                markersNL,
+                locDataNL,
+                settingsNL.getConfigValueI("maxDim"),
+              );
             },
           ),
         ],
@@ -103,7 +109,10 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
                 return ListView.builder(
                   itemCount: felder.length,
                   itemBuilder: (ctx, index) {
-                    return textFields[index];
+                    return Padding(
+                      child: textFields[index],
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                    );
                   },
                 );
               },

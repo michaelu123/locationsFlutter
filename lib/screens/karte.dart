@@ -168,7 +168,11 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                 style: TextButton.styleFrom(
                   backgroundColor: Colors.amber,
                 ),
-                onPressed: () {
+                onPressed: () async {
+                  final map = await LocationsDB.dataFor(
+                      mapLat, mapLon, baseConfig.stellen());
+                  locDataNL.dataFor("images", map);
+
                   Navigator.of(context).pushNamed(ImagesScreen.routeName);
                 },
                 child: Text(

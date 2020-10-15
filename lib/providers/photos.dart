@@ -14,11 +14,12 @@ class Photos extends ChangeNotifier {
   static DateFormat dateFormatter = DateFormat('yyyy.MM.dd HH:mm:ss');
   File _image;
 
-  Future<void> takePicture(Markers markers, LocData locData) async {
+  Future<void> takePicture(Markers markers, LocData locData, int maxDim) async {
     final ImagePicker ip = ImagePicker();
     final PickedFile pf = await ip.getImage(
       source: ImageSource.camera,
-      maxWidth: 1980,
+      maxHeight: maxDim * 1.0,
+      maxWidth: maxDim * 1.0,
     );
     if (pf == null || pf.path == null) {
       return;

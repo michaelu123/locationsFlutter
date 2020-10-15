@@ -1,15 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:locations/providers/base_config.dart';
 import 'package:locations/providers/db.dart';
 import 'package:locations/providers/loc_data.dart';
 import 'package:locations/providers/markers.dart';
 import 'package:locations/providers/photos.dart';
+import 'package:locations/providers/settings.dart';
 import 'package:locations/screens/daten.dart';
 import 'package:locations/screens/karte.dart';
+import 'package:locations/screens/photo.dart';
 import 'package:locations/screens/zusatz.dart';
-import 'package:provider/provider.dart';
-
-import 'package:locations/providers/base_config.dart';
 import 'package:locations/utils/felder.dart';
+import 'package:provider/provider.dart';
 
 class ImagesScreen extends StatefulWidget {
   static String routeName = "/images";
@@ -95,11 +98,12 @@ class _ImagesScreenState extends State<ImagesScreen>
                 icon: Icon(Icons.add_a_photo),
                 onPressed: () {
                   final photosNL = Provider.of<Photos>(context, listen: false);
+                  final settingsNL =
+                      Provider.of<Settings>(context, listen: false);
                   final markersNL =
                       Provider.of<Markers>(context, listen: false);
-                  final locDataNL =
-                      Provider.of<LocData>(context, listen: false);
-                  photosNL.takePicture(markersNL, locDataNL);
+                  photosNL.takePicture(
+                      markersNL, locData, settingsNL.getConfigValueI("maxDim"));
                 },
               ),
               IconButton(
@@ -110,7 +114,7 @@ class _ImagesScreenState extends State<ImagesScreen>
               ),
             ],
           ),
-          if (locData.isEmpty())
+          if (locData.isEmptyImages())
             Center(
               child: Text(
                 "Noch keine Bilder aufgenommen",
@@ -119,6 +123,10 @@ class _ImagesScreenState extends State<ImagesScreen>
           if (!locData.isEmptyImages())
             Expanded(
               child: GestureDetector(
+                onTap: () {
+                  Navigator.of(context).pushNamed(PhotoScreen.routeName,
+                      arguments: locData.getImagePath());
+                },
                 onHorizontalDragEnd: (details) {
                   if (details.primaryVelocity < 0) {
                     locData.incIndexImages();
@@ -126,7 +134,11 @@ class _ImagesScreenState extends State<ImagesScreen>
                     locData.decIndexImages();
                   }
                 },
-                child: Text("Image"),
+                child: Image.file(
+                  File(locData.getImagePath()),
+                  fit: BoxFit.contain,
+                  width: double.infinity,
+                ),
               ),
             ),
         ],

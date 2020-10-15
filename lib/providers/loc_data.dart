@@ -172,4 +172,11 @@ class LocData with ChangeNotifier {
     notifyListeners();
     return imgPath;
   }
+
+  String getImagePath() {
+    if (locImages.length == 0) return null;
+    if (imagesIndex >= locImages.length) imagesIndex = 0;
+    final imagePath = locImages[imagesIndex]["image_path"];
+    return imagePath;
+  }
 }

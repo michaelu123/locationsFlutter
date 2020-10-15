@@ -14,6 +14,7 @@ import 'package:locations/screens/account.dart';
 import 'package:locations/screens/bilder.dart';
 import 'package:locations/screens/daten.dart';
 import 'package:locations/screens/karte.dart';
+import 'package:locations/screens/photo.dart';
 import 'package:locations/screens/splash_screen.dart';
 import 'package:locations/screens/zusatz.dart';
 import 'package:path/path.dart' as path;
@@ -95,6 +96,7 @@ class MyApp extends StatelessWidget {
                   ZusatzScreen.routeName: (ctx) => ZusatzScreen(),
                   KartenScreen.routeName: (ctx) => KartenScreen(),
                   AccountScreen.routeName: (ctx) => AccountScreen(),
+                  PhotoScreen.routeName: (ctx) => PhotoScreen(),
                 },
               );
             },

@@ -135,7 +135,10 @@ class _ZusatzScreenState extends State<ZusatzScreen>
                 child: ListView.builder(
                   itemCount: felder.length,
                   itemBuilder: (ctx, index) {
-                    return textFields[index];
+                    return Padding(
+                      child: textFields[index],
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                    );
                   },
                 ),
               ),

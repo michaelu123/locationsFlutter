@@ -138,6 +138,7 @@ class LocationsDB {
   }
 
   static Future<Map> dataFor(double alat, double alon, int astellen) async {
+    print("DB dataFor");
     lat = alat;
     lon = alon;
     stellen = astellen;
@@ -228,7 +229,7 @@ class LocationsDB {
   }
 
   static Future<List<Coord>> readCoords() async {
-    print("1readCoords");
+    print("readCoords");
     String key;
     Map<String, Coord> map = {};
     final resD = await db.query("daten");
@@ -269,7 +270,6 @@ class LocationsDB {
       }
       coord.hasImage = true;
     }
-    print("2readCoords");
     return map.values.toList();
   }
 
