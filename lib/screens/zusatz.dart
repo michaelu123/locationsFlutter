@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:locations/providers/db.dart';
+import 'package:locations/utils/db.dart';
 import 'package:locations/providers/loc_data.dart';
 import 'package:locations/screens/bilder.dart';
 import 'package:locations/screens/daten.dart';

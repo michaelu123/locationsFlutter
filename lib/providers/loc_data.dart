@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:locations/providers/db.dart';
+import 'package:locations/utils/db.dart';
 import 'package:locations/providers/markers.dart';
 
 class LocData with ChangeNotifier {
@@ -26,8 +26,8 @@ class LocData with ChangeNotifier {
     isZusatz = false;
   }
 
-  Future<void> setFeld(
-      Markers markers, String name, String type, Object val) async {
+  Future<void> setFeld(Markers markers, String name, String type, Object val,
+      String nickName) async {
     Map res;
     if (isZusatz) {
       print("setZusatz $name $type $val $zusatzIndex");
@@ -35,7 +35,7 @@ class LocData with ChangeNotifier {
       if (v != val) {
         int nr = locZusatz[zusatzIndex]["nr"];
         locZusatz[zusatzIndex][name] = val;
-        res = await LocationsDB.updateDB("zusatz", name, val, nr: nr);
+        res = await LocationsDB.updateDB("zusatz", name, val, nickName, nr: nr);
         nr = res["nr"];
         //print(
         //    "LocZusatz index=$zusatzIndex nr=$nr $name changed from $v to $val");
@@ -56,7 +56,7 @@ class LocData with ChangeNotifier {
       final v = locDaten[name];
       if (v != val) {
         locDaten[name] = val;
-        res = await LocationsDB.updateDB("daten", name, val);
+        res = await LocationsDB.updateDB("daten", name, val, nickName);
         // print("LocDatum $name changed from $v to $val");
         final created = res["created"];
         if (created != null) {
@@ -178,5 +178,12 @@ class LocData with ChangeNotifier {
     if (imagesIndex >= locImages.length) imagesIndex = 0;
     final imagePath = locImages[imagesIndex]["image_path"];
     return imagePath;
+  }
+
+  String getImageUrl() {
+    if (locImages.length == 0) return null;
+    if (imagesIndex >= locImages.length) imagesIndex = 0;
+    final imageUrl = locImages[imagesIndex]["image_url"];
+    return imageUrl;
   }
 }

@@ -23,19 +23,22 @@ class AppConfig extends StatelessWidget {
                 final controller = controllers[index];
                 controller.text =
                     settings.getConfigValue(settingJS["key"]).toString();
-                return TextField(
-                    controller: controller,
-                    decoration: InputDecoration(
-                      labelText: settingJS["title"],
-                      helperText: settingJS["desc"],
-                    ),
-                    keyboardType: settingJS["type"] == "int"
-                        ? TextInputType.number
-                        : TextInputType.text,
-                    onSubmitted: (text) {
-                      settings.setConfigValueS(
-                          settingJS["key"], settingJS["type"], text);
-                    }); // textFields[index];
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  child: TextField(
+                      controller: controller,
+                      decoration: InputDecoration(
+                        labelText: settingJS["title"],
+                        helperText: settingJS["desc"],
+                      ),
+                      keyboardType: settingJS["type"] == "int"
+                          ? TextInputType.number
+                          : TextInputType.text,
+                      onSubmitted: (text) {
+                        settings.setConfigValueS(
+                            settingJS["key"], settingJS["type"], text);
+                      }),
+                ); // textFields[index];
               },
             ),
           );

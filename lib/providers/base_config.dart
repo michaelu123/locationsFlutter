@@ -205,6 +205,10 @@ class BaseConfig extends ChangeNotifier {
     return baseJS["db_name"];
   }
 
+  String getDbTableBaseName() {
+    return baseJS["db_tabellenname"];
+  }
+
   Map getGPS() {
     return baseJS["gps"];
   }

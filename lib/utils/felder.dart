@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:locations/providers/markers.dart';
+import 'package:locations/providers/settings.dart';
 import 'package:provider/provider.dart';
 
 import 'package:locations/providers/base_config.dart';
@@ -31,8 +32,11 @@ class Felder {
             // can call Provider here because cb is called in other context
             final locDataNL = Provider.of<LocData>(context, listen: false);
             final markersNL = Provider.of<Markers>(context, listen: false);
-            locDataNL.setFeld(
-                markersNL, felder[index]['name'], felder[index]["type"], l[1]);
+            final settingsNL = Provider.of<Settings>(context, listen: false);
+            final nickName = settingsNL.getConfigValueS("nickname");
+
+            locDataNL.setFeld(markersNL, felder[index]['name'],
+                felder[index]["type"], l[1], nickName);
           }
         }
 
@@ -68,7 +72,11 @@ class Felder {
 
             final locDataNL = Provider.of<LocData>(context, listen: false);
             final markersNL = Provider.of<Markers>(context, listen: false);
-            locDataNL.setFeld(markersNL, feld['name'], feldType, l[1]);
+            final settingsNL = Provider.of<Settings>(context, listen: false);
+            final nickName = settingsNL.getConfigValueS("nickname");
+
+            locDataNL.setFeld(
+                markersNL, feld['name'], feldType, l[1], nickName);
             int x1 = (index + 1) % felderLength;
             if (controllers[x1].text == "") {
               FocusScope.of(context).requestFocus(focusNodes[x1]);

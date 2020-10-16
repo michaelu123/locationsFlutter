@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:locations/providers/db.dart';
+import 'package:locations/utils/db.dart';
 import 'package:locations/providers/markers.dart';
 import 'package:locations/providers/photos.dart';
 import 'package:locations/providers/settings.dart';
@@ -35,6 +35,7 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
   @override
   Widget build(BuildContext context) {
     final baseConfig = Provider.of<BaseConfig>(context);
+    final settingsNL = Provider.of<Settings>(context, listen: false);
     final felder = baseConfig.getDatenFelder();
 
     return Scaffold(
@@ -51,7 +52,8 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
               photosNL.takePicture(
                 markersNL,
                 locDataNL,
-                settingsNL.getConfigValueI("maxDim"),
+                settingsNL.getConfigValueI("maxdim"),
+                settingsNL.getConfigValueS("nickname"),
               );
             },
           ),
@@ -103,20 +105,25 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
             ],
           ),
           Expanded(
-            child: Consumer<LocData>(
-              builder: (ctx, locDaten, _) {
-                setFelder(locDaten, baseConfig, false);
-                return ListView.builder(
-                  itemCount: felder.length,
-                  itemBuilder: (ctx, index) {
-                    return Padding(
-                      child: textFields[index],
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                    );
-                  },
-                );
-              },
-            ),
+            child: settingsNL.getConfigValueS("nickname") == ""
+                ? Center(
+                    child:
+                        Text("Bitte erst einen Benutzer/Spitznamen eingeben"),
+                  )
+                : Consumer<LocData>(
+                    builder: (ctx, locDaten, _) {
+                      setFelder(locDaten, baseConfig, false);
+                      return ListView.builder(
+                        itemCount: felder.length,
+                        itemBuilder: (ctx, index) {
+                          return Padding(
+                            child: textFields[index],
+                            padding: EdgeInsets.symmetric(vertical: 10),
+                          );
+                        },
+                      );
+                    },
+                  ),
           ),
         ],
       ),

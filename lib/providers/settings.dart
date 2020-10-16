@@ -15,7 +15,7 @@ class Settings extends ChangeNotifier {
   int getConfigValueI(String key) {
     try {
       final res = prefs.getInt(key);
-      return res;
+      return res ?? _configDefaults[key];
     } catch (e) {
       return _configDefaults[key];
     }
@@ -24,7 +24,7 @@ class Settings extends ChangeNotifier {
   String getConfigValueS(String key, {String defVal}) {
     try {
       final res = prefs.getString(key);
-      return res;
+      return res ?? defVal ?? _configDefaults[key];
     } catch (e) {
       return defVal ?? _configDefaults[key];
     }
@@ -53,6 +53,12 @@ class Settings extends ChangeNotifier {
   List _settingsJS = [
     {
       'type': 'string',
+      'title': 'Nickname',
+      'desc': 'Benutzername/Spitzname',
+      'key': 'nickname'
+    },
+    {
+      'type': 'string',
       'title': 'Gespeichert',
       'desc': 'Datum des letzten Speicherns',
       'key': 'gespeichert'
@@ -60,7 +66,7 @@ class Settings extends ChangeNotifier {
     {
       'type': 'int',
       'title': 'Max Dim',
-      'desc': 'Max Größe der Photos vom LocationsServer',
+      'desc': 'Max Größe der aufgenommenen Photos',
       'key': 'maxdim'
     },
     {
@@ -79,13 +85,13 @@ class Settings extends ChangeNotifier {
       'type': 'string',
       'title': 'Server Name',
       'desc': 'Name des LocationsServer',
-      'key': 'serverName'
+      'key': 'servername'
     },
     {
       'type': 'int',
       'title': 'Server Portnummer',
       'desc': 'Portnummer des LocationsServer',
-      'key': 'serverPort'
+      'key': 'serverport'
     },
   ];
 
@@ -94,12 +100,13 @@ class Settings extends ChangeNotifier {
   }
 
   Map _configDefaults = {
+    'nickname': '',
     'gespeichert': '',
     'maxdim': 1024,
     'thumbnaildim': 200,
     'delta': 5,
-    'serverName': "raspberrylan.1qgrvqjevtodmryr.myfritz.net",
-    'serverPort': 80,
+    'servername': "raspberrylan.1qgrvqjevtodmryr.myfritz.net",
+    'serverport': 80,
   };
 
   Map configDefaults() {

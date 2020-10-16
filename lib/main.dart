@@ -4,7 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:locations/providers/base_config.dart';
-import 'package:locations/providers/db.dart';
+import 'package:locations/providers/locations_client.dart';
+import 'package:locations/utils/db.dart';
 import 'package:locations/providers/loc_data.dart';
 import 'package:locations/providers/map_center.dart';
 import 'package:locations/providers/markers.dart';
@@ -48,57 +49,56 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (BuildContext context) => Photos(),
         ),
+        ChangeNotifierProvider(
+          create: (BuildContext context) => LocationsClient(),
+        ),
       ],
-      child: Consumer<BaseConfig>(
-        builder: (ctx, baseConfig, _) {
-          return Consumer<Settings>(
-            builder: (ctx, settings, _) {
-              return MaterialApp(
-                title: 'Locations',
-                theme: ThemeData(
-                  // This is the theme of your application.
-                  //
-                  // Try running your application with "flutter run". You'll see the
-                  // application has a blue toolbar. Then, without quitting the app, try
-                  // changing the primarySwatch below to Colors.green and then invoke
-                  // "hot reload" (press "r" in the console where you ran "flutter run",
-                  // or simply save your changes to "hot reload" in a Flutter IDE).
-                  // Notice that the counter didn't reset back to zero; the application
-                  // is not restarted.
-                  primarySwatch: Colors.blue,
-                  accentColor: Colors.deepOrange,
-                ),
-                home: FutureBuilder(
-                  // read config.json files only once at program start
-                  future: baseConfig.isInited()
-                      ? null
-                      : readConfig(baseConfig, settings),
-                  builder: (ctx, snap) {
-                    if (snap.connectionState == ConnectionState.waiting) {
-                      return SplashScreen();
-                    }
-                    if (snap.hasError) {
-                      return Center(
-                        child: Text(
-                          "error ${snap.error}",
-                          style: TextStyle(
-                            fontSize: 20,
-                          ),
-                        ),
-                      );
-                    }
-                    return KartenScreen();
-                  },
-                ),
-                routes: {
-                  ImagesScreen.routeName: (ctx) => ImagesScreen(),
-                  DatenScreen.routeName: (ctx) => DatenScreen(),
-                  ZusatzScreen.routeName: (ctx) => ZusatzScreen(),
-                  KartenScreen.routeName: (ctx) => KartenScreen(),
-                  AccountScreen.routeName: (ctx) => AccountScreen(),
-                  PhotoScreen.routeName: (ctx) => PhotoScreen(),
-                },
-              );
+      child: Consumer3<BaseConfig, Settings, LocationsClient>(
+        builder: (ctx, baseConfig, settings, locClnt, _) {
+          return MaterialApp(
+            title: 'Locations',
+            theme: ThemeData(
+              // This is the theme of your application.
+              //
+              // Try running your application with "flutter run". You'll see the
+              // application has a blue toolbar. Then, without quitting the app, try
+              // changing the primarySwatch below to Colors.green and then invoke
+              // "hot reload" (press "r" in the console where you ran "flutter run",
+              // or simply save your changes to "hot reload" in a Flutter IDE).
+              // Notice that the counter didn't reset back to zero; the application
+              // is not restarted.
+              primarySwatch: Colors.blue,
+              accentColor: Colors.deepOrange,
+            ),
+            home: FutureBuilder(
+              // read config.json files only once at program start
+              future: baseConfig.isInited()
+                  ? null
+                  : readConfig(baseConfig, settings, locClnt),
+              builder: (ctx, snap) {
+                if (snap.connectionState == ConnectionState.waiting) {
+                  return SplashScreen();
+                }
+                if (snap.hasError) {
+                  return Center(
+                    child: Text(
+                      "error ${snap.error}",
+                      style: TextStyle(
+                        fontSize: 20,
+                      ),
+                    ),
+                  );
+                }
+                return KartenScreen();
+              },
+            ),
+            routes: {
+              ImagesScreen.routeName: (ctx) => ImagesScreen(),
+              DatenScreen.routeName: (ctx) => DatenScreen(),
+              ZusatzScreen.routeName: (ctx) => ZusatzScreen(),
+              KartenScreen.routeName: (ctx) => KartenScreen(),
+              AccountScreen.routeName: (ctx) => AccountScreen(),
+              PhotoScreen.routeName: (ctx) => PhotoScreen(),
             },
           );
         },
@@ -106,7 +106,8 @@ class MyApp extends StatelessWidget {
     );
   }
 
-  Future<void> readConfig(baseConfig, settings) async {
+  Future<void> readConfig(
+      BaseConfig baseConfig, Settings settings, LocationsClient locClnt) async {
     // read all assets/config/*.json files
     var bc = Map<String, dynamic>();
     // I cannot obtain list of bundle content, therefore I need a TOC file...
@@ -121,8 +122,8 @@ class MyApp extends StatelessWidget {
     });
 
     // allow external storage config files
-    final extPath = await getExternalStorageDirectory();
-    final configPath = path.join(extPath.path, "config");
+    final extPath = (await getExternalStorageDirectory()).path;
+    final configPath = path.join(extPath, "config");
     Directory configDir = Directory(configPath);
     if (await configDir.exists()) {
       List<File> configFiles = await configDir.list().toList();
@@ -139,5 +140,10 @@ class MyApp extends StatelessWidget {
     await settings.getSharedPreferences();
     baseConfig.setInitially(bc, settings.initialBase());
     await LocationsDB.setBase(baseConfig);
+
+    String serverName = settings.getConfigValueS("servername");
+    int serverPort = settings.getConfigValueI("serverport");
+    String serverUrl = "http://$serverName:$serverPort";
+    locClnt.init(serverUrl, extPath);
   }
 }

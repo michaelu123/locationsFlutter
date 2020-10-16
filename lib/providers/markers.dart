@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
-import 'package:locations/providers/db.dart';
+import 'package:locations/utils/db.dart';
+import 'package:locations/utils/utils.dart';
 
 class Markers extends ChangeNotifier {
   Map<String, Marker> _markers = {};
@@ -9,6 +10,7 @@ class Markers extends ChangeNotifier {
   static int stellen;
 
   Future<void> readMarkers(int astellen) async {
+    print("1read");
     _markers = {};
     stellen = astellen;
     List<Coord> coords = await LocationsDB.readCoords();
@@ -16,6 +18,7 @@ class Markers extends ChangeNotifier {
       add(_markers, coord);
     });
     notifyListeners();
+    print("2read ${coords.length} ${_markers.length}");
   }
 
   Marker coord2Marker(Coord coord) {
@@ -40,18 +43,21 @@ class Markers extends ChangeNotifier {
 
   void add(Map map, Coord coord) {
     final m = coord2Marker(coord);
-    final key =
-        "${coord.lat.toStringAsFixed(stellen)}:${coord.lon.toStringAsFixed(stellen)}";
+    String latRound = roundDS(coord.lat, stellen);
+    String lonRound = roundDS(coord.lon, stellen);
+    String key = "$latRound:$lonRound";
     map[key] = m;
   }
 
   List<Marker> markers() {
+    print("1markers ${_markers.values.length}");
     return _markers.values.toList();
   }
 
   void deleteLoc(double lat, double lon) {
-    final key =
-        "${lat.toStringAsFixed(stellen)}:${lon.toStringAsFixed(stellen)}";
+    String latRound = roundDS(lat, stellen);
+    String lonRound = roundDS(lon, stellen);
+    String key = "$latRound:$lonRound";
     _markers.remove(key);
     notifyListeners();
   }

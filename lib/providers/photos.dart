@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:intl/intl.dart';
 
-import 'package:locations/providers/db.dart';
+import 'package:locations/utils/db.dart';
 import 'package:locations/providers/loc_data.dart';
 import 'package:locations/providers/markers.dart';
 
@@ -14,7 +14,8 @@ class Photos extends ChangeNotifier {
   static DateFormat dateFormatter = DateFormat('yyyy.MM.dd HH:mm:ss');
   File _image;
 
-  Future<void> takePicture(Markers markers, LocData locData, int maxDim) async {
+  Future<void> takePicture(
+      Markers markers, LocData locData, int maxDim, String nickName) async {
     final ImagePicker ip = ImagePicker();
     final PickedFile pf = await ip.getImage(
       source: ImageSource.camera,
@@ -38,7 +39,7 @@ class Photos extends ChangeNotifier {
     _image = await _storedImage.copy(imgPath);
 
     final map = {
-      "creator": "Muh",
+      "creator": nickName,
       "created": now,
       "lat": lat,
       "lon": lon,

@@ -4,16 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
 import 'package:location/location.dart';
-import 'package:locations/providers/db.dart';
+import 'package:locations/utils/db.dart';
 import 'package:locations/providers/map_center.dart';
 import 'package:locations/providers/markers.dart';
 import 'package:locations/providers/settings.dart';
-import 'package:locations/screens/account.dart';
-import 'package:locations/screens/bilder.dart';
+//import 'package:locations/screens/account.dart';
+//import 'package:locations/screens/bilder.dart';
 import 'package:locations/screens/daten.dart';
 import 'package:locations/screens/splash_screen.dart';
-import 'package:locations/screens/zusatz.dart';
+//import 'package:locations/screens/zusatz.dart';
 import 'package:locations/utils/felder.dart';
+import 'package:locations/providers/locations_client.dart';
 import 'package:locations/widgets/app_config.dart';
 import 'package:locations/providers/base_config.dart';
 import 'package:locations/providers/loc_data.dart';
@@ -74,29 +75,47 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   }
 
   void deleteLoc(Markers markers) {
-    LocationsDB.deleteAll(mapLat, mapLon);
+    LocationsDB.deleteAllLoc(mapLat, mapLon);
     markers.deleteLoc(mapLat, mapLon);
     // LocationsServer.deleteLoc(mapLat, mapLon);
+  }
+
+  Future<void> getDataFromServer(
+      LocationsClient locClnt, String tableName, int delta) async {
+    double f = delta / 1000;
+    await LocationsDB.deleteAll();
+    Map values = await locClnt.getValuesWithin(
+      tableName,
+      mapLat - f,
+      mapLat + f,
+      mapLon - 2 * f,
+      mapLon + 2 * f,
+    );
+    print(values.keys);
+    await LocationsDB.fillWithDBValues(values);
   }
 
   @override
   Widget build(BuildContext context) {
     final baseConfig = Provider.of<BaseConfig>(context);
     final mapCenterNL = Provider.of<MapCenter>(context, listen: false);
+    final locClntNL = Provider.of<LocationsClient>(context, listen: false);
     final locDataNL = Provider.of<LocData>(context, listen: false);
+    final settingsNL = Provider.of<Settings>(context, listen: false);
     final configGPS = baseConfig.getGPS();
+    // locClnt.sayHello(baseConfig.getDbTableBaseName());
 
     return Scaffold(
       drawer: AppConfig(),
       appBar: AppBar(
         title: Text(baseConfig.getName() + "/Karte"),
         actions: [
-          IconButton(
-            icon: Icon(Icons.account_box),
-            onPressed: () {
-              Navigator.of(context).pushNamed(AccountScreen.routeName);
-            },
-          ),
+          // IconButton(
+          //   icon: Icon(Icons.account_box),
+          //   onPressed: () {
+          //     Navigator.of(context).pushNamed(AccountScreen.routeName);
+          //   },
+          // ),
           IconButton(
             icon: Icon(Icons.delete),
             onPressed: () =>
@@ -118,8 +137,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
             onSelected: (String selectedValue) {
               if (baseConfig.setBase(selectedValue)) {
                 locDataNL.clearLocData();
-                Provider.of<Settings>(context, listen: false)
-                    .setConfigValue("base", selectedValue);
+                settingsNL.setConfigValue("base", selectedValue);
                 LocationsDB.setBase(baseConfig).then((_) {
                   // deleteFelder();
                   Provider.of<Markers>(context, listen: false)
@@ -140,6 +158,33 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                   backgroundColor: Colors.amber,
                 ),
                 onPressed: () async {
+                  await getDataFromServer(
+                    locClntNL,
+                    baseConfig.getDbTableBaseName(),
+                    settingsNL.getConfigValueI("delta"),
+                  );
+                  await Provider.of<Markers>(context, listen: false)
+                      .readMarkers(baseConfig.stellen());
+                },
+                child: Text(
+                  'Laden',
+                ),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                ),
+                onPressed: () {},
+                child: Text(
+                  'Speichern',
+                ),
+              ),
+
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                ),
+                onPressed: () async {
                   final map = await LocationsDB.dataFor(
                       mapLat, mapLon, baseConfig.stellen());
                   locDataNL.dataFor("daten", map);
@@ -149,36 +194,36 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                   'Daten',
                 ),
               ),
-              if (baseConfig.hasZusatz())
-                TextButton(
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.amber,
-                  ),
-                  onPressed: () async {
-                    final map = await LocationsDB.dataFor(
-                        mapLat, mapLon, baseConfig.stellen());
-                    locDataNL.dataFor("zusatz", map);
-                    Navigator.of(context).pushNamed(ZusatzScreen.routeName);
-                  },
-                  child: Text(
-                    'Zusatzdaten',
-                  ),
-                ),
-              TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.amber,
-                ),
-                onPressed: () async {
-                  final map = await LocationsDB.dataFor(
-                      mapLat, mapLon, baseConfig.stellen());
-                  locDataNL.dataFor("images", map);
+              // if (baseConfig.hasZusatz())
+              //   TextButton(
+              //     style: TextButton.styleFrom(
+              //       backgroundColor: Colors.amber,
+              //     ),
+              //     onPressed: () async {
+              //       final map = await LocationsDB.dataFor(
+              //           mapLat, mapLon, baseConfig.stellen());
+              //       locDataNL.dataFor("zusatz", map);
+              //       Navigator.of(context).pushNamed(ZusatzScreen.routeName);
+              //     },
+              //     child: Text(
+              //       'Zusatzdaten',
+              //     ),
+              //   ),
+              // TextButton(
+              //   style: TextButton.styleFrom(
+              //     backgroundColor: Colors.amber,
+              //   ),
+              //   onPressed: () async {
+              //     final map = await LocationsDB.dataFor(
+              //         mapLat, mapLon, baseConfig.stellen());
+              //     locDataNL.dataFor("images", map);
 
-                  Navigator.of(context).pushNamed(ImagesScreen.routeName);
-                },
-                child: Text(
-                  'Bilder',
-                ),
-              ),
+              //     Navigator.of(context).pushNamed(ImagesScreen.routeName);
+              //   },
+              //   child: Text(
+              //     'Bilder',
+              //   ),
+              // ),
               TextButton(
                 style: TextButton.styleFrom(
                   backgroundColor: Colors.amber,

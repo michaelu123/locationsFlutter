@@ -6,6 +6,7 @@ import 'package:path/path.dart' as path;
 import 'package:sqflite/sqlite_api.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:locations/utils/utils.dart';
 
 class Coord {
   double lat;
@@ -23,6 +24,7 @@ class LocationsDB {
   static double lat, lon;
   static int stellen;
   static String latRound, lonRound;
+  static Map<String, String> qmarks = {};
 
   static DateFormat dateFormatter = DateFormat('yyyy.MM.dd HH:mm:ss');
 
@@ -32,11 +34,14 @@ class LocationsDB {
     createStmts = [];
     dbName = baseConfig.getDbName();
     var felder = baseConfig.getDbDatenFelder();
+    qmarks["daten"] = List.generate(felder.length, (_) => "?").join(",");
     createStmts.addAll(stmtsFor(felder, "daten"));
     felder = baseConfig.getDbZusatzFelder();
+    qmarks["zusatz"] = List.generate(felder.length, (_) => "?").join(",");
     hasZusatz = felder.length > 0;
     if (hasZusatz) createStmts.addAll(stmtsFor(felder, "zusatz"));
     felder = baseConfig.getDbImagesFelder();
+    qmarks["images"] = List.generate(felder.length, (_) => "?").join(",");
     createStmts.addAll(stmtsFor(felder, "images"));
     db = await database();
   }
@@ -106,7 +111,7 @@ class LocationsDB {
   }
 
   static Future<int> insert(String table, Map<String, Object> data) async {
-    return db.insert(
+    return await db.insert(
       table,
       data,
       conflictAlgorithm: sql.ConflictAlgorithm.replace,
@@ -114,7 +119,7 @@ class LocationsDB {
   }
 
   static Future<List<Map<String, Object>>> getData(String table) async {
-    return db.query(table);
+    return await db.query(table);
   }
 
   static Future<Map> dataForSameLoc() async {
@@ -142,9 +147,9 @@ class LocationsDB {
     lat = alat;
     lon = alon;
     stellen = astellen;
-    latRound = alat.toStringAsFixed(stellen);
-    lonRound = alon.toStringAsFixed(stellen);
 
+    String latRound = roundDS(alat, stellen);
+    String lonRound = roundDS(alon, stellen);
     final resD = await db.query(
       "daten",
       where: "lat_round=? and lon_round=?",
@@ -170,7 +175,8 @@ class LocationsDB {
     };
   }
 
-  static Future<Map> updateDB(String table, String name, Object val,
+  static Future<Map> updateDB(
+      String table, String name, Object val, String nickName,
       {int nr}) async {
     String where;
     List whereArgs;
@@ -201,7 +207,7 @@ class LocationsDB {
       "lon": lon,
       "lat_round": latRound,
       "lon_round": lonRound,
-      "creator": "Muh",
+      "creator": nickName,
       "created": now,
       "modified": now,
       name: val,
@@ -273,22 +279,43 @@ class LocationsDB {
     return map.values.toList();
   }
 
-  static void deleteAll(double lat, double lon) {
+  static Future<void> deleteAllLoc(double lat, double lon) async {
     String where = "lat_round=? and lon_round=?";
     List whereArgs = [
-      lat.toStringAsFixed(stellen),
-      lon.toStringAsFixed(stellen),
+      roundDS(lat, stellen),
+      roundDS(lon, stellen),
     ];
-    db.delete("daten", where: where, whereArgs: whereArgs);
-    db.delete("images", where: where, whereArgs: whereArgs);
-    db.delete("zusatz", where: where, whereArgs: whereArgs);
+    await db.delete("daten", where: where, whereArgs: whereArgs);
+    await db.delete("images", where: where, whereArgs: whereArgs);
+    await db.delete("zusatz", where: where, whereArgs: whereArgs);
   }
 
-  static void deleteZusatz(int nr) {
+  static Future<void> deleteAll() async {
+    await db.delete("daten");
+    await db.delete("images");
+    await db.delete("zusatz");
+  }
+
+  static Future<void> deleteZusatz(int nr) async {
     String where = "nr=? and lat_round=? and lon_round=?";
     List whereArgs = [nr, latRound, lonRound];
-    db.delete("zusatz", where: where, whereArgs: whereArgs);
+    await db.delete("zusatz", where: where, whereArgs: whereArgs);
   }
 
-  static void deleteImage(String imgPath) {}
+  static Future<void> deleteImage(String imgPath) async {
+    String where = "image_path=?";
+    List whereArgs = [imgPath];
+    await db.delete("images", where: where, whereArgs: whereArgs);
+  }
+
+  static Future<void> fillWithDBValues(Map values) async {
+    print("1fill");
+    for (String table in values.keys) {
+      List rows = values[table];
+      for (List row in rows) {
+        await db.rawInsert("INSERT INTO $table VALUES(${qmarks[table]})", row);
+      }
+    }
+    print("2fill");
+  }
 }
