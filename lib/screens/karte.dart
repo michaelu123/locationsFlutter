@@ -43,13 +43,6 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
     final markersNL = Provider.of<Markers>(context, listen: false);
     final settingsNL = Provider.of<Settings>(context, listen: false);
     markersFuture = markersNL.readMarkers(baseConfigNL.stellen());
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final baseConfigNL = Provider.of<BaseConfig>(context, listen: false);
-    final settingsNL = Provider.of<Settings>(context, listen: false);
     center = getCenter(baseConfigNL, settingsNL);
   }
 

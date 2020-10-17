@@ -52,6 +52,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (BuildContext context) => LocationsClient(),
         ),
+        ChangeNotifierProvider(
+          create: (BuildContext context) => IndexModel(),
+        ),
       ],
       child: Consumer3<BaseConfig, Settings, LocationsClient>(
         builder: (ctx, baseConfig, settings, locClnt, _) {

@@ -32,7 +32,6 @@ class Settings extends ChangeNotifier {
   dynamic getConfigValue(String key, {dynamic defVal}) {
     try {
       final res = prefs.get(key);
-      if (res != null) print("gcv $key $res");
       if (res != null) return res;
     } catch (e) {}
     return defVal ?? _configDefaults[key];

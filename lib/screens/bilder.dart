@@ -13,7 +13,23 @@ import 'package:locations/screens/photo.dart';
 import 'package:locations/screens/zusatz.dart';
 import 'package:locations/utils/felder.dart';
 import 'package:locations/providers/locations_client.dart';
+import 'package:locations/utils/utils.dart';
 import 'package:provider/provider.dart';
+
+class IndexModel extends ChangeNotifier {
+  int curIndex = 0;
+
+  void set(int x) {
+    curIndex = x;
+    print("set curIndex = $curIndex");
+    notifyListeners();
+  }
+
+  int get() {
+    print("curIndex == $curIndex");
+    return curIndex;
+  }
+}
 
 class ImagesScreen extends StatefulWidget {
   static String routeName = "/images";
@@ -23,18 +39,41 @@ class ImagesScreen extends StatefulWidget {
 
 class _ImagesScreenState extends State<ImagesScreen>
     with Felder, SingleTickerProviderStateMixin {
-  void deleteImage(LocData locData) {
+  @override
+  void initState() {
+    super.initState();
+    final idx = Provider.of<IndexModel>(context, listen: false);
+    idx.curIndex = 0;
+  }
+
+  Future<void> deleteImage(LocData locData, BaseConfig baseConfig) async {
     String imgPath = locData.deleteImage();
-    LocationsDB.deleteImage(imgPath);
+    await LocationsDB.deleteImage(imgPath);
+    String tableBase = baseConfig.getDbTableBaseName();
+    await deleteImageFile(tableBase, imgPath);
+    print("done");
+    // perhaps delete on Server?
+    // or not delete if not newer lastStored?
   }
 
   Future<File> getImageFile(BaseConfig baseConfig, LocationsClient locClnt,
-      String imgName, String imgUrl) async {
+      String imgPath, String imgUrl) async {
     final settingsNL = Provider.of<Settings>(context, listen: false);
     String tableBase = baseConfig.getDbTableBaseName();
     int dim = settingsNL.getConfigValueI("thumbnaildim");
-    File f = await locClnt.getImage(tableBase, imgName, dim, true);
+    File f = await locClnt.getImage(tableBase, imgPath, dim, true);
     return f;
+  }
+
+  Future<File> getImageFileIndexed(
+    BaseConfig baseConfig,
+    LocationsClient locClnt,
+    LocData locData,
+    int index,
+  ) {
+    String imgPath = locData.getImgPath(index);
+    String imgUrl = locData.getImgUrl(index);
+    return getImageFile(baseConfig, locClnt, imgPath, imgUrl);
   }
 
   @override
@@ -42,6 +81,7 @@ class _ImagesScreenState extends State<ImagesScreen>
     final baseConfig = Provider.of<BaseConfig>(context);
     final locData = Provider.of<LocData>(context);
     final locClnt = Provider.of<LocationsClient>(context);
+    final pageController = PageController();
 
     return Scaffold(
       appBar: AppBar(
@@ -49,8 +89,9 @@ class _ImagesScreenState extends State<ImagesScreen>
         actions: [
           IconButton(
             icon: Icon(Icons.delete),
-            onPressed:
-                locData.isEmptyImages() ? null : () => deleteImage(locData),
+            onPressed: locData.isEmptyImages()
+                ? null
+                : () => deleteImage(locData, baseConfig),
           ),
         ],
       ),
@@ -99,11 +140,24 @@ class _ImagesScreenState extends State<ImagesScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              IconButton(
-                iconSize: 40,
-                icon: Icon(Icons.arrow_back),
-                onPressed:
-                    locData.canDecImages() ? locData.decIndexImages : null,
+              Consumer<IndexModel>(
+                builder: (ctx, idx, _) {
+                  return IconButton(
+                    iconSize: 40,
+                    icon: Icon(Icons.arrow_back),
+                    onPressed: idx.get() > 0
+                        ? () {
+                            int prev = idx.get() - 1;
+                            locData.setImagesIndex(prev);
+                            pageController.animateToPage(
+                              prev,
+                              duration: Duration(milliseconds: 500),
+                              curve: Curves.linear,
+                            );
+                          }
+                        : null,
+                  );
+                },
               ),
               IconButton(
                 icon: Icon(Icons.add_a_photo),
@@ -122,11 +176,24 @@ class _ImagesScreenState extends State<ImagesScreen>
                   );
                 },
               ),
-              IconButton(
-                iconSize: 40,
-                icon: Icon(Icons.arrow_forward),
-                onPressed:
-                    locData.canIncImages() ? locData.incIndexImages : null,
+              Consumer<IndexModel>(
+                builder: (ctx, idx, _) {
+                  return IconButton(
+                    iconSize: 40,
+                    icon: Icon(Icons.arrow_forward),
+                    onPressed: idx.get() < locData.getImagesCount() - 1
+                        ? () {
+                            int next = idx.get() + 1;
+                            locData.setImagesIndex(next);
+                            pageController.animateToPage(
+                              next,
+                              duration: Duration(milliseconds: 500),
+                              curve: Curves.ease,
+                            );
+                          }
+                        : null,
+                  );
+                },
               ),
             ],
           ),
@@ -152,48 +219,74 @@ class _ImagesScreenState extends State<ImagesScreen>
                   });
                 },
                 onHorizontalDragEnd: (details) {
+                  final idx = Provider.of<IndexModel>(context, listen: false);
                   if (details.primaryVelocity < 0) {
-                    locData.incIndexImages();
-                  } else {
-                    locData.decIndexImages();
-                  }
-                },
-                child: FutureBuilder(
-                  future: getImageFile(baseConfig, locClnt,
-                      locData.getImagePath(), locData.getImageUrl()),
-                  builder: (ctx, snap) {
-                    if (snap.connectionState == ConnectionState.waiting) {
-                      return Center(
-                          child: Text(
-                        "Loading Image",
-                        style: TextStyle(
-                          fontSize: 20,
-                        ),
-                      ));
-                    }
-                    if (snap.hasError) {
-                      return Center(
-                        child: Text(
-                          "error ${snap.error}",
-                          style: TextStyle(
-                            fontSize: 20,
-                          ),
-                        ),
+                    if (idx.get() <= locData.getImagesCount() - 1) {
+                      pageController.animateToPage(
+                        idx.get() + 1,
+                        duration: Duration(milliseconds: 1000),
+                        curve: Curves.ease,
                       );
                     }
-                    return snap.data == null
-                        ? Center(
-                            child: Text(
-                            "Bild nicht gefunden",
+                  } else {
+                    if (idx.get() > 0) {
+                      pageController.animateToPage(
+                        idx.get() - 1,
+                        duration: Duration(milliseconds: 1000),
+                        curve: Curves.ease,
+                      );
+                    }
+                  }
+                },
+                child: PageView.builder(
+                  onPageChanged: (int x) {
+                    final idx = Provider.of<IndexModel>(context, listen: false);
+                    print("set curindex=$x");
+                    //setState(() => curIndex = x);
+                    idx.set(x);
+                    locData.setImagesIndex(x);
+                  },
+                  controller: pageController,
+                  itemCount: locData.getImagesCount(),
+                  itemBuilder: (ctx, index) {
+                    return FutureBuilder(
+                      future: getImageFileIndexed(
+                          baseConfig, locClnt, locData, index),
+                      builder: (ctx, snap) {
+                        if (snap.connectionState == ConnectionState.waiting) {
+                          return Center(
+                              child: Text(
+                            "Loading Image",
                             style: TextStyle(
                               fontSize: 20,
                             ),
-                          ))
-                        : Image.file(
-                            snap.data,
-                            fit: BoxFit.contain,
-                            width: double.infinity,
+                          ));
+                        }
+                        if (snap.hasError) {
+                          return Center(
+                            child: Text(
+                              "error ${snap.error}",
+                              style: TextStyle(
+                                fontSize: 20,
+                              ),
+                            ),
                           );
+                        }
+                        return snap.data == null
+                            ? Center(
+                                child: Text(
+                                "Bild nicht gefunden",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                ),
+                              ))
+                            : Image.file(
+                                snap.data,
+                                fit: BoxFit.contain,
+                                width: double.infinity,
+                              );
+                      },
+                    );
                   },
                 ),
               ),

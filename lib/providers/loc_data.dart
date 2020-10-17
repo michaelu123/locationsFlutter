@@ -134,18 +134,20 @@ class LocData with ChangeNotifier {
     return nr;
   }
 
-  void decIndexImages() {
-    if (imagesIndex > 0) {
-      imagesIndex--;
-      notifyListeners();
-    }
+  int getImagesCount() {
+    return locImages.length;
   }
 
-  void incIndexImages() {
-    if (imagesIndex < locImages.length - 1) {
-      imagesIndex++;
-      notifyListeners();
-    }
+  void setImagesIndex(int x) {
+    imagesIndex = x;
+  }
+
+  String getImgUrl(int index) {
+    return locImages[index]["image_url"];
+  }
+
+  String getImgPath(int index) {
+    return locImages[index]["image_path"];
   }
 
   bool isEmptyImages() {
@@ -155,14 +157,6 @@ class LocData with ChangeNotifier {
   void addImage(Map map) {
     locImages.add(map);
     notifyListeners();
-  }
-
-  bool canDecImages() {
-    return imagesIndex > 0;
-  }
-
-  bool canIncImages() {
-    return imagesIndex < (locImages.length - 1);
   }
 
   String deleteImage() {
@@ -175,14 +169,12 @@ class LocData with ChangeNotifier {
 
   String getImagePath() {
     if (locImages.length == 0) return null;
-    if (imagesIndex >= locImages.length) imagesIndex = 0;
     final imagePath = locImages[imagesIndex]["image_path"];
     return imagePath;
   }
 
   String getImageUrl() {
     if (locImages.length == 0) return null;
-    if (imagesIndex >= locImages.length) imagesIndex = 0;
     final imageUrl = locImages[imagesIndex]["image_url"];
     return imageUrl;
   }
