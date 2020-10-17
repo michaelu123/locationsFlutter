@@ -24,18 +24,18 @@ class Settings extends ChangeNotifier {
   String getConfigValueS(String key, {String defVal}) {
     try {
       final res = prefs.getString(key);
-      return res ?? defVal ?? _configDefaults[key];
-    } catch (e) {
-      return defVal ?? _configDefaults[key];
-    }
-  }
-
-  dynamic getConfigValue(String key) {
-    try {
-      final res = prefs.get(key);
       if (res != null) return res;
     } catch (e) {}
-    return _configDefaults[key];
+    return defVal ?? _configDefaults[key];
+  }
+
+  dynamic getConfigValue(String key, {dynamic defVal}) {
+    try {
+      final res = prefs.get(key);
+      if (res != null) print("gcv $key $res");
+      if (res != null) return res;
+    } catch (e) {}
+    return defVal ?? _configDefaults[key];
   }
 
   Future<void> setConfigValueS(String key, String type, String val) async {
@@ -45,8 +45,14 @@ class Settings extends ChangeNotifier {
   }
 
   Future<void> setConfigValue(String key, dynamic val) async {
-    if (val is int) prefs.setInt(key, val);
-    if (val is String) prefs.setString(key, val);
+    if (val is int)
+      prefs.setInt(key, val);
+    else if (val is String)
+      prefs.setString(key, val);
+    else if (val is double)
+      prefs.setDouble(key, val);
+    else
+      print("setConfigValue unimplemented type");
     notifyListeners();
   }
 

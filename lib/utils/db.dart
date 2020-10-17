@@ -17,6 +17,7 @@ class Coord {
 
 class LocationsDB {
   static String dbName;
+  static String tableBase;
   static List<String> createStmts;
   static Database db;
   static bool hasZusatz;
@@ -28,11 +29,13 @@ class LocationsDB {
 
   static DateFormat dateFormatter = DateFormat('yyyy.MM.dd HH:mm:ss');
 
-  static Future<void> setBase(BaseConfig baseConfig) async {
+  static Future<void> setBaseDB(BaseConfig baseConfig) async {
+    print("setBaseDB");
     if (db != null) await db.close();
     db = null;
     createStmts = [];
     dbName = baseConfig.getDbName();
+    tableBase = baseConfig.getDbTableBaseName();
     var felder = baseConfig.getDbDatenFelder();
     qmarks["daten"] = List.generate(felder.length, (_) => "?").join(",");
     createStmts.addAll(stmtsFor(felder, "daten"));
@@ -44,6 +47,7 @@ class LocationsDB {
     qmarks["images"] = List.generate(felder.length, (_) => "?").join(",");
     createStmts.addAll(stmtsFor(felder, "images"));
     db = await database();
+    lat = lon = null;
   }
 
   static const dbType = {
@@ -83,31 +87,35 @@ class LocationsDB {
   static Future<Database> database() async {
 // only dir visible in Astro: getExternalStorageDirectory
 
-    final extPath = await getExternalStorageDirectory();
+    final extPath = (await getExternalStorageDirectory()).path;
 
     // while we are at the extstor:
-    final imgDirPath = path.join(extPath.path, "images");
+    final imgDirPath = path.join(extPath, tableBase, "images");
     final imageDir = Directory(imgDirPath);
     imageDir.create(recursive: true);
 
-    final dbPath = path.join(extPath.path, "db", dbName);
-    // await sql.deleteDatabase(dbPath);
+    final dbPath = path.join(extPath, "db", dbName);
     final db = await sql.openDatabase(
       dbPath,
       onCreate: (Database db, int version) async {
         await Future.forEach(createStmts, (stmt) async {
-          print("$stmt");
           try {
             await db.execute(stmt);
           } catch (e) {
-            print(e);
-            print("!!");
+            print("db exception $e");
           }
         });
       },
       version: 1,
     );
     return db;
+  }
+
+  static Future<void> deleteDB() async {
+    final extPath = (await getExternalStorageDirectory()).path;
+    final dbPath = path.join(extPath, "db", dbName);
+    await sql.deleteDatabase(dbPath);
+    db = await database();
   }
 
   static Future<int> insert(String table, Map<String, Object> data) async {
@@ -143,13 +151,13 @@ class LocationsDB {
   }
 
   static Future<Map> dataFor(double alat, double alon, int astellen) async {
-    print("DB dataFor");
+    // print("DB dataFor");
     lat = alat;
     lon = alon;
     stellen = astellen;
+    latRound = roundDS(alat, stellen);
+    lonRound = roundDS(alon, stellen);
 
-    String latRound = roundDS(alat, stellen);
-    String lonRound = roundDS(alon, stellen);
     final resD = await db.query(
       "daten",
       where: "lat_round=? and lon_round=?",
@@ -235,7 +243,7 @@ class LocationsDB {
   }
 
   static Future<List<Coord>> readCoords() async {
-    print("readCoords");
+    // print("readCoords");
     String key;
     Map<String, Coord> map = {};
     final resD = await db.query("daten");
@@ -254,7 +262,7 @@ class LocationsDB {
         key = '${res["lat_round"]}:${res["lon_round"]}';
         var coord = map[key];
         if (coord == null) {
-          final coord = Coord();
+          coord = Coord();
           coord.lat = res["lat"];
           coord.lon = res["lon"];
           coord.quality = 0;
@@ -268,7 +276,7 @@ class LocationsDB {
       key = '${res["lat_round"]}:${res["lon_round"]}';
       var coord = map[key];
       if (coord == null) {
-        final coord = Coord();
+        coord = Coord();
         coord.lat = res["lat"];
         coord.lon = res["lon"];
         coord.quality = 0;
@@ -309,13 +317,12 @@ class LocationsDB {
   }
 
   static Future<void> fillWithDBValues(Map values) async {
-    print("1fill");
     for (String table in values.keys) {
       List rows = values[table];
+      if (rows == null) continue;
       for (List row in rows) {
         await db.rawInsert("INSERT INTO $table VALUES(${qmarks[table]})", row);
       }
     }
-    print("2fill");
   }
 }

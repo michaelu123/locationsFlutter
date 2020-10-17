@@ -114,10 +114,12 @@ class _ImagesScreenState extends State<ImagesScreen>
                   final markersNL =
                       Provider.of<Markers>(context, listen: false);
                   photosNL.takePicture(
-                      markersNL,
-                      locData,
-                      settingsNL.getConfigValueI("maxdim"),
-                      settingsNL.getConfigValueS("nickname"));
+                    markersNL,
+                    locData,
+                    settingsNL.getConfigValueI("maxdim"),
+                    settingsNL.getConfigValueS("nickname"),
+                    baseConfig.getDbTableBaseName(),
+                  );
                 },
               ),
               IconButton(
@@ -129,9 +131,14 @@ class _ImagesScreenState extends State<ImagesScreen>
             ],
           ),
           if (locData.isEmptyImages())
-            Center(
-              child: Text(
-                "Noch keine Bilder aufgenommen",
+            Expanded(
+              child: Center(
+                child: Text(
+                  "Noch keine Bilder aufgenommen",
+                  style: TextStyle(
+                    fontSize: 20,
+                  ),
+                ),
               ),
             ),
           if (!locData.isEmptyImages())
@@ -174,11 +181,19 @@ class _ImagesScreenState extends State<ImagesScreen>
                         ),
                       );
                     }
-                    return Image.file(
-                      snap.data,
-                      fit: BoxFit.contain,
-                      width: double.infinity,
-                    );
+                    return snap.data == null
+                        ? Center(
+                            child: Text(
+                            "Bild nicht gefunden",
+                            style: TextStyle(
+                              fontSize: 20,
+                            ),
+                          ))
+                        : Image.file(
+                            snap.data,
+                            fit: BoxFit.contain,
+                            width: double.infinity,
+                          );
                   },
                 ),
               ),

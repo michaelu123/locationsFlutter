@@ -11,11 +11,15 @@ import 'package:locations/providers/loc_data.dart';
 import 'package:locations/providers/markers.dart';
 
 class Photos extends ChangeNotifier {
-  static DateFormat dateFormatter = DateFormat('yyyy.MM.dd HH:mm:ss');
-  File _image;
+  static DateFormat dateFormatter = DateFormat('yyyy.MM.dd_HH:mm:ss');
 
   Future<void> takePicture(
-      Markers markers, LocData locData, int maxDim, String nickName) async {
+    Markers markers,
+    LocData locData,
+    int maxDim,
+    String nickName,
+    String tableBase,
+  ) async {
     final ImagePicker ip = ImagePicker();
     final PickedFile pf = await ip.getImage(
       source: ImageSource.camera,
@@ -32,11 +36,13 @@ class Photos extends ChangeNotifier {
     final lonRound = LocationsDB.lonRound;
 
     File _storedImage = File(pf.path);
-    final extPath = await getExternalStorageDirectory();
+    final extPath = (await getExternalStorageDirectory()).path;
     final now = dateFormatter.format(DateTime.now());
     final imgName = "${latRound}_${lonRound}_$now.jpg";
-    final imgPath = path.join(extPath.path, "images", imgName);
-    _image = await _storedImage.copy(imgPath);
+    final imgDirPath = path.join(extPath, tableBase, "images");
+    Directory(imgDirPath).create(recursive: true);
+    final imgPath = path.join(imgDirPath, imgName);
+    await _storedImage.copy(imgPath);
 
     final map = {
       "creator": nickName,
@@ -45,7 +51,7 @@ class Photos extends ChangeNotifier {
       "lon": lon,
       "lat_round": latRound,
       "lon_round": lonRound,
-      "image_path": imgPath,
+      "image_path": imgName,
       "image_url": null,
     };
     await LocationsDB.insert("images", map);
@@ -53,7 +59,18 @@ class Photos extends ChangeNotifier {
     // notifyListeners();
   }
 
-  File getImage() {
-    return _image;
+  Future<void> deleteAllImages(String tableBase) async {
+    final extPath = (await getExternalStorageDirectory()).path;
+    String imgDirPath = path.join(extPath, tableBase, "images");
+    Stream<FileSystemEntity> images = Directory(imgDirPath).list();
+    images.forEach((image) async {
+      await image.delete();
+    });
+    // pictures taken by Camera
+    imgDirPath = path.join(extPath, "Pictures");
+    images = Directory(imgDirPath).list();
+    images.forEach((image) async {
+      await image.delete();
+    });
   }
 }

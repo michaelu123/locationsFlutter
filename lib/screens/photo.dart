@@ -33,27 +33,42 @@ class PhotoScreen extends StatelessWidget {
         future: getImageFile(context, imgPath, imgUrl),
         builder: (ctx, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
-            return Center(
-                child: Text(
-              "Loading Image",
-              style: TextStyle(
-                fontSize: 20,
-              ),
-            ));
-          }
-          if (snap.hasError) {
-            return Center(
-              child: Text(
-                "error ${snap.error}",
+            return Container(
+              child: Center(
+                  child: Text(
+                "Loading Image",
                 style: TextStyle(
                   fontSize: 20,
+                ),
+              )),
+            );
+          }
+          if (snap.hasError) {
+            return Container(
+              child: Center(
+                child: Text(
+                  "error ${snap.error}",
+                  style: TextStyle(
+                    fontSize: 20,
+                  ),
                 ),
               ),
             );
           }
-          return PhotoView(
-            imageProvider: FileImage(snap.data),
-          );
+          return snap.data == null
+              ? Container(
+                  child: Center(
+                    child: Text(
+                      "Image not found",
+                      style: TextStyle(
+                        fontSize: 20,
+                      ),
+                    ),
+                  ),
+                )
+              : PhotoView(
+                  imageProvider: FileImage(snap.data),
+                );
         },
       ),
     );

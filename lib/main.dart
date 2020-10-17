@@ -74,7 +74,7 @@ class MyApp extends StatelessWidget {
               // read config.json files only once at program start
               future: baseConfig.isInited()
                   ? null
-                  : readConfig(baseConfig, settings, locClnt),
+                  : appInitialize(baseConfig, settings, locClnt),
               builder: (ctx, snap) {
                 if (snap.connectionState == ConnectionState.waiting) {
                   return SplashScreen();
@@ -106,7 +106,7 @@ class MyApp extends StatelessWidget {
     );
   }
 
-  Future<void> readConfig(
+  Future<void> appInitialize(
       BaseConfig baseConfig, Settings settings, LocationsClient locClnt) async {
     // read all assets/config/*.json files
     var bc = Map<String, dynamic>();
@@ -139,7 +139,7 @@ class MyApp extends StatelessWidget {
     print("bc ${bc.keys}");
     await settings.getSharedPreferences();
     baseConfig.setInitially(bc, settings.initialBase());
-    await LocationsDB.setBase(baseConfig);
+    await LocationsDB.setBaseDB(baseConfig);
 
     String serverName = settings.getConfigValueS("servername");
     int serverPort = settings.getConfigValueI("serverport");

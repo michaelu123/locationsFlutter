@@ -54,6 +54,7 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
                 locDataNL,
                 settingsNL.getConfigValueI("maxdim"),
                 settingsNL.getConfigValueS("nickname"),
+                baseConfig.getDbTableBaseName(),
               );
             },
           ),

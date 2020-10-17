@@ -10,7 +10,6 @@ class Markers extends ChangeNotifier {
   static int stellen;
 
   Future<void> readMarkers(int astellen) async {
-    print("1read");
     _markers = {};
     stellen = astellen;
     List<Coord> coords = await LocationsDB.readCoords();
@@ -18,7 +17,6 @@ class Markers extends ChangeNotifier {
       add(_markers, coord);
     });
     notifyListeners();
-    print("2read ${coords.length} ${_markers.length}");
   }
 
   Marker coord2Marker(Coord coord) {
@@ -50,7 +48,6 @@ class Markers extends ChangeNotifier {
   }
 
   List<Marker> markers() {
-    print("1markers ${_markers.values.length}");
     return _markers.values.toList();
   }
 

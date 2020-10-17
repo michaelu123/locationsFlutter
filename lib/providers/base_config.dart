@@ -164,10 +164,9 @@ class BaseConfig extends ChangeNotifier {
   }
 
   bool setBase(String abase) {
-    print("setBase $base $abase");
+    print("setBaseBC $base $abase");
     if (base == abase) return false;
     _setFelder(abase);
-    print("notify");
     notifyListeners();
     return true;
   }

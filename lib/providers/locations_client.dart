@@ -16,17 +16,19 @@ class LocationsClient extends ChangeNotifier {
     serverUrl = aserverUrl;
   }
 
-  Future<dynamic> req2(String method, String req,
+  Future<dynamic> _req2(String method, String req,
       {Map headers, String body}) async {
     http.Response resp = await http.get(serverUrl + req, headers: headers);
     if (resp.statusCode >= 400) {
-      Map errbody = json.decode(resp.body);
-      print("errbody $errbody");
-      String msg = errbody['error']['message'] ?? "Unknown error";
-      throw HttpException(msg);
+      // Map errbody = json.decode(resp.body);
+      // String msg = errbody['error']['message'] ?? "Unknown error";
+      // throw HttpException(msg);
+      String errBody = resp.body;
+      print("errbody $errBody");
+      // throw HttpException(errBody);
+      return null;
     }
     dynamic res = json.decode(resp.body);
-    print("$method $req $res");
     return res;
   }
 
@@ -34,7 +36,7 @@ class LocationsClient extends ChangeNotifier {
       {Map headers, dynamic body}) async {
     dynamic res;
     try {
-      res = await req2(
+      res = await _req2(
         method,
         req,
         headers: headers,
@@ -42,7 +44,7 @@ class LocationsClient extends ChangeNotifier {
       );
     } on HttpException catch (e) {
       print("http exc $e");
-      res = await req2(
+      res = await _req2(
         method,
         req,
         headers: headers,
@@ -52,10 +54,11 @@ class LocationsClient extends ChangeNotifier {
     return res;
   }
 
-  Future<Uint8List> reqBytes(String req, {Map headers}) async {
+  Future<Uint8List> _reqBytes(String req, {Map headers}) async {
     http.Response resp = await http.get(serverUrl + req, headers: headers);
     if (resp.statusCode >= 400) {
-      print("reqBytes code ${resp.statusCode} ${resp.reasonPhrase}");
+      print(
+          "reqBytes code ${resp.statusCode} ${resp.reasonPhrase} ${resp.body}");
       return null;
     }
     return resp.bodyBytes;
@@ -64,10 +67,10 @@ class LocationsClient extends ChangeNotifier {
   Future<Uint8List> reqBytesWithRetry(String req, {Map headers}) async {
     Uint8List res;
     try {
-      res = await reqBytes(req, headers: headers);
+      res = await _reqBytes(req, headers: headers);
     } on HttpException catch (e) {
       print("http exc $e");
-      res = await reqBytes(req, headers: headers);
+      res = await _reqBytes(req, headers: headers);
     }
     return res;
   }
@@ -82,11 +85,11 @@ class LocationsClient extends ChangeNotifier {
     throw "Keine Tabelle $table auf dem LocationsServer gefunden";
   }
 
-  Future<Map> imgPost(String table, String imgName) async {
-    String req = "/addimage/$table/$imgName";
+  Future<Map> imgPost(String tableBase, String imgName) async {
+    String req = "/addimage/$tableBase/$imgName";
     final headers = {"Content-type": "image/jpeg"};
 
-    final imgPath = path.join(extPath, "images", imgName);
+    final imgPath = path.join(extPath, tableBase, "images", imgName);
     File f = File(imgPath);
     final body = await f.readAsBytes();
     Map res = await reqWithRetry("POST", req, body: body, headers: headers);
@@ -103,7 +106,6 @@ class LocationsClient extends ChangeNotifier {
 
   Future<Map> getValuesWithin(String tableBase, double minlat, double maxlat,
       double minlon, double maxlon) async {
-    print("1gv");
     final res = {};
     for (String table in ["daten", "zusatz", "images"]) {
       String req =
@@ -111,22 +113,22 @@ class LocationsClient extends ChangeNotifier {
       List res2 = await reqWithRetry("GET", req);
       res[table] = res2;
     }
-    print("2gv ${res.length}");
     return res;
   }
 
   Future<File> getImage(
       String tableBase, String imgName, int maxdim, bool thumbnail) async {
-    String imgPath = path.join(extPath, "images", imgName);
+    String imgPath = path.join(extPath, tableBase, "images", imgName);
     File f = File(imgPath);
     if (await f.exists()) return f;
     if (thumbnail) {
-      imgPath = path.join(extPath, "images", "tn_" + imgName);
+      imgPath = path.join(extPath, tableBase, "images", "tn_" + imgName);
       f = File(imgPath);
       if (await f.exists()) return f;
     }
     final req = "/getimage/${tableBase}_images/$imgName?maxdim=$maxdim";
     final res = await reqBytesWithRetry(req);
+    if (res == null) return null;
     await f.writeAsBytes(res, flush: true);
     if (!thumbnail) notifyListeners(); // changed from thumbnail to full image
     return f;

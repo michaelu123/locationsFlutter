@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
 import 'package:location/location.dart';
+import 'package:locations/providers/photos.dart';
 import 'package:locations/utils/db.dart';
 import 'package:locations/providers/map_center.dart';
 import 'package:locations/providers/markers.dart';
@@ -32,13 +33,52 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   double mapLat = 0, mapLon = 0;
   final mapController = MapController();
   Future markersFuture;
+  LatLng center;
+  String base;
 
   @override
   void initState() {
     super.initState();
     final baseConfigNL = Provider.of<BaseConfig>(context, listen: false);
     final markersNL = Provider.of<Markers>(context, listen: false);
+    final settingsNL = Provider.of<Settings>(context, listen: false);
     markersFuture = markersNL.readMarkers(baseConfigNL.stellen());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final baseConfigNL = Provider.of<BaseConfig>(context, listen: false);
+    final settingsNL = Provider.of<Settings>(context, listen: false);
+    center = getCenter(baseConfigNL, settingsNL);
+  }
+
+  LatLng getCenter(
+    BaseConfig baseConfig,
+    Settings settings,
+  ) {
+    if (base == baseConfig.base) return center;
+    final configGPS = baseConfig.getGPS();
+
+    LatLng c = LocationsDB.lat == null
+        ? LatLng(
+            settings.getConfigValue(
+              "center_lat_${baseConfig.base}",
+              defVal: configGPS["center_lat"],
+            ),
+            settings.getConfigValue(
+              "center_lon_${baseConfig.base}",
+              defVal: configGPS["center_lon"],
+            ),
+          )
+        : LatLng(
+            // use this if coming back from Daten/Zusatz
+            LocationsDB.lat,
+            LocationsDB.lon,
+          );
+    base = baseConfig.base;
+    center = c;
+    return c;
   }
 
   // strange that FlutterMap does not have Marker.onTap...
@@ -83,7 +123,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   Future<void> getDataFromServer(
       LocationsClient locClnt, String tableName, int delta) async {
     double f = delta / 1000;
-    await LocationsDB.deleteAll();
+    // await LocationsDB.deleteAll();
     Map values = await locClnt.getValuesWithin(
       tableName,
       mapLat - f,
@@ -91,17 +131,34 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
       mapLon - 2 * f,
       mapLon + 2 * f,
     );
-    print(values.keys);
     await LocationsDB.fillWithDBValues(values);
+  }
+
+  Future<void> laden(
+      Settings settings, LocationsClient locClnt, BaseConfig baseConfig) async {
+    await LocationsDB.deleteDB();
+    await Provider.of<Photos>(context, listen: false).deleteAllImages(
+      baseConfig.getDbTableBaseName(),
+    );
+    settings.setConfigValue("center_lat_${baseConfig.base}", mapLat);
+    settings.setConfigValue("center_lon_${baseConfig.base}", mapLon);
+    await getDataFromServer(
+      locClnt,
+      baseConfig.getDbTableBaseName(),
+      settings.getConfigValueI("delta"),
+    );
+    await Provider.of<Markers>(context, listen: false)
+        .readMarkers(baseConfig.stellen());
   }
 
   @override
   Widget build(BuildContext context) {
-    final baseConfig = Provider.of<BaseConfig>(context);
+    final baseConfig = Provider.of<BaseConfig>(context, listen: false);
     final mapCenterNL = Provider.of<MapCenter>(context, listen: false);
     final locClntNL = Provider.of<LocationsClient>(context, listen: false);
     final locDataNL = Provider.of<LocData>(context, listen: false);
     final settingsNL = Provider.of<Settings>(context, listen: false);
+    final markersNL = Provider.of<Markers>(context, listen: false);
     final configGPS = baseConfig.getGPS();
     // locClnt.sayHello(baseConfig.getDbTableBaseName());
 
@@ -118,8 +175,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
           // ),
           IconButton(
             icon: Icon(Icons.delete),
-            onPressed: () =>
-                deleteLoc(Provider.of<Markers>(context, listen: false)),
+            onPressed: () => deleteLoc(markersNL),
           ),
           PopupMenuButton(
             icon: Icon(Icons.more_vert),
@@ -134,15 +190,13 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                 ),
               );
             },
-            onSelected: (String selectedValue) {
+            onSelected: (String selectedValue) async {
               if (baseConfig.setBase(selectedValue)) {
                 locDataNL.clearLocData();
                 settingsNL.setConfigValue("base", selectedValue);
-                LocationsDB.setBase(baseConfig).then((_) {
-                  // deleteFelder();
-                  Provider.of<Markers>(context, listen: false)
-                      .readMarkers(baseConfig.stellen());
-                });
+                await LocationsDB.setBaseDB(baseConfig);
+                await markersNL.readMarkers(baseConfig.stellen());
+                Navigator.of(context).popAndPushNamed(KartenScreen.routeName);
               }
             },
           ),
@@ -158,13 +212,21 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                   backgroundColor: Colors.amber,
                 ),
                 onPressed: () async {
-                  await getDataFromServer(
-                    locClntNL,
-                    baseConfig.getDbTableBaseName(),
-                    settingsNL.getConfigValueI("delta"),
-                  );
-                  await Provider.of<Markers>(context, listen: false)
-                      .readMarkers(baseConfig.stellen());
+                  final map = await LocationsDB.dataFor(
+                      mapLat, mapLon, baseConfig.stellen());
+                  locDataNL.dataFor("daten", map);
+                  Navigator.of(context).pushNamed(DatenScreen.routeName);
+                },
+                child: Text(
+                  'Daten',
+                ),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                ),
+                onPressed: () async {
+                  await laden(settingsNL, locClntNL, baseConfig);
                 },
                 child: Text(
                   'Laden',
@@ -177,21 +239,6 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                 onPressed: () {},
                 child: Text(
                   'Speichern',
-                ),
-              ),
-
-              TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.amber,
-                ),
-                onPressed: () async {
-                  final map = await LocationsDB.dataFor(
-                      mapLat, mapLon, baseConfig.stellen());
-                  locDataNL.dataFor("daten", map);
-                  Navigator.of(context).pushNamed(DatenScreen.routeName);
-                },
-                child: Text(
-                  'Daten',
                 ),
               ),
               // if (baseConfig.hasZusatz())
@@ -275,70 +322,76 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                         ),
                       );
                     }
+
                     return Consumer<Markers>(
                       builder: (_, markers, __) {
-                        return FlutterMap(
-                          mapController: mapController,
-                          options: MapOptions(
-                            swPanBoundary: LatLng(
-                              configGPS["min_lat"],
-                              configGPS["min_lon"],
-                            ), // LatLng(48.0, 11.4),
-                            nePanBoundary: LatLng(
-                              configGPS["max_lat"],
-                              configGPS["max_lon"],
-                            ), // LatLng(48.25, 11.8),
-                            onPositionChanged: (pos, b) {
-                              // onPositionChanged is called too early during build, must defer
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                mapCenterNL.setCenter(pos.center);
-                                setState(() {
-                                  // for the Text at the bottom of the screen
-                                  mapLat = pos.center.latitude;
-                                  mapLon = pos.center.longitude;
-                                });
-                              });
-                            },
-                            plugins: [
-                              CrossHairMapPlugin(),
-                            ],
-                            center: LocationsDB.lat == null
-                                ? LatLng(
-                                    configGPS["center_lat"],
-                                    configGPS["center_lon"],
-                                  )
-                                : LatLng(
-                                    // use this if coming back from Daten/Zusatz
-                                    LocationsDB.lat,
-                                    LocationsDB.lon,
-                                  ),
-                            zoom: 16.0,
-                            minZoom: configGPS["min_zoom"] * 1.0,
-                            maxZoom: 19,
-                            onTap: (latlng) {
-                              onTapped(
-                                markers.markers(),
-                                latlng,
-                                locDataNL,
-                                baseConfig.stellen(),
-                              );
-                            },
-                          ),
-                          layers: [
-                            TileLayerOptions(
+                        return Stack(
+                          children: [
+                            FlutterMap(
+                              mapController: mapController,
+                              options: MapOptions(
+                                center: getCenter(baseConfig, settingsNL),
+                                swPanBoundary: LatLng(
+                                  configGPS["min_lat"],
+                                  configGPS["min_lon"],
+                                ), // LatLng(48.0, 11.4),
+                                nePanBoundary: LatLng(
+                                  configGPS["max_lat"],
+                                  configGPS["max_lon"],
+                                ), // LatLng(48.25, 11.8),
+                                onPositionChanged: (pos, b) {
+                                  // onPositionChanged is called too early during build, must defer
+                                  WidgetsBinding.instance
+                                      .addPostFrameCallback((_) {
+                                    mapCenterNL.setCenter(pos.center);
+                                    setState(() {
+                                      // for the Text at the bottom of the screen
+                                      mapLat = pos.center.latitude;
+                                      mapLon = pos.center.longitude;
+                                    });
+                                  });
+                                },
+                                plugins: [
+                                  CrossHairMapPlugin(),
+                                ],
+                                zoom: 16.0,
                                 minZoom: configGPS["min_zoom"] * 1.0,
                                 maxZoom: 19,
-                                urlTemplate:
-                                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                                subdomains: ['a', 'b', 'c']),
-                            MarkerLayerOptions(
-                              markers: markers.markers(),
-                            ),
-                            CrossHairLayerOptions(
-                              crossHair: CrossHair(
-                                color: Colors.black,
+                                onTap: (latlng) {
+                                  onTapped(
+                                    markers.markers(),
+                                    latlng,
+                                    locDataNL,
+                                    baseConfig.stellen(),
+                                  );
+                                },
                               ),
+                              layers: [
+                                TileLayerOptions(
+                                    minZoom: configGPS["min_zoom"] * 1.0,
+                                    maxZoom: 19,
+                                    urlTemplate:
+                                        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                                    subdomains: ['a', 'b', 'c']),
+                                MarkerLayerOptions(
+                                  markers: markers.markers(),
+                                ),
+                                CrossHairLayerOptions(
+                                  crossHair: CrossHair(
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
                             ),
+                            if (markers.markers().length == 0)
+                              Center(
+                                child: Text(
+                                  "Noch keine Marker vorhanden",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                  ),
+                                ),
+                              ),
                           ],
                         );
                       },

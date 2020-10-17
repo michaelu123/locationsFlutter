@@ -30,7 +30,7 @@ class LocData with ChangeNotifier {
       String nickName) async {
     Map res;
     if (isZusatz) {
-      print("setZusatz $name $type $val $zusatzIndex");
+      // print("setZusatz $name $type $val $zusatzIndex");
       final v = locZusatz[zusatzIndex][name];
       if (v != val) {
         int nr = locZusatz[zusatzIndex]["nr"];
@@ -52,7 +52,7 @@ class LocData with ChangeNotifier {
         notifyListeners();
       }
     } else {
-      print("setDaten $name $type $val");
+      // print("setDaten $name $type $val");
       final v = locDaten[name];
       if (v != val) {
         locDaten[name] = val;

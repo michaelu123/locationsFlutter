@@ -13,7 +13,7 @@ class Felder {
   List<TextEditingController> controllers;
 
   void initFelder(BuildContext context, BaseConfig baseConfig, bool useZusatz) {
-    print("initFelder");
+    print("1initFelder ${baseConfig.base}");
     List felder =
         useZusatz ? baseConfig.getZusatzFelder() : baseConfig.getDatenFelder();
     int felderLength = felder.length;
@@ -43,6 +43,7 @@ class Felder {
         return cb;
       },
     );
+    print("controllers $felderLength");
     controllers = List.generate(
       felderLength,
       (index) {
@@ -95,9 +96,11 @@ class Felder {
     for (int i = 0; i < felderLength; i++) {
       focusNodes[i].addListener(focusHandlers[i]);
     }
+    print("2initFelder");
   }
 
   void setFelder(LocData locDaten, BaseConfig baseConfig, bool useZusatz) {
+    print("1setFelder");
     List felder =
         useZusatz ? baseConfig.getZusatzFelder() : baseConfig.getDatenFelder();
     int felderLength = felder.length;
@@ -105,6 +108,7 @@ class Felder {
       final feld = felder[i];
       controllers[i].text = locDaten.getFeldText(feld['name'], feld["type"]);
     }
+    print("2setFelder");
   }
 
   void deleteFelder() {
