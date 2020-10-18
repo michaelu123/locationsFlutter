@@ -5,6 +5,11 @@ class BaseConfig extends ChangeNotifier {
   List _zusatzFelder;
   List _dbDatenFelder;
   List _dbZusatzFelder;
+  static const Map newOrModified = {
+    "name": "new_or_modified",
+    "type": "bool",
+  };
+
   List _dbImagesFelder = [
     {
       "name": "creator",
@@ -38,6 +43,7 @@ class BaseConfig extends ChangeNotifier {
       "name": "image_url",
       "type": "string",
     },
+    newOrModified
   ];
 
   Map<String, dynamic> baseConfigJS;
@@ -155,9 +161,13 @@ class BaseConfig extends ChangeNotifier {
     } else {
       _zusatzFelder = [];
     }
-    _dbDatenFelder = [...dbDatenPlus, ...baseJS["daten"]["felder"]];
+    _dbDatenFelder = [
+      ...dbDatenPlus,
+      ...baseJS["daten"]["felder"],
+      newOrModified
+    ];
     if (z != null) {
-      _dbZusatzFelder = [...dbZusatzPlus, ...z];
+      _dbZusatzFelder = [...dbZusatzPlus, ...z, newOrModified];
     } else {
       _dbZusatzFelder = [];
     }

@@ -52,16 +52,22 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   ) {
     if (base == baseConfig.base) return center;
     final configGPS = baseConfig.getGPS();
+    final configLat = configGPS["center_lat"];
+    final configLon = configGPS["center_lon"];
+    final configMinLat = configGPS["min_lat"];
+    final configMinLon = configGPS["min_lon"];
+    final configMaxLat = configGPS["max_lat"];
+    final configMaxLon = configGPS["max_lon"];
 
     LatLng c = LocationsDB.lat == null
         ? LatLng(
             settings.getConfigValue(
               "center_lat_${baseConfig.base}",
-              defVal: configGPS["center_lat"],
+              defVal: configLat,
             ),
             settings.getConfigValue(
               "center_lon_${baseConfig.base}",
-              defVal: configGPS["center_lon"],
+              defVal: configLon,
             ),
           )
         : LatLng(
@@ -69,6 +75,11 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
             LocationsDB.lat,
             LocationsDB.lon,
           );
+    // last rescue
+    if (c.latitude < configMinLat || c.latitude > configMaxLat)
+      c.latitude = (configMinLat + configMaxLat) / 2;
+    if (c.longitude < configMinLon || c.longitude > configMaxLon)
+      c.longitude = (configMinLon + configMaxLon) / 2;
     base = baseConfig.base;
     center = c;
     return c;
@@ -129,10 +140,11 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
 
   Future<void> laden(
       Settings settings, LocationsClient locClnt, BaseConfig baseConfig) async {
-    await LocationsDB.deleteDB();
-    await Provider.of<Photos>(context, listen: false).deleteAllImages(
-      baseConfig.getDbTableBaseName(),
-    );
+    await LocationsDB.deleteOldData();
+    Set newImagePaths = await LocationsDB.getNewImagePaths();
+    print("new set $newImagePaths");
+    await Provider.of<Photos>(context, listen: false)
+        .deleteAllImagesExcept(baseConfig.getDbTableBaseName(), newImagePaths);
     settings.setConfigValue("center_lat_${baseConfig.base}", mapLat);
     settings.setConfigValue("center_lon_${baseConfig.base}", mapLon);
     await getDataFromServer(
@@ -144,27 +156,21 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
         .readMarkers(baseConfig.stellen());
   }
 
-  Future<bool> _XXonBackPressed() {
-    return showDialog(
-          context: context,
-          builder: (context) => new AlertDialog(
-            title: new Text('Sicher?'),
-            content: new Text('Wollen Sie die App verlassen?'),
-            actions: <Widget>[
-              new GestureDetector(
-                onTap: () => Navigator.of(context).pop(false),
-                child: Text("Nein"),
-              ),
-              SizedBox(width: 30),
-              new GestureDetector(
-                onTap: () => Navigator.of(context).pop(true),
-                child: Text("Ja"),
-              ),
-              SizedBox(width: 30),
-            ],
-          ),
-        ) ??
-        false;
+  Future<void> speichern(
+      Settings settings, LocationsClient locClnt, BaseConfig baseConfig) async {
+    final nickName = settings.getConfigValueS("nickname");
+    final Map newData = await LocationsDB.getNewData();
+    final String tableBase = baseConfig.getDbTableBaseName();
+    final newImages = newData["images"];
+    for (final img in newImages) {
+      final String imagePath = img["image_path"];
+      final Map map = await locClnt.imgPost(tableBase, imagePath);
+      final String url = map["url"];
+      await LocationsDB.updateImagesDB(imagePath, "image_url", url, nickName);
+      img["image_url"] = url;
+    }
+    await locClnt.post(tableBase, newData);
+    await LocationsDB.clearNewOrModified();
   }
 
   Future<bool> _onBackPressed() {
@@ -275,7 +281,9 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                   style: TextButton.styleFrom(
                     backgroundColor: Colors.amber,
                   ),
-                  onPressed: () {},
+                  onPressed: () async {
+                    await speichern(settingsNL, locClntNL, baseConfig);
+                  },
                   child: Text(
                     'Speichern',
                   ),

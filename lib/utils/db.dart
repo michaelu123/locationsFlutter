@@ -111,7 +111,7 @@ class LocationsDB {
     return db;
   }
 
-  static Future<void> deleteDB() async {
+  static Future<void> deleteDBNotUsed() async {
     final extPath = (await getExternalStorageDirectory()).path;
     final dbPath = path.join(extPath, "db", dbName);
     await sql.deleteDatabase(dbPath);
@@ -183,6 +183,30 @@ class LocationsDB {
     };
   }
 
+  static Future<Map> getNewData() async {
+    String where = "new_or_modified is not null";
+    final resD = await db.query(
+      "daten",
+      where: where,
+    );
+    final resZ = hasZusatz
+        ? await db.query(
+            "zusatz",
+            where: where,
+          )
+        : [];
+    final resI = await db.query(
+      "images",
+      where: where,
+    );
+    return {
+      // res is readOnly
+      "daten": resD,
+      "zusatz": resZ,
+      "images": resI,
+    };
+  }
+
   static Future<Map> updateDB(
       String table, String name, Object val, String nickName,
       {int nr}) async {
@@ -199,7 +223,11 @@ class LocationsDB {
     if (table != "zusatz" || nr != null) {
       int res = await db.update(
         table,
-        {name: val, "modified": now},
+        {
+          name: val,
+          if (table != "images") "modified": now,
+          "new_or_modified": 1,
+        },
         where: where,
         whereArgs: whereArgs,
         conflictAlgorithm: sql.ConflictAlgorithm.replace,
@@ -218,10 +246,27 @@ class LocationsDB {
       "creator": nickName,
       "created": now,
       "modified": now,
+      "new_or_modified": 1,
       name: val,
     });
     // res = the created rowid
     return {"nr": res, "created": now};
+  }
+
+  static Future<void> updateImagesDB(
+      String imagePath, String name, Object val, String nickName) async {
+    String where = "image_path=?";
+    List whereArgs = [imagePath];
+    int res = await db.update(
+      "images",
+      {
+        name: val,
+      },
+      where: where,
+      whereArgs: whereArgs,
+      conflictAlgorithm: sql.ConflictAlgorithm.replace,
+    );
+    print("updateImagesDB $res");
   }
 
   // works only for Abstellanlagen...
@@ -298,10 +343,11 @@ class LocationsDB {
     await db.delete("zusatz", where: where, whereArgs: whereArgs);
   }
 
-  static Future<void> deleteAll() async {
-    await db.delete("daten");
-    await db.delete("images");
-    await db.delete("zusatz");
+  static Future<void> deleteOldData() async {
+    String where = "new_or_modified is null";
+    await db.delete("daten", where: where);
+    await db.delete("images", where: where);
+    await db.delete("zusatz", where: where);
   }
 
   static Future<void> deleteZusatz(int nr) async {
@@ -318,11 +364,32 @@ class LocationsDB {
 
   static Future<void> fillWithDBValues(Map values) async {
     for (String table in values.keys) {
+      bool isZusatz = table == "zusatz";
       List rows = values[table];
       if (rows == null) continue;
       for (List row in rows) {
+        if (isZusatz) row[0] = null; // nr field
         await db.rawInsert("INSERT INTO $table VALUES(${qmarks[table]})", row);
       }
+    }
+  }
+
+  static Future<Set> getNewImagePaths() async {
+    String where = "new_or_modified is not null";
+    final set = Set();
+    final resI =
+        await db.query("images", columns: ["image_path"], where: where);
+    for (final res in resI) {
+      set.add(res["image_path"]);
+    }
+    return set;
+  }
+
+  static Future<void> clearNewOrModified() async {
+    String where = "new_or_modified is not null";
+    for (final table in ["daten", "zusatz", "images"]) {
+      int res = await db.update(table, {"new_or_modified": null}, where: where);
+      print("clearNOM $res");
     }
   }
 }

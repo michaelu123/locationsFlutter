@@ -18,7 +18,12 @@ class LocationsClient extends ChangeNotifier {
 
   Future<dynamic> _req2(String method, String req,
       {Map headers, String body}) async {
-    http.Response resp = await http.get(serverUrl + req, headers: headers);
+    http.Response resp;
+    if (method == "GET") {
+      resp = await http.get(serverUrl + req, headers: headers);
+    } else {
+      resp = await http.post(serverUrl + req, headers: headers, body: body);
+    }
     if (resp.statusCode >= 400) {
       // Map errbody = json.decode(resp.body);
       // String msg = errbody['error']['message'] ?? "Unknown error";
@@ -54,7 +59,7 @@ class LocationsClient extends ChangeNotifier {
     return res;
   }
 
-  Future<Uint8List> _reqBytes(String req, {Map headers}) async {
+  Future<Uint8List> _reqGetBytes(String req, {Map headers}) async {
     http.Response resp = await http.get(serverUrl + req, headers: headers);
     if (resp.statusCode >= 400) {
       print(
@@ -64,13 +69,42 @@ class LocationsClient extends ChangeNotifier {
     return resp.bodyBytes;
   }
 
-  Future<Uint8List> reqBytesWithRetry(String req, {Map headers}) async {
+  Future<Uint8List> reqGetBytesWithRetry(String req, {Map headers}) async {
     Uint8List res;
     try {
-      res = await _reqBytes(req, headers: headers);
+      res = await _reqGetBytes(req, headers: headers);
     } on HttpException catch (e) {
       print("http exc $e");
-      res = await _reqBytes(req, headers: headers);
+      res = await _reqGetBytes(req, headers: headers);
+    }
+    return res;
+  }
+
+  Future<Map> _reqPostBytes(String req, Uint8List body, {Map headers}) async {
+    http.Response resp =
+        await http.post(serverUrl + req, headers: headers, body: body);
+    if (resp.statusCode >= 400) {
+      // Map errbody = json.decode(resp.body);
+      // String msg = errbody['error']['message'] ?? "Unknown error";
+      // throw HttpException(msg);
+      print("_reqPostBytes code ${resp.statusCode} ${resp.reasonPhrase}");
+      String errBody = resp.body;
+      print("_reqPostBytes errbody $errBody");
+      // throw HttpException(errBody);
+      return null;
+    }
+    Map res = json.decode(resp.body);
+    return res;
+  }
+
+  Future<Map> reqPostBytesWithRetry(String req, Uint8List body,
+      {Map headers}) async {
+    Map res;
+    try {
+      res = await _reqPostBytes(req, body, headers: headers);
+    } on HttpException catch (e) {
+      print("http exc $e");
+      res = await _reqPostBytes(req, body, headers: headers);
     }
     return res;
   }
@@ -86,21 +120,23 @@ class LocationsClient extends ChangeNotifier {
   }
 
   Future<Map> imgPost(String tableBase, String imgName) async {
-    String req = "/addimage/$tableBase/$imgName";
+    String req = "/addimage/${tableBase}_images/$imgName";
     final headers = {"Content-type": "image/jpeg"};
 
     final imgPath = path.join(extPath, tableBase, "images", imgName);
     File f = File(imgPath);
     final body = await f.readAsBytes();
-    Map res = await reqWithRetry("POST", req, body: body, headers: headers);
+    Map res = await reqPostBytesWithRetry(req, body, headers: headers);
     return res;
   }
 
-  Future<Map> post(String table, dynamic valuesJS) async {
-    String req = "/add/$table";
-    String body = json.encode(valuesJS);
+  Future<void> post(String tableBase, Map values) async {
     Map headers = {"Content-type": "application/json"};
-    Map res = await reqWithRetry("POST", req, body: body, headers: headers);
+    for (final table in values.keys) {
+      String req = "/add/${tableBase}_$table";
+      String body = json.encode(values[table]);
+      await reqWithRetry("POST", req, body: body, headers: headers);
+    }
     return res;
   }
 
@@ -127,7 +163,7 @@ class LocationsClient extends ChangeNotifier {
       if (await f.exists()) return f;
     }
     final req = "/getimage/${tableBase}_images/$imgName?maxdim=$maxdim";
-    final res = await reqBytesWithRetry(req);
+    final res = await reqGetBytesWithRetry(req);
     if (res == null) return null;
     await f.writeAsBytes(res, flush: true);
     if (!thumbnail) notifyListeners(); // changed from thumbnail to full image

@@ -54,6 +54,7 @@ class Photos extends ChangeNotifier {
       "lon_round": lonRound,
       "image_path": imgName,
       "image_url": null,
+      "new_or_modified": 1,
     };
     await LocationsDB.insert("images", map);
     int x = locData.addImage(map);
@@ -61,12 +62,13 @@ class Photos extends ChangeNotifier {
     // notifyListeners();
   }
 
-  Future<void> deleteAllImages(String tableBase) async {
+  Future<void> deleteAllImagesExcept(String tableBase, Set newImages) async {
     final extPath = (await getExternalStorageDirectory()).path;
     String imgDirPath = path.join(extPath, tableBase, "images");
     Stream<FileSystemEntity> images = Directory(imgDirPath).list();
     images.forEach((image) async {
-      await image.delete();
+      String imagePath = path.basename(image.path);
+      if (!newImages.contains(imagePath)) await image.delete();
     });
     // pictures taken by Camera
     imgDirPath = path.join(extPath, "Pictures");
