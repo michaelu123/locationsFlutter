@@ -70,7 +70,8 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
                   backgroundColor: Colors.amber,
                 ),
                 onPressed: () {
-                  Navigator.of(context).pushNamed(KartenScreen.routeName);
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                      KartenScreen.routeName, (_) => false);
                 },
                 child: Text(
                   'Karte',

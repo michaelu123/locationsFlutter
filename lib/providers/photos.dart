@@ -13,7 +13,7 @@ import 'package:locations/providers/markers.dart';
 class Photos extends ChangeNotifier {
   static DateFormat dateFormatter = DateFormat('yyyy.MM.dd_HH:mm:ss');
 
-  Future<void> takePicture(
+  Future<int> takePicture(
     Markers markers,
     LocData locData,
     int maxDim,
@@ -27,7 +27,7 @@ class Photos extends ChangeNotifier {
       maxWidth: maxDim * 1.0,
     );
     if (pf == null || pf.path == null) {
-      return;
+      return null;
     }
 
     final lat = LocationsDB.lat;
@@ -43,6 +43,7 @@ class Photos extends ChangeNotifier {
     Directory(imgDirPath).create(recursive: true);
     final imgPath = path.join(imgDirPath, imgName);
     await _storedImage.copy(imgPath);
+    await _storedImage.delete();
 
     final map = {
       "creator": nickName,
@@ -55,7 +56,8 @@ class Photos extends ChangeNotifier {
       "image_url": null,
     };
     await LocationsDB.insert("images", map);
-    locData.addImage(map);
+    int x = locData.addImage(map);
+    return x;
     // notifyListeners();
   }
 

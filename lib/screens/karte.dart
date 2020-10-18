@@ -144,6 +144,50 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
         .readMarkers(baseConfig.stellen());
   }
 
+  Future<bool> _XXonBackPressed() {
+    return showDialog(
+          context: context,
+          builder: (context) => new AlertDialog(
+            title: new Text('Sicher?'),
+            content: new Text('Wollen Sie die App verlassen?'),
+            actions: <Widget>[
+              new GestureDetector(
+                onTap: () => Navigator.of(context).pop(false),
+                child: Text("Nein"),
+              ),
+              SizedBox(width: 30),
+              new GestureDetector(
+                onTap: () => Navigator.of(context).pop(true),
+                child: Text("Ja"),
+              ),
+              SizedBox(width: 30),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  Future<bool> _onBackPressed() {
+    return showDialog(
+          context: context,
+          builder: (context) => new AlertDialog(
+            title: new Text('Sicher?'),
+            content: new Text('Wollen Sie die App verlassen?'),
+            actions: <Widget>[
+              FlatButton(
+                child: Text("Nein"),
+                onPressed: () => Navigator.of(context).pop(false),
+              ),
+              FlatButton(
+                child: Text("Ja"),
+                onPressed: () => Navigator.of(context).pop(true),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final baseConfig = Provider.of<BaseConfig>(context, listen: false);
@@ -155,257 +199,260 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
     final configGPS = baseConfig.getGPS();
     // locClnt.sayHello(baseConfig.getDbTableBaseName());
 
-    return Scaffold(
-      drawer: AppConfig(),
-      appBar: AppBar(
-        title: Text(baseConfig.getName() + "/Karte"),
-        actions: [
-          // IconButton(
-          //   icon: Icon(Icons.account_box),
-          //   onPressed: () {
-          //     Navigator.of(context).pushNamed(AccountScreen.routeName);
-          //   },
-          // ),
-          IconButton(
-            icon: Icon(Icons.delete),
-            onPressed: () => deleteLoc(markersNL),
-          ),
-          PopupMenuButton(
-            icon: Icon(Icons.more_vert),
-            // child: Text('Auswahl der Datenbasis'),
-            itemBuilder: (_) {
-              final List keys = baseConfig.getNames();
-              return List.generate(
-                keys.length,
-                (index) => PopupMenuItem(
-                  child: Text(keys[index]),
-                  value: keys[index] as String,
-                ),
-              );
-            },
-            onSelected: (String selectedValue) async {
-              if (baseConfig.setBase(selectedValue)) {
-                locDataNL.clearLocData();
-                settingsNL.setConfigValue("base", selectedValue);
-                await LocationsDB.setBaseDB(baseConfig);
-                await markersNL.readMarkers(baseConfig.stellen());
-                Navigator.of(context).popAndPushNamed(KartenScreen.routeName);
-              }
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.amber,
-                ),
-                onPressed: () async {
-                  final map = await LocationsDB.dataFor(
-                      mapLat, mapLon, baseConfig.stellen());
-                  locDataNL.dataFor("daten", map);
-                  Navigator.of(context).pushNamed(DatenScreen.routeName);
-                },
-                child: Text(
-                  'Daten',
-                ),
-              ),
-              TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.amber,
-                ),
-                onPressed: () async {
-                  await laden(settingsNL, locClntNL, baseConfig);
-                },
-                child: Text(
-                  'Laden',
-                ),
-              ),
-              TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.amber,
-                ),
-                onPressed: () {},
-                child: Text(
-                  'Speichern',
-                ),
-              ),
-              // if (baseConfig.hasZusatz())
-              //   TextButton(
-              //     style: TextButton.styleFrom(
-              //       backgroundColor: Colors.amber,
-              //     ),
-              //     onPressed: () async {
-              //       final map = await LocationsDB.dataFor(
-              //           mapLat, mapLon, baseConfig.stellen());
-              //       locDataNL.dataFor("zusatz", map);
-              //       Navigator.of(context).pushNamed(ZusatzScreen.routeName);
-              //     },
-              //     child: Text(
-              //       'Zusatzdaten',
-              //     ),
-              //   ),
-              // TextButton(
-              //   style: TextButton.styleFrom(
-              //     backgroundColor: Colors.amber,
-              //   ),
-              //   onPressed: () async {
-              //     final map = await LocationsDB.dataFor(
-              //         mapLat, mapLon, baseConfig.stellen());
-              //     locDataNL.dataFor("images", map);
-
-              //     Navigator.of(context).pushNamed(ImagesScreen.routeName);
-              //   },
-              //   child: Text(
-              //     'Bilder',
-              //   ),
-              // ),
-              TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.amber,
-                ),
-                onPressed: () async {
-                  final locationData = await Location().getLocation();
-                  mapController.move(
-                      LatLng(locationData.latitude, locationData.longitude),
-                      mapController.zoom);
-                },
-                child: Text(
-                  'GPS Fix',
-                ),
-              ),
-              TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.amber,
-                ),
-                onPressed: () {
-                  mapController.move(
-                      LatLng(
-                        configGPS["center_lat"],
-                        configGPS["center_lon"],
-                      ),
-                      mapController.zoom);
-                },
-                child: Text(
-                  'Zentrieren',
-                ),
-              ),
-            ],
-          ),
-          Expanded(
-            child: Stack(
+    return WillPopScope(
+      onWillPop: _onBackPressed,
+      child: Scaffold(
+        drawer: AppConfig(),
+        appBar: AppBar(
+          title: Text(baseConfig.getName() + "/Karte"),
+          actions: [
+            // IconButton(
+            //   icon: Icon(Icons.account_box),
+            //   onPressed: () {
+            //     Navigator.of(context).pushNamed(AccountScreen.routeName);
+            //   },
+            // ),
+            IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () => deleteLoc(markersNL),
+            ),
+            PopupMenuButton(
+              icon: Icon(Icons.more_vert),
+              // child: Text('Auswahl der Datenbasis'),
+              itemBuilder: (_) {
+                final List keys = baseConfig.getNames();
+                return List.generate(
+                  keys.length,
+                  (index) => PopupMenuItem(
+                    child: Text(keys[index]),
+                    value: keys[index] as String,
+                  ),
+                );
+              },
+              onSelected: (String selectedValue) async {
+                if (baseConfig.setBase(selectedValue)) {
+                  locDataNL.clearLocData();
+                  settingsNL.setConfigValue("base", selectedValue);
+                  await LocationsDB.setBaseDB(baseConfig);
+                  await markersNL.readMarkers(baseConfig.stellen());
+                  Navigator.of(context).popAndPushNamed(KartenScreen.routeName);
+                }
+              },
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                FutureBuilder(
-                  future: markersFuture,
-                  builder: (ctx, snap) {
-                    if (snap.connectionState == ConnectionState.waiting) {
-                      return SplashScreen();
-                    }
-                    if (snap.hasError) {
-                      return Center(
-                        child: Text(
-                          "error ${snap.error}",
-                          style: TextStyle(
-                            fontSize: 20,
-                          ),
-                        ),
-                      );
-                    }
-
-                    return Consumer<Markers>(
-                      builder: (_, markers, __) {
-                        return Stack(
-                          children: [
-                            FlutterMap(
-                              mapController: mapController,
-                              options: MapOptions(
-                                center: getCenter(baseConfig, settingsNL),
-                                swPanBoundary: LatLng(
-                                  configGPS["min_lat"],
-                                  configGPS["min_lon"],
-                                ), // LatLng(48.0, 11.4),
-                                nePanBoundary: LatLng(
-                                  configGPS["max_lat"],
-                                  configGPS["max_lon"],
-                                ), // LatLng(48.25, 11.8),
-                                onPositionChanged: (pos, b) {
-                                  // onPositionChanged is called too early during build, must defer
-                                  WidgetsBinding.instance
-                                      .addPostFrameCallback((_) {
-                                    mapCenterNL.setCenter(pos.center);
-                                    setState(() {
-                                      // for the Text at the bottom of the screen
-                                      mapLat = pos.center.latitude;
-                                      mapLon = pos.center.longitude;
-                                    });
-                                  });
-                                },
-                                plugins: [
-                                  CrossHairMapPlugin(),
-                                ],
-                                zoom: 16.0,
-                                minZoom: configGPS["min_zoom"] * 1.0,
-                                maxZoom: 19,
-                                onTap: (latlng) {
-                                  onTapped(
-                                    markers.markers(),
-                                    latlng,
-                                    locDataNL,
-                                    baseConfig.stellen(),
-                                  );
-                                },
-                              ),
-                              layers: [
-                                TileLayerOptions(
-                                    minZoom: configGPS["min_zoom"] * 1.0,
-                                    maxZoom: 19,
-                                    urlTemplate:
-                                        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                                    subdomains: ['a', 'b', 'c']),
-                                MarkerLayerOptions(
-                                  markers: markers.markers(),
-                                ),
-                                CrossHairLayerOptions(
-                                  crossHair: CrossHair(
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            if (markers.markers().length == 0)
-                              Center(
-                                child: Text(
-                                  "Noch keine Marker vorhanden",
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        );
-                      },
-                    );
+                TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                  ),
+                  onPressed: () async {
+                    final map = await LocationsDB.dataFor(
+                        mapLat, mapLon, baseConfig.stellen());
+                    locDataNL.dataFor("daten", map);
+                    Navigator.of(context).pushNamed(DatenScreen.routeName);
                   },
-                ),
-                const Positioned(
-                  child: const Text("© OpenStreetMap-Mitwirkende"),
-                  bottom: 10,
-                  left: 10,
-                ),
-                Positioned(
                   child: Text(
-                      "${mapLat.toStringAsFixed(6)} ${mapLon.toStringAsFixed(6)}"),
-                  bottom: 10,
-                  right: 10,
+                    'Daten',
+                  ),
+                ),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                  ),
+                  onPressed: () async {
+                    await laden(settingsNL, locClntNL, baseConfig);
+                  },
+                  child: Text(
+                    'Laden',
+                  ),
+                ),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                  ),
+                  onPressed: () {},
+                  child: Text(
+                    'Speichern',
+                  ),
+                ),
+                // if (baseConfig.hasZusatz())
+                //   TextButton(
+                //     style: TextButton.styleFrom(
+                //       backgroundColor: Colors.amber,
+                //     ),
+                //     onPressed: () async {
+                //       final map = await LocationsDB.dataFor(
+                //           mapLat, mapLon, baseConfig.stellen());
+                //       locDataNL.dataFor("zusatz", map);
+                //       Navigator.of(context).pushNamed(ZusatzScreen.routeName);
+                //     },
+                //     child: Text(
+                //       'Zusatzdaten',
+                //     ),
+                //   ),
+                // TextButton(
+                //   style: TextButton.styleFrom(
+                //     backgroundColor: Colors.amber,
+                //   ),
+                //   onPressed: () async {
+                //     final map = await LocationsDB.dataFor(
+                //         mapLat, mapLon, baseConfig.stellen());
+                //     locDataNL.dataFor("images", map);
+
+                //     Navigator.of(context).pushNamed(ImagesScreen.routeName);
+                //   },
+                //   child: Text(
+                //     'Bilder',
+                //   ),
+                // ),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                  ),
+                  onPressed: () async {
+                    final locationData = await Location().getLocation();
+                    mapController.move(
+                        LatLng(locationData.latitude, locationData.longitude),
+                        mapController.zoom);
+                  },
+                  child: Text(
+                    'GPS Fix',
+                  ),
+                ),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                  ),
+                  onPressed: () {
+                    mapController.move(
+                        LatLng(
+                          configGPS["center_lat"],
+                          configGPS["center_lon"],
+                        ),
+                        mapController.zoom);
+                  },
+                  child: Text(
+                    'Zentrieren',
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
+            Expanded(
+              child: Stack(
+                children: [
+                  FutureBuilder(
+                    future: markersFuture,
+                    builder: (ctx, snap) {
+                      if (snap.connectionState == ConnectionState.waiting) {
+                        return SplashScreen();
+                      }
+                      if (snap.hasError) {
+                        return Center(
+                          child: Text(
+                            "error ${snap.error}",
+                            style: TextStyle(
+                              fontSize: 20,
+                            ),
+                          ),
+                        );
+                      }
+
+                      return Consumer<Markers>(
+                        builder: (_, markers, __) {
+                          return Stack(
+                            children: [
+                              FlutterMap(
+                                mapController: mapController,
+                                options: MapOptions(
+                                  center: getCenter(baseConfig, settingsNL),
+                                  swPanBoundary: LatLng(
+                                    configGPS["min_lat"],
+                                    configGPS["min_lon"],
+                                  ), // LatLng(48.0, 11.4),
+                                  nePanBoundary: LatLng(
+                                    configGPS["max_lat"],
+                                    configGPS["max_lon"],
+                                  ), // LatLng(48.25, 11.8),
+                                  onPositionChanged: (pos, b) {
+                                    // onPositionChanged is called too early during build, must defer
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                      mapCenterNL.setCenter(pos.center);
+                                      setState(() {
+                                        // for the Text at the bottom of the screen
+                                        mapLat = pos.center.latitude;
+                                        mapLon = pos.center.longitude;
+                                      });
+                                    });
+                                  },
+                                  plugins: [
+                                    CrossHairMapPlugin(),
+                                  ],
+                                  zoom: 16.0,
+                                  minZoom: configGPS["min_zoom"] * 1.0,
+                                  maxZoom: 19,
+                                  onTap: (latlng) {
+                                    onTapped(
+                                      markers.markers(),
+                                      latlng,
+                                      locDataNL,
+                                      baseConfig.stellen(),
+                                    );
+                                  },
+                                ),
+                                layers: [
+                                  TileLayerOptions(
+                                      minZoom: configGPS["min_zoom"] * 1.0,
+                                      maxZoom: 19,
+                                      urlTemplate:
+                                          "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                                      subdomains: ['a', 'b', 'c']),
+                                  MarkerLayerOptions(
+                                    markers: markers.markers(),
+                                  ),
+                                  CrossHairLayerOptions(
+                                    crossHair: CrossHair(
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (markers.markers().length == 0)
+                                Center(
+                                  child: Text(
+                                    "Noch keine Marker vorhanden",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  const Positioned(
+                    child: const Text("© OpenStreetMap-Mitwirkende"),
+                    bottom: 10,
+                    left: 10,
+                  ),
+                  Positioned(
+                    child: Text(
+                        "${mapLat.toStringAsFixed(6)} ${mapLon.toStringAsFixed(6)}"),
+                    bottom: 10,
+                    right: 10,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

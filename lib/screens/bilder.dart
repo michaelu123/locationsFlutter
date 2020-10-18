@@ -16,20 +16,23 @@ import 'package:locations/providers/locations_client.dart';
 import 'package:locations/utils/utils.dart';
 import 'package:provider/provider.dart';
 
+// needed extra IndexModel for left and right arrow. If moving from
+// one page to other triggers locData notification, the image flickers at
+// half the transition, because build is called in between. Looks bad.
 class IndexModel extends ChangeNotifier {
   int curIndex = 0;
 
   void set(int x) {
     curIndex = x;
-    print("set curIndex = $curIndex");
     notifyListeners();
   }
 
   int get() {
-    print("curIndex == $curIndex");
     return curIndex;
   }
 }
+
+int imageAdded = 0;
 
 class ImagesScreen extends StatefulWidget {
   static String routeName = "/images";
@@ -46,12 +49,15 @@ class _ImagesScreenState extends State<ImagesScreen>
     idx.curIndex = 0;
   }
 
-  Future<void> deleteImage(LocData locData, BaseConfig baseConfig) async {
-    String imgPath = locData.deleteImage();
+  Future<void> deleteImage(
+    LocData locData,
+    BaseConfig baseConfig,
+    Markers markers,
+  ) async {
+    String imgPath = locData.deleteImage(markers);
     await LocationsDB.deleteImage(imgPath);
     String tableBase = baseConfig.getDbTableBaseName();
     await deleteImageFile(tableBase, imgPath);
-    print("done");
     // perhaps delete on Server?
     // or not delete if not newer lastStored?
   }
@@ -81,7 +87,21 @@ class _ImagesScreenState extends State<ImagesScreen>
     final baseConfig = Provider.of<BaseConfig>(context);
     final locData = Provider.of<LocData>(context);
     final locClnt = Provider.of<LocationsClient>(context);
+    final markersNL = Provider.of<Markers>(context, listen: false);
     final pageController = PageController();
+
+    // Big problem to move to new image, AND have the right
+    // arrow button greyed out. One problem was that after
+    // pagecontroller.goto(x) Pageview.onPageChanged was called with x-1.
+    // Is the page number 1-based??
+    // Hence this hack with global imageAdded...
+    if (imageAdded > 0) {
+      int x = imageAdded;
+      imageAdded = 0;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        pageController.jumpToPage(x + 1); // must be one higher!?!?
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -91,7 +111,7 @@ class _ImagesScreenState extends State<ImagesScreen>
             icon: Icon(Icons.delete),
             onPressed: locData.isEmptyImages()
                 ? null
-                : () => deleteImage(locData, baseConfig),
+                : () => deleteImage(locData, baseConfig, markersNL),
           ),
         ],
       ),
@@ -105,7 +125,8 @@ class _ImagesScreenState extends State<ImagesScreen>
                   backgroundColor: Colors.amber,
                 ),
                 onPressed: () {
-                  Navigator.of(context).pushNamed(KartenScreen.routeName);
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                      KartenScreen.routeName, (_) => false);
                 },
                 child: Text(
                   'Karte',
@@ -161,19 +182,23 @@ class _ImagesScreenState extends State<ImagesScreen>
               ),
               IconButton(
                 icon: Icon(Icons.add_a_photo),
-                onPressed: () {
+                onPressed: () async {
                   final photosNL = Provider.of<Photos>(context, listen: false);
                   final settingsNL =
                       Provider.of<Settings>(context, listen: false);
                   final markersNL =
                       Provider.of<Markers>(context, listen: false);
-                  photosNL.takePicture(
+                  int x = await photosNL.takePicture(
                     markersNL,
                     locData,
                     settingsNL.getConfigValueI("maxdim"),
                     settingsNL.getConfigValueS("nickname"),
                     baseConfig.getDbTableBaseName(),
                   );
+                  if (x != null) {
+                    locData.setImagesIndex(x);
+                    imageAdded = x;
+                  }
                 },
               ),
               Consumer<IndexModel>(
@@ -188,7 +213,7 @@ class _ImagesScreenState extends State<ImagesScreen>
                             pageController.animateToPage(
                               next,
                               duration: Duration(milliseconds: 500),
-                              curve: Curves.ease,
+                              curve: Curves.linear,
                             );
                           }
                         : null,
@@ -218,31 +243,9 @@ class _ImagesScreenState extends State<ImagesScreen>
                     "imgUrl": locData.getImageUrl(),
                   });
                 },
-                onHorizontalDragEnd: (details) {
-                  final idx = Provider.of<IndexModel>(context, listen: false);
-                  if (details.primaryVelocity < 0) {
-                    if (idx.get() <= locData.getImagesCount() - 1) {
-                      pageController.animateToPage(
-                        idx.get() + 1,
-                        duration: Duration(milliseconds: 1000),
-                        curve: Curves.ease,
-                      );
-                    }
-                  } else {
-                    if (idx.get() > 0) {
-                      pageController.animateToPage(
-                        idx.get() - 1,
-                        duration: Duration(milliseconds: 1000),
-                        curve: Curves.ease,
-                      );
-                    }
-                  }
-                },
                 child: PageView.builder(
                   onPageChanged: (int x) {
                     final idx = Provider.of<IndexModel>(context, listen: false);
-                    print("set curindex=$x");
-                    //setState(() => curIndex = x);
                     idx.set(x);
                     locData.setImagesIndex(x);
                   },

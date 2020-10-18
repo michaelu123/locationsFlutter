@@ -154,16 +154,26 @@ class LocData with ChangeNotifier {
     return (locImages.length) == 0;
   }
 
-  void addImage(Map map) {
+  int addImage(Map map) {
     locImages.add(map);
+    imagesIndex = locImages.length - 1;
     notifyListeners();
+    return imagesIndex;
   }
 
-  String deleteImage() {
+  String deleteImage(Markers markers) {
     String imgPath = locImages[imagesIndex]["image_path"];
     locImages.removeAt(imagesIndex);
     if (imagesIndex >= locImages.length) imagesIndex = locImages.length - 1;
     notifyListeners();
+
+    final coord = Coord();
+    coord.lat = LocationsDB.lat;
+    coord.lon = LocationsDB.lon;
+    coord.quality = LocationsDB.qualityOf(locDaten);
+    coord.hasImage = locImages.length > 0;
+    markers.current(coord);
+
     return imgPath;
   }
 

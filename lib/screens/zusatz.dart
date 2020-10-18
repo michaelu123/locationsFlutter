@@ -62,7 +62,8 @@ class _ZusatzScreenState extends State<ZusatzScreen>
                   backgroundColor: Colors.amber,
                 ),
                 onPressed: () {
-                  Navigator.of(context).pushNamed(KartenScreen.routeName);
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                      KartenScreen.routeName, (_) => false);
                 },
                 child: Text(
                   'Karte',
