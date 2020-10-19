@@ -27,7 +27,7 @@ class LocationsDB {
   static String latRound, lonRound;
   static Map<String, String> qmarks = {};
 
-  static DateFormat dateFormatter = DateFormat('yyyy.MM.dd HH:mm:ss');
+  static DateFormat dateFormatterDB = DateFormat('yyyy-MM-dd HH:mm:ss');
 
   static Future<void> setBaseDB(BaseConfig baseConfig) async {
     print("setBaseDB");
@@ -147,6 +147,7 @@ class LocationsDB {
     l.forEach((m) {
       r.add(makeWritableMap(m));
     });
+    r.sort((a, b) => a["created"].compareTo(b["created"]));
     return r;
   }
 
@@ -201,13 +202,13 @@ class LocationsDB {
     );
     return {
       // res is readOnly
-      "daten": resD,
-      "zusatz": resZ,
-      "images": resI,
+      "daten": makeWritableList(resD),
+      "zusatz": makeWritableList(resZ),
+      "images": makeWritableList(resI),
     };
   }
 
-  static Future<Map> updateDB(
+  static Future<Map> updateRowDB(
       String table, String name, Object val, String nickName,
       {int nr}) async {
     String where;
@@ -219,7 +220,7 @@ class LocationsDB {
       where = "lat_round=? and lon_round=?";
       whereArgs = [latRound, lonRound];
     }
-    final now = dateFormatter.format(DateTime.now());
+    final now = dateFormatterDB.format(DateTime.now());
     if (table != "zusatz" || nr != null) {
       int res = await db.update(
         table,
@@ -388,8 +389,7 @@ class LocationsDB {
   static Future<void> clearNewOrModified() async {
     String where = "new_or_modified is not null";
     for (final table in ["daten", "zusatz", "images"]) {
-      int res = await db.update(table, {"new_or_modified": null}, where: where);
-      print("clearNOM $res");
+      await db.update(table, {"new_or_modified": null}, where: where);
     }
   }
 }

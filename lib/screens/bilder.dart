@@ -283,10 +283,25 @@ class _ImagesScreenState extends State<ImagesScreen>
                                   fontSize: 20,
                                 ),
                               ))
-                            : Image.file(
-                                snap.data,
-                                fit: BoxFit.contain,
-                                width: double.infinity,
+                            : Stack(
+                                children: [
+                                  Image.file(
+                                    snap.data,
+                                    fit: BoxFit.contain,
+                                    width: double.infinity,
+                                  ),
+                                  Positioned(
+                                    child: Text(
+                                      locData.getImgCreated(index),
+                                      style: TextStyle(
+                                        backgroundColor: Colors.white,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    bottom: 20,
+                                    right: 20,
+                                  ),
+                                ],
                               );
                       },
                     );

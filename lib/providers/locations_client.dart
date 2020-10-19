@@ -17,7 +17,7 @@ class LocationsClient extends ChangeNotifier {
   }
 
   Future<dynamic> _req2(String method, String req,
-      {Map headers, String body}) async {
+      {Map<String, String> headers, String body}) async {
     http.Response resp;
     if (method == "GET") {
       resp = await http.get(serverUrl + req, headers: headers);
@@ -38,7 +38,7 @@ class LocationsClient extends ChangeNotifier {
   }
 
   Future<dynamic> reqWithRetry(String method, String req,
-      {Map headers, dynamic body}) async {
+      {Map<String, String> headers, dynamic body}) async {
     dynamic res;
     try {
       res = await _req2(
@@ -131,13 +131,23 @@ class LocationsClient extends ChangeNotifier {
   }
 
   Future<void> post(String tableBase, Map values) async {
-    Map headers = {"Content-type": "application/json"};
+    Map<String, String> headers = {"Content-type": "application/json"};
     for (final table in values.keys) {
       String req = "/add/${tableBase}_$table";
-      String body = json.encode(values[table]);
+      List vals = values[table];
+      if (vals.length == 0) continue;
+      for (Map val in vals) {
+        val.remove("new_or_modified");
+      }
+      if (table == "zusatz") {
+        for (Map val in vals) {
+          val["nr"] = null;
+        }
+      }
+
+      String body = json.encode(vals);
       await reqWithRetry("POST", req, body: body, headers: headers);
     }
-    return res;
   }
 
   Future<Map> getValuesWithin(String tableBase, double minlat, double maxlat,

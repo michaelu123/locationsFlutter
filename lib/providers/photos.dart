@@ -11,7 +11,8 @@ import 'package:locations/providers/loc_data.dart';
 import 'package:locations/providers/markers.dart';
 
 class Photos extends ChangeNotifier {
-  static DateFormat dateFormatter = DateFormat('yyyy.MM.dd_HH:mm:ss');
+  static DateFormat dateFormatterName = DateFormat('yyyyMMdd_HHmmss');
+  static DateFormat dateFormatterDB = DateFormat('yyyy-MM-dd_HH:mm:ss');
 
   Future<int> takePicture(
     Markers markers,
@@ -37,8 +38,10 @@ class Photos extends ChangeNotifier {
 
     File _storedImage = File(pf.path);
     final extPath = (await getExternalStorageDirectory()).path;
-    final now = dateFormatter.format(DateTime.now());
-    final imgName = "${latRound}_${lonRound}_$now.jpg";
+    final now = DateTime.now();
+    final dbNow = dateFormatterDB.format(now);
+    final nameNow = dateFormatterName.format(now);
+    final imgName = "${latRound}_${lonRound}_$nameNow.jpg";
     final imgDirPath = path.join(extPath, tableBase, "images");
     Directory(imgDirPath).create(recursive: true);
     final imgPath = path.join(imgDirPath, imgName);
@@ -47,7 +50,7 @@ class Photos extends ChangeNotifier {
 
     final map = {
       "creator": nickName,
-      "created": now,
+      "created": dbNow,
       "lat": lat,
       "lon": lon,
       "lat_round": latRound,

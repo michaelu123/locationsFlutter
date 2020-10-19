@@ -35,7 +35,8 @@ class LocData with ChangeNotifier {
       if (v != val) {
         int nr = locZusatz[zusatzIndex]["nr"];
         locZusatz[zusatzIndex][name] = val;
-        res = await LocationsDB.updateDB("zusatz", name, val, nickName, nr: nr);
+        res = await LocationsDB.updateRowDB("zusatz", name, val, nickName,
+            nr: nr);
         nr = res["nr"];
         //print(
         //    "LocZusatz index=$zusatzIndex nr=$nr $name changed from $v to $val");
@@ -56,7 +57,7 @@ class LocData with ChangeNotifier {
       final v = locDaten[name];
       if (v != val) {
         locDaten[name] = val;
-        res = await LocationsDB.updateDB("daten", name, val, nickName);
+        res = await LocationsDB.updateRowDB("daten", name, val, nickName);
         // print("LocDatum $name changed from $v to $val");
         final created = res["created"];
         if (created != null) {
@@ -148,6 +149,10 @@ class LocData with ChangeNotifier {
 
   String getImgPath(int index) {
     return locImages[index]["image_path"];
+  }
+
+  String getImgCreated(int index) {
+    return locImages[index]["created"];
   }
 
   bool isEmptyImages() {

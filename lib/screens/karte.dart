@@ -35,6 +35,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   Future markersFuture;
   LatLng center;
   String base;
+  String message;
 
   @override
   void initState() {
@@ -140,37 +141,57 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
 
   Future<void> laden(
       Settings settings, LocationsClient locClnt, BaseConfig baseConfig) async {
-    await LocationsDB.deleteOldData();
-    Set newImagePaths = await LocationsDB.getNewImagePaths();
-    print("new set $newImagePaths");
-    await Provider.of<Photos>(context, listen: false)
-        .deleteAllImagesExcept(baseConfig.getDbTableBaseName(), newImagePaths);
-    settings.setConfigValue("center_lat_${baseConfig.base}", mapLat);
-    settings.setConfigValue("center_lon_${baseConfig.base}", mapLon);
-    await getDataFromServer(
-      locClnt,
-      baseConfig.getDbTableBaseName(),
-      settings.getConfigValueI("delta"),
-    );
-    await Provider.of<Markers>(context, listen: false)
-        .readMarkers(baseConfig.stellen());
+    if (message != null) return;
+    try {
+      setState(() => message = "Lösche alte Daten");
+      await LocationsDB.deleteOldData();
+      Set newImagePaths = await LocationsDB.getNewImagePaths();
+      print("new set $newImagePaths");
+      setState(() => message = "Lösche alte Photos");
+      await Provider.of<Photos>(context, listen: false).deleteAllImagesExcept(
+          baseConfig.getDbTableBaseName(), newImagePaths);
+      settings.setConfigValue("center_lat_${baseConfig.base}", mapLat);
+      settings.setConfigValue("center_lon_${baseConfig.base}", mapLon);
+      setState(() => message = "Lade neue Daten");
+      await getDataFromServer(
+        locClnt,
+        baseConfig.getDbTableBaseName(),
+        settings.getConfigValueI("delta"),
+      );
+      setState(() => message = "Lade MapMarker");
+      await Provider.of<Markers>(context, listen: false)
+          .readMarkers(baseConfig.stellen());
+    } finally {
+      setState(() => message = null);
+    }
   }
 
   Future<void> speichern(
       Settings settings, LocationsClient locClnt, BaseConfig baseConfig) async {
-    final nickName = settings.getConfigValueS("nickname");
-    final Map newData = await LocationsDB.getNewData();
-    final String tableBase = baseConfig.getDbTableBaseName();
-    final newImages = newData["images"];
-    for (final img in newImages) {
-      final String imagePath = img["image_path"];
-      final Map map = await locClnt.imgPost(tableBase, imagePath);
-      final String url = map["url"];
-      await LocationsDB.updateImagesDB(imagePath, "image_url", url, nickName);
-      img["image_url"] = url;
+    if (message != null) return;
+    try {
+      final nickName = settings.getConfigValueS("nickname");
+      setState(() => message = "Neue/geänderte Daten bestimmen");
+      final Map newData = await LocationsDB.getNewData();
+      final String tableBase = baseConfig.getDbTableBaseName();
+      final newImages = newData["images"];
+      final newImagesLen = newImages.length;
+      int i = 0;
+      for (final img in newImages) {
+        final String imagePath = img["image_path"];
+        i += 1;
+        setState(() => message = "Bild $i von $newImagesLen");
+        final Map map = await locClnt.imgPost(tableBase, imagePath);
+        final String url = map["url"];
+        await LocationsDB.updateImagesDB(imagePath, "image_url", url, nickName);
+        img["image_url"] = url;
+      }
+      setState(() => message = "Neue/geänderte Daten speichern");
+      await locClnt.post(tableBase, newData);
+      await LocationsDB.clearNewOrModified();
+    } finally {
+      setState(() => message = null);
     }
-    await locClnt.post(tableBase, newData);
-    await LocationsDB.clearNewOrModified();
   }
 
   Future<bool> _onBackPressed() {
@@ -288,36 +309,6 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                     'Speichern',
                   ),
                 ),
-                // if (baseConfig.hasZusatz())
-                //   TextButton(
-                //     style: TextButton.styleFrom(
-                //       backgroundColor: Colors.amber,
-                //     ),
-                //     onPressed: () async {
-                //       final map = await LocationsDB.dataFor(
-                //           mapLat, mapLon, baseConfig.stellen());
-                //       locDataNL.dataFor("zusatz", map);
-                //       Navigator.of(context).pushNamed(ZusatzScreen.routeName);
-                //     },
-                //     child: Text(
-                //       'Zusatzdaten',
-                //     ),
-                //   ),
-                // TextButton(
-                //   style: TextButton.styleFrom(
-                //     backgroundColor: Colors.amber,
-                //   ),
-                //   onPressed: () async {
-                //     final map = await LocationsDB.dataFor(
-                //         mapLat, mapLon, baseConfig.stellen());
-                //     locDataNL.dataFor("images", map);
-
-                //     Navigator.of(context).pushNamed(ImagesScreen.routeName);
-                //   },
-                //   child: Text(
-                //     'Bilder',
-                //   ),
-                // ),
                 TextButton(
                   style: TextButton.styleFrom(
                     backgroundColor: Colors.amber,
@@ -445,6 +436,16 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                       );
                     },
                   ),
+                  if (message != null)
+                    Center(
+                      child: Card(
+                        margin: EdgeInsets.all(50),
+                        child: Text(
+                          message,
+                          style: TextStyle(fontSize: 30),
+                        ),
+                      ),
+                    ),
                   const Positioned(
                     child: const Text("© OpenStreetMap-Mitwirkende"),
                     bottom: 10,
