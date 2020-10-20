@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:locations/utils/db.dart';
-import 'package:locations/providers/markers.dart';
 import 'package:locations/providers/photos.dart';
 import 'package:locations/providers/settings.dart';
 import 'package:locations/screens/zusatz.dart';
@@ -46,11 +45,9 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
             icon: Icon(Icons.add_a_photo),
             onPressed: () {
               final photosNL = Provider.of<Photos>(context, listen: false);
-              final markersNL = Provider.of<Markers>(context, listen: false);
               final locDataNL = Provider.of<LocData>(context, listen: false);
               final settingsNL = Provider.of<Settings>(context, listen: false);
               photosNL.takePicture(
-                markersNL,
                 locDataNL,
                 settingsNL.getConfigValueI("maxdim"),
                 settingsNL.getConfigValueS("nickname"),

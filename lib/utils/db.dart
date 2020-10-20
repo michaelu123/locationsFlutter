@@ -27,7 +27,7 @@ class LocationsDB {
   static String latRound, lonRound;
   static Map<String, String> qmarks = {};
 
-  static DateFormat dateFormatterDB = DateFormat('yyyy-MM-dd HH:mm:ss');
+  static DateFormat dateFormatterDB = DateFormat('yyyy.MM.dd HH:mm:ss');
 
   static Future<void> setBaseDB(BaseConfig baseConfig) async {
     print("setBaseDB");
@@ -388,7 +388,7 @@ class LocationsDB {
 
   static Future<void> clearNewOrModified() async {
     String where = "new_or_modified is not null";
-    for (final table in ["daten", "zusatz", "images"]) {
+    for (final table in ["daten", if (hasZusatz) "zusatz", "images"]) {
       await db.update(table, {"new_or_modified": null}, where: where);
     }
   }

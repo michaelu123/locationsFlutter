@@ -63,12 +63,6 @@ class Settings extends ChangeNotifier {
       'key': 'nickname'
     },
     {
-      'type': 'string',
-      'title': 'Gespeichert',
-      'desc': 'Datum des letzten Speicherns',
-      'key': 'gespeichert'
-    },
-    {
       'type': 'int',
       'title': 'Max Dim',
       'desc': 'Max Größe der aufgenommenen Photos',
@@ -106,12 +100,11 @@ class Settings extends ChangeNotifier {
 
   Map _configDefaults = {
     'nickname': '',
-    'gespeichert': '',
     'maxdim': 1024,
     'thumbnaildim': 200,
     'delta': 5,
-    'servername': "raspberrylan.1qgrvqjevtodmryr.myfritz.net",
-    'serverport': 80,
+    'servername': "locationsserver.feste-ip.net",
+    'serverport': 39885,
   };
 
   Map configDefaults() {
