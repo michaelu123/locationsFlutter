@@ -114,7 +114,7 @@ class _ImagesScreenState extends State<ImagesScreen>
         title: Text(baseConfig.getName() + "/Bilder"),
         actions: [
           IconButton(
-            icon: Icon(Icons.delete),
+            icon: const Icon(Icons.delete),
             onPressed: locData.isEmptyImages()
                 ? null
                 : () => deleteImage(
@@ -148,7 +148,7 @@ class _ImagesScreenState extends State<ImagesScreen>
                       Navigator.of(context).pushNamedAndRemoveUntil(
                           KartenScreen.routeName, (_) => false);
                     },
-                    child: Text(
+                    child: const Text(
                       'Karte',
                     ),
                   ),
@@ -161,7 +161,7 @@ class _ImagesScreenState extends State<ImagesScreen>
                       locData.dataFor("daten", map);
                       Navigator.of(context).pushNamed(DatenScreen.routeName);
                     },
-                    child: Text(
+                    child: const Text(
                       'Daten',
                     ),
                   ),
@@ -172,7 +172,7 @@ class _ImagesScreenState extends State<ImagesScreen>
                     onPressed: () {
                       Navigator.of(context).pushNamed(ZusatzScreen.routeName);
                     },
-                    child: Text(
+                    child: const Text(
                       'Zusatz',
                     ),
                   ),
@@ -185,7 +185,7 @@ class _ImagesScreenState extends State<ImagesScreen>
                     builder: (ctx, idx, _) {
                       return IconButton(
                         iconSize: 40,
-                        icon: Icon(Icons.arrow_back),
+                        icon: const Icon(Icons.arrow_back),
                         onPressed: idx.get() > 0
                             ? () {
                                 int prev = idx.get() - 1;
@@ -201,7 +201,7 @@ class _ImagesScreenState extends State<ImagesScreen>
                     },
                   ),
                   IconButton(
-                    icon: Icon(Icons.add_a_photo),
+                    icon: const Icon(Icons.add_a_photo),
                     onPressed: () async {
                       int x = await photosNL.takePicture(
                         locData,
@@ -219,7 +219,7 @@ class _ImagesScreenState extends State<ImagesScreen>
                     builder: (ctx, idx, _) {
                       return IconButton(
                         iconSize: 40,
-                        icon: Icon(Icons.arrow_forward),
+                        icon: const Icon(Icons.arrow_forward),
                         onPressed: idx.get() < locData.getImagesCount() - 1
                             ? () {
                                 int next = idx.get() + 1;
@@ -239,9 +239,11 @@ class _ImagesScreenState extends State<ImagesScreen>
               if (locData.isEmptyImages())
                 Expanded(
                   child: Center(
-                    child: Text(
+                    child: const Text(
                       "Noch keine Bilder aufgenommen",
                       style: TextStyle(
+                        backgroundColor: Colors.white,
+                        color: Colors.black,
                         fontSize: 20,
                       ),
                     ),
@@ -271,10 +273,10 @@ class _ImagesScreenState extends State<ImagesScreen>
                           builder: (ctx, snap) {
                             if (snap.connectionState ==
                                 ConnectionState.waiting) {
-                              return Center(
-                                  child: Text(
+                              return const Center(
+                                  child: const Text(
                                 "Loading Image",
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 20,
                                 ),
                               ));
@@ -283,7 +285,9 @@ class _ImagesScreenState extends State<ImagesScreen>
                               return Center(
                                 child: Text(
                                   "error ${snap.error}",
-                                  style: TextStyle(
+                                  style: const TextStyle(
+                                    backgroundColor: Colors.white,
+                                    color: Colors.black,
                                     fontSize: 20,
                                   ),
                                 ),
@@ -291,9 +295,11 @@ class _ImagesScreenState extends State<ImagesScreen>
                             }
                             return snap.data == null
                                 ? Center(
-                                    child: Text(
+                                    child: const Text(
                                     "Bild nicht gefunden",
                                     style: TextStyle(
+                                      backgroundColor: Colors.white,
+                                      color: Colors.black,
                                       fontSize: 20,
                                     ),
                                   ))
@@ -307,7 +313,7 @@ class _ImagesScreenState extends State<ImagesScreen>
                                       Positioned(
                                         child: Text(
                                           locData.getImgCreated(index),
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             backgroundColor: Colors.white,
                                             color: Colors.black,
                                           ),

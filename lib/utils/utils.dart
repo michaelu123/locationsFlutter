@@ -13,7 +13,7 @@ String roundDS(double d, int stellen) {
 }
 
 Future<void> deleteImageFile(String tableBase, String imgPath) async {
-  final extPath = (await getExternalStorageDirectory()).path;
+  final extPath = getExtPath();
   String imgFilePath = path.join(extPath, tableBase, "images", imgPath);
   try {
     await File(imgFilePath).delete();
@@ -22,4 +22,20 @@ Future<void> deleteImageFile(String tableBase, String imgPath) async {
   try {
     await File(imgFilePath).delete();
   } catch (e) {}
+}
+
+String _extPath;
+
+Future<void> initExtPath() async {
+  if (Platform.isAndroid) {
+    _extPath = (await getExternalStorageDirectory()).path;
+  } else {
+    _extPath = "./extPath";
+    //but Windows or other platforms fail elsewhere,
+    // e.g. Windows because of sqflite, or Chrome Web because of dart:io
+  }
+}
+
+String getExtPath() {
+  return _extPath;
 }

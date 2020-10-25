@@ -47,7 +47,7 @@ class _ZusatzScreenState extends State<ZusatzScreen>
         title: Text(baseConfig.getName() + "/Zusatz"),
         actions: [
           IconButton(
-            icon: Icon(Icons.delete),
+            icon: const Icon(Icons.delete),
             onPressed: locData.isEmpty() ? null : () => deleteZusatz(locData),
           ),
         ],
@@ -65,7 +65,7 @@ class _ZusatzScreenState extends State<ZusatzScreen>
                   Navigator.of(context).pushNamedAndRemoveUntil(
                       KartenScreen.routeName, (_) => false);
                 },
-                child: Text(
+                child: const Text(
                   'Karte',
                 ),
               ),
@@ -78,7 +78,7 @@ class _ZusatzScreenState extends State<ZusatzScreen>
                   locData.dataFor("daten", map);
                   Navigator.of(context).pushNamed(DatenScreen.routeName);
                 },
-                child: Text(
+                child: const Text(
                   'Daten',
                 ),
               ),
@@ -89,7 +89,7 @@ class _ZusatzScreenState extends State<ZusatzScreen>
                 onPressed: () {
                   Navigator.of(context).pushNamed(ImagesScreen.routeName);
                 },
-                child: Text(
+                child: const Text(
                   'Bilder',
                 ),
               ),
@@ -100,27 +100,32 @@ class _ZusatzScreenState extends State<ZusatzScreen>
             children: [
               IconButton(
                 iconSize: 40,
-                icon: Icon(Icons.arrow_back),
+                icon: const Icon(Icons.arrow_back),
                 onPressed:
                     locData.canDecZusatz() ? locData.decIndexZusatz : null,
               ),
               IconButton(
                 iconSize: 40,
-                icon: Icon(Icons.add),
+                icon: const Icon(Icons.add),
                 onPressed: baseConfig.hasZusatz() ? locData.addZusatz : null,
               ),
               IconButton(
                 iconSize: 40,
-                icon: Icon(Icons.arrow_forward),
+                icon: const Icon(Icons.arrow_forward),
                 onPressed:
                     locData.canIncZusatz() ? locData.incIndexZusatz : null,
               ),
             ],
           ),
           if (locData.isEmpty())
-            Center(
-              child: Text(
+            const Center(
+              child: const Text(
                 "Noch keine Daten eingetragen",
+                style: const TextStyle(
+                  backgroundColor: Colors.white,
+                  color: Colors.black,
+                  fontSize: 20,
+                ),
               ),
             ),
           if (!locData.isEmpty())

@@ -60,37 +60,43 @@ class Settings extends ChangeNotifier {
       'type': 'string',
       'title': 'Nickname',
       'desc': 'Benutzername/Spitzname',
-      'key': 'nickname'
+      'key': 'nickname',
     },
     {
       'type': 'int',
       'title': 'Max Dim',
       'desc': 'Max Größe der aufgenommenen Photos',
-      'key': 'maxdim'
+      'key': 'maxdim',
     },
     {
       'type': 'int',
       'title': 'Vorschaubilder Dim',
       'desc': 'Größe der Vorschaubilder',
-      'key': 'thumbnaildim'
+      'key': 'thumbnaildim',
     },
     {
       'type': 'int',
       'title': 'Größe der MapMarker-Region',
       'desc': 'Größe der mit MapMarkern gefüllten Kartenfläche',
-      'key': 'delta'
+      'key': 'delta',
     },
     {
       'type': 'string',
       'title': 'Server Name',
       'desc': 'Name des LocationsServer',
-      'key': 'servername'
+      'key': 'servername',
     },
     {
       'type': 'int',
       'title': 'Server Portnummer',
       'desc': 'Portnummer des LocationsServer',
-      'key': 'serverport'
+      'key': 'serverport',
+    },
+    {
+      'type': 'string',
+      'title': 'Karte OSM (o) oder Google Maps (g)',
+      'desc': 'Wollen Sie OpenStreetMap (o) oder Google Maps (g) benutzen?',
+      'key': 'usegooglemaps',
     },
   ];
 
@@ -105,6 +111,7 @@ class Settings extends ChangeNotifier {
     'delta': 5,
     'servername': "locationsserver.feste-ip.net",
     'serverport': 39885,
+    'usegooglemaps': "o",
   };
 
   Map configDefaults() {

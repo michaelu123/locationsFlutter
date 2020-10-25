@@ -6,6 +6,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:locations/providers/base_config.dart';
 import 'package:locations/providers/locations_client.dart';
 import 'package:locations/utils/db.dart';
+import 'package:locations/utils/utils.dart';
 import 'package:locations/providers/loc_data.dart';
 import 'package:locations/providers/map_center.dart';
 import 'package:locations/providers/markers.dart';
@@ -19,7 +20,6 @@ import 'package:locations/screens/photo.dart';
 import 'package:locations/screens/splash_screen.dart';
 import 'package:locations/screens/zusatz.dart';
 import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -27,6 +27,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  // https://pub.dev/packages/flutter_app_lock  ?
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -86,7 +88,9 @@ class MyApp extends StatelessWidget {
                   return Center(
                     child: Text(
                       "error ${snap.error}",
-                      style: TextStyle(
+                      style: const TextStyle(
+                        backgroundColor: Colors.white,
+                        color: Colors.black,
                         fontSize: 20,
                       ),
                     ),
@@ -117,6 +121,7 @@ class MyApp extends StatelessWidget {
     String content = await rootBundle.loadString("assets/config/content.json");
     List contentJS = json.decode(content);
 
+    print("2appI");
     await Future.forEach(contentJS, (f) async {
       final content2 = await rootBundle.loadString("assets/config/" + f);
       final Map content2JS = json.decode(content2);
@@ -124,8 +129,9 @@ class MyApp extends StatelessWidget {
       bc[name] = content2JS;
     });
 
+    await initExtPath();
     // allow external storage config files
-    final extPath = (await getExternalStorageDirectory()).path;
+    final extPath = getExtPath();
     final configPath = path.join(extPath, "config");
     Directory configDir = Directory(configPath);
     if (await configDir.exists()) {

@@ -9,7 +9,7 @@ class AppConfig extends StatelessWidget {
         child: Column(
       children: [
         AppBar(
-          title: Text('Einstellungen'),
+          title: const Text('Einstellungen'),
         ),
         Consumer<Settings>(builder: (ctx, settings, _) {
           final settingsJS = settings.settingsJS();
@@ -17,8 +17,11 @@ class AppConfig extends StatelessWidget {
               List.generate(settingsJS.length, (_) => TextEditingController());
           return Expanded(
             child: ListView.builder(
-              itemCount: settingsJS.length,
+              itemCount: settingsJS.length + 1,
               itemBuilder: (ctx, index) {
+                if (index == settingsJS.length) {
+                  return SizedBox(height: 200);
+                }
                 final settingJS = settingsJS[index];
                 final controller = controllers[index];
                 controller.text =

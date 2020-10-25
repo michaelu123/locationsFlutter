@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:locations/utils/utils.dart';
 import 'package:path/path.dart' as path;
 import 'package:intl/intl.dart';
 
@@ -51,7 +51,7 @@ class Photos extends ChangeNotifier {
     final latRound = LocationsDB.latRound;
     final lonRound = LocationsDB.lonRound;
 
-    final extPath = (await getExternalStorageDirectory()).path;
+    final extPath = getExtPath();
     final now = DateTime.now();
     final dbNow = dateFormatterDB.format(now);
     final nameNow = dateFormatterName.format(now);
@@ -79,7 +79,7 @@ class Photos extends ChangeNotifier {
   }
 
   Future<void> deleteAllImagesExcept(String tableBase, Set newImages) async {
-    final extPath = (await getExternalStorageDirectory()).path;
+    final extPath = getExtPath();
     String imgDirPath = path.join(extPath, tableBase, "images");
     Stream<FileSystemEntity> images = Directory(imgDirPath).list();
     images.forEach((image) async {

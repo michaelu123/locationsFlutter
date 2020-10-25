@@ -4,7 +4,6 @@ import 'package:locations/providers/base_config.dart';
 import 'package:sqflite/sqflite.dart' as sql;
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqlite_api.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:locations/utils/utils.dart';
 
@@ -87,7 +86,7 @@ class LocationsDB {
   static Future<Database> database() async {
 // only dir visible in Astro: getExternalStorageDirectory
 
-    final extPath = (await getExternalStorageDirectory()).path;
+    final extPath = getExtPath();
 
     // while we are at the extstor:
     final imgDirPath = path.join(extPath, tableBase, "images");
@@ -112,7 +111,7 @@ class LocationsDB {
   }
 
   static Future<void> deleteDBNotUsed() async {
-    final extPath = (await getExternalStorageDirectory()).path;
+    final extPath = getExtPath();
     final dbPath = path.join(extPath, "db", dbName);
     await sql.deleteDatabase(dbPath);
     db = await database();

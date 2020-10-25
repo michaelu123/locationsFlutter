@@ -173,7 +173,7 @@ class LocationsClient extends ChangeNotifier {
       if (await f.exists()) return f;
     }
     final req = "/getimage/${tableBase}_images/$imgName?maxdim=$maxdim";
-    final res = await reqGetBytesWithRetry(req);
+    Uint8List res = await reqGetBytesWithRetry(req);
     if (res == null) return null;
     await f.writeAsBytes(res, flush: true);
     if (!thumbnail) notifyListeners(); // changed from thumbnail to full image

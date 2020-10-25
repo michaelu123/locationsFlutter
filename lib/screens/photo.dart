@@ -34,10 +34,12 @@ class PhotoScreen extends StatelessWidget {
         builder: (ctx, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return Container(
-              child: Center(
+              child: const Center(
                   child: Text(
                 "Loading Image",
                 style: TextStyle(
+                  backgroundColor: Colors.white,
+                  color: Colors.black,
                   fontSize: 20,
                 ),
               )),
@@ -48,7 +50,9 @@ class PhotoScreen extends StatelessWidget {
               child: Center(
                 child: Text(
                   "error ${snap.error}",
-                  style: TextStyle(
+                  style: const TextStyle(
+                    backgroundColor: Colors.white,
+                    color: Colors.black,
                     fontSize: 20,
                   ),
                 ),
@@ -58,15 +62,18 @@ class PhotoScreen extends StatelessWidget {
           return snap.data == null
               ? Container(
                   child: Center(
-                    child: Text(
+                    child: const Text(
                       "Image not found",
                       style: TextStyle(
+                        backgroundColor: Colors.white,
+                        color: Colors.black,
                         fontSize: 20,
                       ),
                     ),
                   ),
                 )
               : PhotoView(
+                  enableRotation: true,
                   imageProvider: FileImage(snap.data),
                 );
         },

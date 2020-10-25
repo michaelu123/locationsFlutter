@@ -42,7 +42,7 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
         title: Text(baseConfig.getName() + "/Daten"),
         actions: [
           IconButton(
-            icon: Icon(Icons.add_a_photo),
+            icon: const Icon(Icons.add_a_photo),
             onPressed: () {
               final photosNL = Provider.of<Photos>(context, listen: false);
               final locDataNL = Provider.of<LocData>(context, listen: false);
@@ -70,7 +70,7 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
                   Navigator.of(context).pushNamedAndRemoveUntil(
                       KartenScreen.routeName, (_) => false);
                 },
-                child: Text(
+                child: const Text(
                   'Karte',
                 ),
               ),
@@ -86,7 +86,7 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
                     locDataNL.dataFor("zusatz", map);
                     Navigator.of(context).pushNamed(ZusatzScreen.routeName);
                   },
-                  child: Text(
+                  child: const Text(
                     'Zusatzdaten',
                   ),
                 ),
@@ -97,7 +97,7 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
                 onPressed: () {
                   Navigator.of(context).pushNamed(ImagesScreen.routeName);
                 },
-                child: Text(
+                child: const Text(
                   'Bilder',
                 ),
               ),
@@ -105,9 +105,15 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
           ),
           Expanded(
             child: settingsNL.getConfigValueS("nickname") == ""
-                ? Center(
-                    child:
-                        Text("Bitte erst einen Benutzer/Spitznamen eingeben"),
+                ? const Center(
+                    child: Text(
+                      "Bitte erst einen Benutzer/Spitznamen eingeben",
+                      style: TextStyle(
+                        backgroundColor: Colors.white,
+                        color: Colors.black,
+                        fontSize: 20,
+                      ),
+                    ),
                   )
                 : Consumer<LocData>(
                     builder: (ctx, locDaten, _) {
