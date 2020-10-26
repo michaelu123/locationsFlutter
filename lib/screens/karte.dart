@@ -60,7 +60,6 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
     mapCenterNL = Provider.of<MapCenter>(context, listen: false);
     locClntNL = Provider.of<LocationsClient>(context, listen: false);
     locDataNL = Provider.of<LocData>(context, listen: false);
-    center = getCenter(baseConfigNL, settingsNL);
   }
 
   @override
@@ -71,6 +70,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
             "G";
     markersFuture =
         markersNL.readMarkers(baseConfigNL.stellen(), useGoogle, onTappedG);
+    center = getCenter(baseConfigNL, settingsNL);
   }
 
   void setState2() {
@@ -312,7 +312,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
               onSelected: (String selectedValue) async {
                 if (baseConfigNL.setBase(selectedValue)) {
                   locDataNL.clearLocData();
-                  settingsNL.setConfigValue("base", selectedValue);
+                  settingsNL.setConfigValueS("base", "string", selectedValue);
                   await LocationsDB.setBaseDB(baseConfigNL);
                   await markersNL.readMarkers(
                       baseConfigNL.stellen(), useGoogle, onTappedG);

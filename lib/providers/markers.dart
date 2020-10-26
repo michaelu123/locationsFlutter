@@ -22,7 +22,6 @@ class Markers extends ChangeNotifier {
 
   Future<void> readMarkers(
       int astellen, bool auseGoogle, Function aonTappedG) async {
-    print("readMarkers $auseGoogle");
     if (gmIcons == null) {
       await createGmIcons();
     }

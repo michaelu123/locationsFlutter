@@ -52,7 +52,7 @@ class Settings extends ChangeNotifier {
       prefs.setDouble(key, val);
     else
       print("setConfigValue unimplemented type");
-    notifyListeners();
+    // intentionally no notify
   }
 
   List _settingsJS = [
