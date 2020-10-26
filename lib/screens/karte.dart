@@ -60,11 +60,17 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
     mapCenterNL = Provider.of<MapCenter>(context, listen: false);
     locClntNL = Provider.of<LocationsClient>(context, listen: false);
     locDataNL = Provider.of<LocData>(context, listen: false);
-    useGoogle = settingsNL.getConfigValueS("usegooglemaps", defVal: "o") == "g";
+    center = getCenter(baseConfigNL, settingsNL);
+  }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    useGoogle =
+        settingsNL.getConfigValueS("mapprovider", defVal: "OpenStreetMap")[0] ==
+            "G";
     markersFuture =
         markersNL.readMarkers(baseConfigNL.stellen(), useGoogle, onTappedG);
-    center = getCenter(baseConfigNL, settingsNL);
   }
 
   void setState2() {
@@ -138,7 +144,6 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
     // if the zoom goes down by 1, the distance halves.
     // 19:1 18:2 17:4 16:8...
     nearestDist = nearestDist / pow(2, 19 - zoom);
-    // print("onTapped $zoom, $nearestDist $nearestLat $nearestLon");
     if (nearestDist > 0.0001) return;
     fmapController.move(ll.LatLng(nearestLat, nearestLon), fmapController.zoom);
     Future.delayed(const Duration(milliseconds: 500), () async {
@@ -273,8 +278,12 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   @override
   Widget build(BuildContext context) {
     // locClnt.sayHello(baseConfig.getDbTableBaseName());
+    final settings = Provider.of<Settings>(context);
+
     final configGPS = baseConfigNL.getGPS();
-    useGoogle = settingsNL.getConfigValueS("usegooglemaps", defVal: "o") == "g";
+    useGoogle =
+        settings.getConfigValueS("mapprovider", defVal: "OpenStreetMap")[0] ==
+            "G";
 
     return WillPopScope(
       onWillPop: _onBackPressed,
@@ -449,7 +458,9 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                     ),
                   Positioned(
                     child: Text(
-                        "${mapLat.toStringAsFixed(6)} ${mapLon.toStringAsFixed(6)}"),
+                      "${mapLat.toStringAsFixed(6)} ${mapLon.toStringAsFixed(6)}",
+                      style: TextStyle(backgroundColor: Colors.white),
+                    ),
                     bottom: 10,
                     right: 10,
                   ),
@@ -530,8 +541,25 @@ class MyGoogleMap extends StatelessWidget {
   Widget build(BuildContext context) {
     final configGPS = state.baseConfigNL.getGPS();
 
+    String mapTypeS = state.settingsNL.getConfigValueS("maptype");
+    gm.MapType mt = gm.MapType.normal;
+    switch (mapTypeS) {
+      case 'Normal':
+        mt = gm.MapType.normal;
+        break;
+      case 'Hybrid':
+        mt = gm.MapType.hybrid;
+        break;
+      case 'Satellit':
+        mt = gm.MapType.satellite;
+        break;
+      case 'Terrain':
+        mt = gm.MapType.terrain;
+        break;
+    }
+
     return gm.GoogleMap(
-      mapType: gm.MapType.hybrid,
+      mapType: mt,
       myLocationButtonEnabled: false,
       myLocationEnabled: false,
       mapToolbarEnabled: false,
@@ -542,7 +570,6 @@ class MyGoogleMap extends StatelessWidget {
       zoomGesturesEnabled: true,
       // onTap handled by each marker
       onCameraMove: (gm.CameraPosition pos) {
-        print("move $pos");
         state.mapCenterNL.setCenter(g2m(pos.target));
         // for the Text at the bottom of the screen
         state.mapLat = pos.target.latitude;

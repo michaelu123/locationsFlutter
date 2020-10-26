@@ -1,4 +1,7 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart' as fm;
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gm;
 import 'package:latlong/latlong.dart' as ll;
@@ -7,13 +10,22 @@ import 'package:locations/utils/utils.dart';
 
 class Markers extends ChangeNotifier {
   Map<String, dynamic> _markers = {};
-  static final colors = [Colors.red, Colors.yellow, Colors.green];
-  static int stellen;
-  static bool useGoogle;
+  List<fm.Marker> fmList;
+  Set<gm.Marker> gmSet;
+  bool changedF, changedG;
+  int stellen;
+  bool useGoogle;
   Function onTappedG;
+  List<gm.BitmapDescriptor> gmIcons;
+
+  final colors = [Colors.red, Colors.yellow, Colors.green];
 
   Future<void> readMarkers(
       int astellen, bool auseGoogle, Function aonTappedG) async {
+    print("readMarkers $auseGoogle");
+    if (gmIcons == null) {
+      await createGmIcons();
+    }
     _markers = {};
     stellen = astellen;
     useGoogle = auseGoogle;
@@ -22,6 +34,8 @@ class Markers extends ChangeNotifier {
     coords.forEach((coord) {
       add(_markers, coord);
     });
+    changedF = true;
+    changedG = true;
     notifyListeners();
   }
 
@@ -43,6 +57,7 @@ class Markers extends ChangeNotifier {
   gm.Marker coord2MarkerG(Coord coord) {
     // final color = colors[coord.quality];
     return gm.Marker(
+      icon: iconFor(coord.quality, coord.hasImage),
       markerId: gm.MarkerId("${coord.lat}:${coord.lon}"),
       consumeTapEvents: false,
       onTap: () {
@@ -56,6 +71,8 @@ class Markers extends ChangeNotifier {
 
   void current(Coord coord) {
     add(_markers, coord);
+    changedF = true;
+    changedG = true;
     notifyListeners();
   }
 
@@ -69,20 +86,26 @@ class Markers extends ChangeNotifier {
 
   List<fm.Marker> markersF() {
     // return _markers.values.toList();
-    final mlist = List<fm.Marker>();
-    for (fm.Marker m in _markers.values) {
-      mlist.add(m);
+    if (changedF) {
+      fmList = List<fm.Marker>();
+      for (fm.Marker m in _markers.values) {
+        fmList.add(m);
+      }
     }
-    return mlist;
+    changedF = false;
+    return fmList;
   }
 
   Set<gm.Marker> markersG() {
     // return _markers.values.toSet();
-    final mset = Set<gm.Marker>();
-    for (gm.Marker m in _markers.values) {
-      mset.add(m);
+    if (changedG) {
+      gmSet = Set<gm.Marker>();
+      for (gm.Marker m in _markers.values) {
+        gmSet.add(m);
+      }
     }
-    return mset;
+    changedG = false;
+    return gmSet;
   }
 
   void deleteLoc(double lat, double lon) {
@@ -95,5 +118,37 @@ class Markers extends ChangeNotifier {
 
   int length() {
     return _markers.length;
+  }
+
+  gm.BitmapDescriptor iconFor(int quality, bool hasImage) {
+    return gmIcons[(hasImage ? 3 : 0) + quality];
+  }
+
+  Future<void> createGmIcons() async {
+    final names = [
+      "red48.png",
+      "yellow48.png",
+      "green48.png",
+      "red_plus48.png",
+      "yellow_plus48.png",
+      "green_plus48.png",
+    ];
+    gmIcons = List<gm.BitmapDescriptor>(6);
+    for (int i = 0; i < 6; i++) {
+      // this crashes with "failed to decode image. the provided image must be a bitmap"
+      // gmIcons[i] = await gm.BitmapDescriptor.fromAssetImage(
+      //   ImageConfiguration(size: Size(48, 48)),
+      //   "assets/icons/" + names[i],
+
+      // https://stackoverflow.com/questions/60111721/flutter-failed-to-decode-image-the-provided-image-must-be-a-bitmap-null
+      ByteData data = await rootBundle.load("assets/icons/" + names[i]);
+      ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(),
+          targetWidth: 96);
+      ui.FrameInfo fi = await codec.getNextFrame();
+      final bytes = (await fi.image.toByteData(format: ui.ImageByteFormat.png))
+          .buffer
+          .asUint8List();
+      gmIcons[i] = gm.BitmapDescriptor.fromBytes(bytes);
+    }
   }
 }

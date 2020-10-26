@@ -93,10 +93,16 @@ class Settings extends ChangeNotifier {
       'key': 'serverport',
     },
     {
-      'type': 'string',
-      'title': 'Karte OSM (o) oder Google Maps (g)',
-      'desc': 'Wollen Sie OpenStreetMap (o) oder Google Maps (g) benutzen?',
-      'key': 'usegooglemaps',
+      'type': 'choice',
+      'title': 'Karten-Lieferant',
+      'choices': ['OpenStreetMap', 'Google Maps'],
+      'key': 'mapprovider',
+    },
+    {
+      'type': 'choice',
+      'title': 'Google Maps Kartentyp',
+      'choices': ['Normal', 'Hybrid', 'Satellit', 'Terrain'],
+      'key': 'maptype',
     },
   ];
 
@@ -111,7 +117,8 @@ class Settings extends ChangeNotifier {
     'delta': 5,
     'servername': "locationsserver.feste-ip.net",
     'serverport': 39885,
-    'usegooglemaps': "o",
+    'mapprovider': 'OpenStreetMap',
+    'maptype': 'Normal',
   };
 
   Map configDefaults() {

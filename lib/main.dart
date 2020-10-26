@@ -12,7 +12,6 @@ import 'package:locations/providers/map_center.dart';
 import 'package:locations/providers/markers.dart';
 import 'package:locations/providers/photos.dart';
 import 'package:locations/providers/settings.dart';
-import 'package:locations/screens/account.dart';
 import 'package:locations/screens/bilder.dart';
 import 'package:locations/screens/daten.dart';
 import 'package:locations/screens/karte.dart';
@@ -104,7 +103,6 @@ class MyApp extends StatelessWidget {
               DatenScreen.routeName: (ctx) => DatenScreen(),
               ZusatzScreen.routeName: (ctx) => ZusatzScreen(),
               KartenScreen.routeName: (ctx) => KartenScreen(),
-              AccountScreen.routeName: (ctx) => AccountScreen(),
               PhotoScreen.routeName: (ctx) => PhotoScreen(),
             },
           );
