@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:locations/providers/base_config.dart';
-import 'package:locations/providers/locations_client.dart';
+import 'package:locations/providers/storage.dart';
 import 'package:locations/utils/db.dart';
 import 'package:locations/utils/utils.dart';
 import 'package:locations/providers/loc_data.dart';
@@ -51,14 +52,14 @@ class MyApp extends StatelessWidget {
           create: (BuildContext context) => Photos(),
         ),
         ChangeNotifierProvider(
-          create: (BuildContext context) => LocationsClient(),
+          create: (BuildContext context) => Storage(),
         ),
         ChangeNotifierProvider(
           create: (BuildContext context) => IndexModel(),
         ),
       ],
-      child: Consumer3<BaseConfig, Settings, LocationsClient>(
-        builder: (ctx, baseConfig, settings, locClnt, _) {
+      child: Consumer3<BaseConfig, Settings, Storage>(
+        builder: (ctx, baseConfig, settings, strgClnt, _) {
           return MaterialApp(
             title: 'Locations',
             theme: ThemeData(
@@ -78,7 +79,7 @@ class MyApp extends StatelessWidget {
               // read config.json files only once at program start
               future: baseConfig.isInited()
                   ? null
-                  : appInitialize(baseConfig, settings, locClnt),
+                  : appInitialize(baseConfig, settings, strgClnt),
               builder: (ctx, snap) {
                 if (snap.connectionState == ConnectionState.waiting) {
                   return SplashScreen();
@@ -111,8 +112,9 @@ class MyApp extends StatelessWidget {
     );
   }
 
+  // conveniently do all asynchronous initialization
   Future<void> appInitialize(
-      BaseConfig baseConfig, Settings settings, LocationsClient locClnt) async {
+      BaseConfig baseConfig, Settings settings, Storage strgClnt) async {
     // read all assets/config/*.json files
     var bc = Map<String, dynamic>();
     // I cannot obtain list of bundle content, therefore I need a TOC file...
@@ -148,9 +150,20 @@ class MyApp extends StatelessWidget {
     baseConfig.setInitially(bc, settings.initialBase());
     await LocationsDB.setBaseDB(baseConfig);
 
+    final fbApp = await Firebase.initializeApp();
+    print("fbapp $fbApp");
+
+    strgClnt.setClnt(
+        settings.getConfigValueS("storage", defVal: "LocationsServer"));
     String serverName = settings.getConfigValueS("servername");
     int serverPort = settings.getConfigValueI("serverport");
     String serverUrl = "http://$serverName:$serverPort";
-    locClnt.init(serverUrl, extPath);
+    strgClnt.init(
+      serverUrl: serverUrl,
+      extPath: extPath,
+      datenFelder: baseConfig.getDbDatenFelder(),
+      zusatzFelder: baseConfig.getDbZusatzFelder(),
+      imagesFelder: baseConfig.getDbImagesFelder(),
+    );
   }
 }

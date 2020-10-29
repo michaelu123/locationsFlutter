@@ -82,7 +82,7 @@ class _AppConfigState extends State<AppConfig> {
                             return Row(children: [
                               SizedBox(
                                 child: Text(choices[index2]),
-                                width: 100,
+                                width: 120,
                               ),
                               Radio(
                                 groupValue: groupValue,

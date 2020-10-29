@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:locations/providers/base_config.dart';
 import 'package:locations/providers/settings.dart';
-import 'package:locations/providers/locations_client.dart';
+import 'package:locations/providers/storage.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 
@@ -14,10 +14,10 @@ class PhotoScreen extends StatelessWidget {
       BuildContext context, String imgName, String imgUrl) async {
     final baseConfigNL = Provider.of<BaseConfig>(context, listen: false);
     final settingsNL = Provider.of<Settings>(context, listen: false);
-    final locClntNL = Provider.of<LocationsClient>(context, listen: false);
+    final strgClntNL = Provider.of<Storage>(context, listen: false);
     String tableBase = baseConfigNL.getDbTableBaseName();
     int dim = settingsNL.getConfigValueI("maxdim");
-    File f = await locClntNL.getImage(tableBase, imgName, dim, false);
+    File f = await strgClntNL.getImage(tableBase, imgName, dim, false);
     return f;
   }
 

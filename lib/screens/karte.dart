@@ -7,11 +7,11 @@ import 'package:latlong/latlong.dart' as ll;
 import 'package:location/location.dart';
 import 'package:locations/providers/base_config.dart';
 import 'package:locations/providers/loc_data.dart';
-import 'package:locations/providers/locations_client.dart';
 import 'package:locations/providers/map_center.dart';
 import 'package:locations/providers/markers.dart';
 import 'package:locations/providers/photos.dart';
 import 'package:locations/providers/settings.dart';
+import 'package:locations/providers/storage.dart';
 import 'package:locations/screens/daten.dart';
 import 'package:locations/screens/splash_screen.dart';
 import 'package:locations/utils/db.dart';
@@ -48,7 +48,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   Markers markersNL;
   Settings settingsNL;
   MapCenter mapCenterNL;
-  LocationsClient locClntNL;
+  Storage strgClntNL;
   LocData locDataNL;
 
   @override
@@ -58,8 +58,14 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
     markersNL = Provider.of<Markers>(context, listen: false);
     settingsNL = Provider.of<Settings>(context, listen: false);
     mapCenterNL = Provider.of<MapCenter>(context, listen: false);
-    locClntNL = Provider.of<LocationsClient>(context, listen: false);
+    strgClntNL = Provider.of<Storage>(context, listen: false);
     locDataNL = Provider.of<LocData>(context, listen: false);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    if (gmapController != null) gmapController.dispose();
   }
 
   @override
@@ -187,21 +193,23 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   }
 
   Future<void> getDataFromServer(
-      LocationsClient locClnt, String tableName, int delta) async {
+      Storage strgClnt, String tableName, int delta) async {
     double f = delta / 1000;
     // await LocationsDB.deleteAll();
-    Map values = await locClnt.getValuesWithin(
+    print("1getDataFromServer");
+    Map values = await strgClnt.getValuesWithin(
       tableName,
       mapLat - f,
       mapLat + f,
       mapLon - 2 * f,
       mapLon + 2 * f,
     );
+    print("2getDataFromServer $values");
     await LocationsDB.fillWithDBValues(values);
   }
 
   Future<void> laden(
-      Settings settings, LocationsClient locClnt, BaseConfig baseConfig) async {
+      Settings settings, Storage strgClnt, BaseConfig baseConfig) async {
     if (message != null) return;
     try {
       setState(() => message = "Lösche alte Daten");
@@ -214,7 +222,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
       settings.setConfigValue("center_lon_${baseConfig.base}", mapLon);
       setState(() => message = "Lade neue Daten");
       await getDataFromServer(
-        locClnt,
+        strgClnt,
         baseConfig.getDbTableBaseName(),
         settings.getConfigValueI("delta"),
       );
@@ -227,7 +235,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   }
 
   Future<void> speichern(
-      Settings settings, LocationsClient locClnt, BaseConfig baseConfig) async {
+      Settings settings, Storage strgClnt, BaseConfig baseConfig) async {
     if (message != null) return;
     try {
       final nickName = settings.getConfigValueS("nickname");
@@ -241,13 +249,13 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
         final String imagePath = img["image_path"];
         i += 1;
         setState(() => message = "Bild $i von $newImagesLen");
-        final Map map = await locClnt.imgPost(tableBase, imagePath);
+        final Map map = await strgClnt.imgPost(tableBase, imagePath);
         final String url = map["url"];
         await LocationsDB.updateImagesDB(imagePath, "image_url", url, nickName);
         img["image_url"] = url;
       }
       setState(() => message = "Neue/geänderte Daten speichern");
-      await locClnt.post(tableBase, newData);
+      await strgClnt.post(tableBase, newData);
       await LocationsDB.clearNewOrModified();
     } finally {
       setState(() => message = null);
@@ -277,7 +285,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
 
   @override
   Widget build(BuildContext context) {
-    // locClnt.sayHello(baseConfig.getDbTableBaseName());
+    // strgClnt.sayHello(baseConfig.getDbTableBaseName());
     final settings = Provider.of<Settings>(context);
 
     final configGPS = baseConfigNL.getGPS();
@@ -346,7 +354,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                     backgroundColor: Colors.amber,
                   ),
                   onPressed: () async {
-                    await laden(settingsNL, locClntNL, baseConfigNL);
+                    await laden(settingsNL, strgClntNL, baseConfigNL);
                   },
                   child: const Text(
                     'Laden',
@@ -357,7 +365,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                     backgroundColor: Colors.amber,
                   ),
                   onPressed: () async {
-                    await speichern(settingsNL, locClntNL, baseConfigNL);
+                    await speichern(settingsNL, strgClntNL, baseConfigNL);
                   },
                   child: const Text(
                     'Speichern',

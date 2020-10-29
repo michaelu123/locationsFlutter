@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:locations/providers/base_config.dart';
+import 'package:locations/providers/storage.dart';
 import 'package:locations/utils/db.dart';
 import 'package:locations/providers/loc_data.dart';
 import 'package:locations/providers/markers.dart';
@@ -12,7 +13,6 @@ import 'package:locations/screens/karte.dart';
 import 'package:locations/screens/photo.dart';
 import 'package:locations/screens/zusatz.dart';
 import 'package:locations/utils/felder.dart';
-import 'package:locations/providers/locations_client.dart';
 import 'package:locations/utils/utils.dart';
 import 'package:provider/provider.dart';
 
@@ -64,31 +64,31 @@ class _ImagesScreenState extends State<ImagesScreen>
     // or not delete if not newer lastStored?
   }
 
-  Future<File> getImageFile(BaseConfig baseConfig, LocationsClient locClnt,
+  Future<File> getImageFile(BaseConfig baseConfig, Storage strgClnt,
       String imgPath, String imgUrl) async {
     final settingsNL = Provider.of<Settings>(context, listen: false);
     String tableBase = baseConfig.getDbTableBaseName();
     int dim = settingsNL.getConfigValueI("thumbnaildim");
-    File f = await locClnt.getImage(tableBase, imgPath, dim, true);
+    File f = await strgClnt.getImage(tableBase, imgPath, dim, true);
     return f;
   }
 
   Future<File> getImageFileIndexed(
     BaseConfig baseConfig,
-    LocationsClient locClnt,
+    Storage strgClnt,
     LocData locData,
     int index,
   ) {
     String imgPath = locData.getImgPath(index);
     String imgUrl = locData.getImgUrl(index);
-    return getImageFile(baseConfig, locClnt, imgPath, imgUrl);
+    return getImageFile(baseConfig, strgClnt, imgPath, imgUrl);
   }
 
   @override
   Widget build(BuildContext context) {
     final baseConfig = Provider.of<BaseConfig>(context);
     final locData = Provider.of<LocData>(context);
-    final locClnt = Provider.of<LocationsClient>(context);
+    final strgClnt = Provider.of<Storage>(context);
     final markersNL = Provider.of<Markers>(context, listen: false);
     final photosNL = Provider.of<Photos>(context, listen: false);
     final settingsNL = Provider.of<Settings>(context, listen: false);
@@ -269,7 +269,7 @@ class _ImagesScreenState extends State<ImagesScreen>
                       itemBuilder: (ctx, index) {
                         return FutureBuilder(
                           future: getImageFileIndexed(
-                              baseConfig, locClnt, locData, index),
+                              baseConfig, strgClnt, locData, index),
                           builder: (ctx, snap) {
                             if (snap.connectionState ==
                                 ConnectionState.waiting) {

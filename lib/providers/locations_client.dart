@@ -2,18 +2,18 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
 class LocationsClient extends ChangeNotifier {
   //"http://raspberrylan.1qgrvqjevtodmryr.myfritz.net:80/";
-  static String serverUrl;
-  static String extPath;
+  String serverUrl;
+  String extPath;
 
-  void init(aserverUrl, aextPath) {
-    extPath = aextPath;
+  void init(String aserverUrl, String aextPath) {
     serverUrl = aserverUrl;
+    extPath = aextPath;
   }
 
   Future<dynamic> _req2(String method, String req,
@@ -84,9 +84,6 @@ class LocationsClient extends ChangeNotifier {
     http.Response resp =
         await http.post(serverUrl + req, headers: headers, body: body);
     if (resp.statusCode >= 400) {
-      // Map errbody = json.decode(resp.body);
-      // String msg = errbody['error']['message'] ?? "Unknown error";
-      // throw HttpException(msg);
       print("_reqPostBytes code ${resp.statusCode} ${resp.reasonPhrase}");
       String errBody = resp.body;
       print("_reqPostBytes errbody $errBody");
@@ -178,9 +175,5 @@ class LocationsClient extends ChangeNotifier {
     await f.writeAsBytes(res, flush: true);
     if (!thumbnail) notifyListeners(); // changed from thumbnail to full image
     return f;
-  }
-
-  Future<void> uploadPhotos(photos) async {
-    return null;
   }
 }

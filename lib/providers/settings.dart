@@ -100,6 +100,12 @@ class Settings extends ChangeNotifier {
     },
     {
       'type': 'choice',
+      'title': 'Speichern auf',
+      'choices': ['LocationsServer', 'Google Firebase'],
+      'key': 'storage',
+    },
+    {
+      'type': 'choice',
       'title': 'Google Maps Kartentyp',
       'choices': ['Normal', 'Hybrid', 'Satellit', 'Terrain'],
       'key': 'maptype',
@@ -119,6 +125,7 @@ class Settings extends ChangeNotifier {
     'serverport': 39885,
     'mapprovider': 'OpenStreetMap',
     'maptype': 'Normal',
+    'storage': 'LocationsServer',
   };
 
   Map configDefaults() {
