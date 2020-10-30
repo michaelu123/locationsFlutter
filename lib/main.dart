@@ -43,9 +43,6 @@ class MyApp extends StatelessWidget {
           create: (BuildContext context) => LocData(),
         ),
         ChangeNotifierProvider(
-          create: (BuildContext context) => MapCenter(),
-        ),
-        ChangeNotifierProvider(
           create: (BuildContext context) => Markers(),
         ),
         ChangeNotifierProvider(
@@ -165,5 +162,6 @@ class MyApp extends StatelessWidget {
       zusatzFelder: baseConfig.getDbZusatzFelder(),
       imagesFelder: baseConfig.getDbImagesFelder(),
     );
+    // strgClnt.copyLoc2Fb("abstellanlagen");
   }
 }

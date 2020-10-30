@@ -7,7 +7,7 @@ import 'package:latlong/latlong.dart' as ll;
 import 'package:location/location.dart';
 import 'package:locations/providers/base_config.dart';
 import 'package:locations/providers/loc_data.dart';
-import 'package:locations/providers/map_center.dart';
+//import 'package:locations/providers/map_center.dart';
 import 'package:locations/providers/markers.dart';
 import 'package:locations/providers/photos.dart';
 import 'package:locations/providers/settings.dart';
@@ -47,7 +47,6 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   BaseConfig baseConfigNL;
   Markers markersNL;
   Settings settingsNL;
-  MapCenter mapCenterNL;
   Storage strgClntNL;
   LocData locDataNL;
 
@@ -57,7 +56,6 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
     baseConfigNL = Provider.of<BaseConfig>(context, listen: false);
     markersNL = Provider.of<Markers>(context, listen: false);
     settingsNL = Provider.of<Settings>(context, listen: false);
-    mapCenterNL = Provider.of<MapCenter>(context, listen: false);
     strgClntNL = Provider.of<Storage>(context, listen: false);
     locDataNL = Provider.of<LocData>(context, listen: false);
   }
@@ -77,6 +75,14 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
     markersFuture =
         markersNL.readMarkers(baseConfigNL.stellen(), useGoogle, onTappedG);
     center = getCenter(baseConfigNL, settingsNL);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        // for the Text at the bottom of the screen
+        mapLat = center.latitude;
+        mapLon = center.longitude;
+      });
+    });
   }
 
   void setState2() {
@@ -175,7 +181,6 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
         gm.CameraUpdate.newLatLng(gmll),
       );
       // moveCamera does not trigger onCameraMove callback
-      mapCenterNL.setCenter(g2m(gmll));
       // for the Text at the bottom of the screen
       setState(() {
         mapLat = gmll.latitude;
@@ -189,14 +194,13 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   void deleteLoc(Markers markers) {
     LocationsDB.deleteAllLoc(mapLat, mapLon);
     markers.deleteLoc(mapLat, mapLon);
-    // LocationsServer.deleteLoc(mapLat, mapLon);
+    setState2();
   }
 
   Future<void> getDataFromServer(
       Storage strgClnt, String tableName, int delta) async {
     double f = delta / 1000;
     // await LocationsDB.deleteAll();
-    print("1getDataFromServer");
     Map values = await strgClnt.getValuesWithin(
       tableName,
       mapLat - f,
@@ -204,7 +208,6 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
       mapLon - 2 * f,
       mapLon + 2 * f,
     );
-    print("2getDataFromServer $values");
     await LocationsDB.fillWithDBValues(values);
   }
 
@@ -227,8 +230,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
         settings.getConfigValueI("delta"),
       );
       setState(() => message = "Lade MapMarker");
-      await Provider.of<Markers>(context, listen: false)
-          .readMarkers(baseConfig.stellen(), useGoogle, onTappedG);
+      await markersNL.readMarkers(baseConfig.stellen(), useGoogle, onTappedG);
     } finally {
       setState(() => message = null);
     }
@@ -285,6 +287,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
 
   @override
   Widget build(BuildContext context) {
+    print("1build");
     // strgClnt.sayHello(baseConfig.getDbTableBaseName());
     final settings = Provider.of<Settings>(context);
 
@@ -505,12 +508,9 @@ class OsmMap extends StatelessWidget {
         onPositionChanged: (pos, b) {
           // onPositionChanged is called too early during build, must defer
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            state.mapCenterNL.setCenter(pos.center);
-            //state.setState(() {
             // for the Text at the bottom of the screen
             state.mapLat = pos.center.latitude;
             state.mapLon = pos.center.longitude;
-            //});
             state.setState2();
           });
         },
@@ -578,7 +578,6 @@ class MyGoogleMap extends StatelessWidget {
       zoomGesturesEnabled: true,
       // onTap handled by each marker
       onCameraMove: (gm.CameraPosition pos) {
-        state.mapCenterNL.setCenter(g2m(pos.target));
         // for the Text at the bottom of the screen
         state.mapLat = pos.target.latitude;
         state.mapLon = pos.target.longitude;

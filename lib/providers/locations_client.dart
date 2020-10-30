@@ -128,6 +128,7 @@ class LocationsClient extends ChangeNotifier {
   }
 
   Future<void> post(String tableBase, Map values) async {
+    // values is a Map {table: [{colname:colvalue},...]}
     Map<String, String> headers = {"Content-type": "application/json"};
     for (final table in values.keys) {
       String req = "/add/${tableBase}_$table";

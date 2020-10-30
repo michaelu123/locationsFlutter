@@ -84,7 +84,6 @@ class Markers extends ChangeNotifier {
   }
 
   List<fm.Marker> markersF() {
-    // return _markers.values.toList();
     if (changedF) {
       fmList = List<fm.Marker>();
       for (fm.Marker m in _markers.values) {
@@ -96,7 +95,6 @@ class Markers extends ChangeNotifier {
   }
 
   Set<gm.Marker> markersG() {
-    // return _markers.values.toSet();
     if (changedG) {
       gmSet = Set<gm.Marker>();
       for (gm.Marker m in _markers.values) {
@@ -112,6 +110,8 @@ class Markers extends ChangeNotifier {
     String lonRound = roundDS(lon, stellen);
     String key = "$latRound:$lonRound";
     _markers.remove(key);
+    changedF = true;
+    changedG = true;
     notifyListeners();
   }
 

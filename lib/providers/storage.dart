@@ -8,18 +8,14 @@ import 'firebase.dart';
 class Storage extends ChangeNotifier {
   bool useLoc = true;
   LocationsClient locClnt;
-  FireDB dbClnt;
+  FirebaseClient dbClnt;
+  Map felder;
 
   void setClnt(String clnt) {
     useLoc = clnt == "LocationsServer";
-    useLoc = false; // TODO
-    if (useLoc) {
-      locClnt = LocationsClient();
-      dbClnt = null;
-    } else {
-      locClnt = null;
-      dbClnt = FireDB();
-    }
+    useLoc = true; // TODO
+    locClnt = LocationsClient();
+    dbClnt = FirebaseClient();
   }
 
   void init(
@@ -28,11 +24,13 @@ class Storage extends ChangeNotifier {
       List datenFelder,
       List zusatzFelder,
       List imagesFelder}) {
-    if (useLoc) {
-      locClnt.init(serverUrl, extPath);
-    } else {
-      dbClnt.init(datenFelder, zusatzFelder, imagesFelder);
-    }
+    locClnt.init(serverUrl, extPath);
+    dbClnt.init(extPath, datenFelder, zusatzFelder, imagesFelder);
+    felder = {
+      "daten": datenFelder,
+      "zusatz": zusatzFelder,
+      "images": imagesFelder,
+    };
   }
 
   Future<void> sayHello(String tableBase) async {
@@ -62,4 +60,12 @@ class Storage extends ChangeNotifier {
     if (useLoc) return locClnt.getImage(tableBase, imgName, maxdim, thumbnail);
     return dbClnt.getImage(tableBase, imgName, maxdim, thumbnail);
   }
+
+  Future<void> copyLoc2Fb(String tableBase) async {
+    Map values = await locClnt.getValuesWithin(tableBase, -90, 90, -180, 180);
+    // Map values = await locClnt.getValuesWithin(
+    //    tableBase, 48.0808, 48.0809, 11.5270, 11.5275);
+    dbClnt.postRows(tableBase, values);
+  }
 }
+// 48.08083675,11.5273618

@@ -1,44 +1,52 @@
 import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 // ignore: implementation_imports
-import 'package:geoflutterfire/src/models/DistanceDocSnapshot.dart';
-// ignore: implementation_imports
 import 'package:geoflutterfire/src/Util.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+// ignore: implementation_imports
+import 'package:geoflutterfire/src/models/DistanceDocSnapshot.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart' as path;
 
-class FireDB extends ChangeNotifier {
+class FirebaseClient extends ChangeNotifier {
   static DateFormat dateFormatterDB = DateFormat('yyyy.MM.dd HH:mm:ss');
-  List datenFelder;
-  List zusatzFelder;
-  List imagesFelder;
   Map felder;
+  String extPath;
+  final geo = Geoflutterfire();
 
-  void init(List adatenFelder, List azusatzFelder, List aimagesFelder) {
-    datenFelder = adatenFelder;
-    zusatzFelder = azusatzFelder;
-    imagesFelder = aimagesFelder;
-    felder = {};
-    felder["daten"] = datenFelder;
-    felder["zusatz"] = zusatzFelder;
-    felder["images"] = imagesFelder;
+  void init(
+    String aextPath,
+    List datenFelder,
+    List zusatzFelder,
+    List imagesFelder,
+  ) {
+    extPath = aextPath;
+    felder = {
+      "daten": datenFelder,
+      "zusatz": zusatzFelder,
+      "images": imagesFelder,
+    };
 
-    // final geo = Geoflutterfire();
+    //
     // GeoFirePoint latlng = geo.point(latitude: 48.137235, longitude: 11.575540);
     // FirebaseFirestore.instance.collection("abstellanlagen_daten").add({
     //   "latlng": latlng.data,
     // });
   }
 
-  Future<File> getImage(
-      String tableBase, String imgName, int maxdim, bool thumbnail) async {
-    throw UnimplementedError();
-  }
-
-  dynamic convert(String type, dynamic val) {
+  dynamic convertFb2DB(String type, dynamic val) {
     if (val == null) return null;
     if (type == "bool") return (val as bool) ? 1 : 0;
+    return val;
+  }
+
+  dynamic convertDb2Fb(String type, dynamic val) {
+    if (val == null) return null;
+    if (type == "bool") return val != 0;
     return val;
   }
 
@@ -46,9 +54,9 @@ class FireDB extends ChangeNotifier {
       double minlon, double maxlon) async {
     final geo = Geoflutterfire();
     final res = {};
-    for (String collection in ["daten" /*, "zusatz", "images"*/]) {
-      String table = "${tableBase}_$collection";
-      List dbFelder = felder[collection];
+    for (String tableName in ["daten", "zusatz", "images"]) {
+      String table = "${tableBase}_$tableName";
+      List dbFelder = felder[tableName];
       int len = dbFelder.length;
       final collRef = FirebaseFirestore.instance.collection(table);
       // Stream<List<DocumentSnapshot>> stream = geo
@@ -81,32 +89,160 @@ class FireDB extends ChangeNotifier {
             case "lon":
               val = (data["latlng"]["geopoint"] as GeoPoint).longitude;
               break;
+            case "nr":
+              val = dss.id;
+              break;
             default:
-              val = convert(feld["type"], data[name]);
+              val = convertFb2DB(feld["type"], data[name]);
           }
           row[index++] = val;
         }
         rows.add(row);
       });
-      res[collection] = rows;
+      res[tableName] = rows;
     }
     return res;
   }
 
   Future<Map> imgPost(String tableBase, String imgName) async {
-    throw UnimplementedError();
+    final ref = FirebaseStorage.instance
+        .ref()
+        .child("${tableBase}_images")
+        .child(imgName);
+    String imgPath = path.join(extPath, tableBase, "images", imgName);
+    File f = File(imgPath);
+    StorageTaskSnapshot snap = await ref.putFile(f).onComplete;
+    String url = await snap.ref.getDownloadURL();
+    return {"url": url};
+  }
+
+  Future<File> getImage(
+      String tableBase, String imgName, int maxdim, bool thumbnail) async {
+    String imgPath = path.join(extPath, tableBase, "images", imgName);
+    File f = File(imgPath);
+    if (await f.exists()) return f;
+    thumbnail = false; // TODO
+    if (thumbnail) {
+      imgPath = path.join(extPath, tableBase, "images", "tn_" + imgName);
+      f = File(imgPath);
+      if (await f.exists()) return f;
+    }
+    final ref = FirebaseStorage.instance
+        .ref()
+        .child("${tableBase}_images")
+        .child(imgName);
+    Uint8List res = await ref.getData(10 * 1024 * 1024);
+    if (res == null) return null;
+    await f.writeAsBytes(res, flush: true);
+    if (!thumbnail) notifyListeners(); // changed from thumbnail to full image
+    return f;
   }
 
   Future<void> post(String tableBase, Map values) async {
-    throw UnimplementedError();
+    // values is a Map {table: [{colname:colvalue},...]}
+    for (final tableName in values.keys) {
+      String table = "${tableBase}_$tableName";
+      final collRef = FirebaseFirestore.instance.collection(table);
+
+      List vals = values[table];
+      if (vals.length == 0) continue;
+      for (Map val in vals) {
+        val.remove("new_or_modified");
+        convertMap(val);
+      }
+      if (table == "zusatz") {
+        for (Map val in vals) {
+          val.remove("nr");
+        }
+      }
+
+      WriteBatch batch = FirebaseFirestore.instance.batch();
+      int ctr = 0;
+      for (Map val in vals) {
+        final newDoc = collRef.doc();
+        batch.set(newDoc, val);
+        if (ctr++ > 400) {
+          batch.commit();
+          batch = FirebaseFirestore.instance.batch();
+          ctr = 0;
+        }
+      }
+      batch.commit();
+    }
+  }
+
+  void postRows(String tableBase, Map values) {
+    // values is a Map {table: [[colvalue,...],...]]
+    for (final tableName in values.keys) {
+      if (tableName != "zusatz") continue;
+      String table = "${tableBase}_$tableName";
+      List dbFelder = felder[tableName];
+      final collRef = FirebaseFirestore.instance.collection(table);
+      double lat;
+      List vals1 = values[tableName];
+      List vals2 = [];
+      if (vals1.length == 0) continue;
+      for (List row in vals1) {
+        Map<String, dynamic> map = {};
+        int index = 0;
+        for (Map feld in dbFelder) {
+          String name = feld["name"];
+          String type = feld["type"];
+          switch (name) {
+            case "created":
+            case "modified":
+              // "2000.01.01 01:00:00" -> 20000101 01:00:00
+              String val = row[index].replaceAll(".", "");
+              final dt = DateTime.parse(val);
+              final msec = dt.millisecondsSinceEpoch;
+              final ts = Timestamp((msec / 1000).round(), 0);
+              map[name] = ts;
+              break;
+            case "lat":
+              double val = row[index];
+              lat = val;
+              break;
+            case "lon":
+              double val = row[index];
+              GeoFirePoint latlng = geo.point(latitude: lat, longitude: val);
+              map["latlng"] = latlng.data;
+              break;
+            case "nr":
+            case "new_or_modified":
+              break;
+            default:
+              dynamic val = row[index];
+              map[name] = convertDb2Fb(type, val);
+          }
+          index++;
+        }
+        vals2.add(map);
+      }
+
+      WriteBatch batch = FirebaseFirestore.instance.batch();
+      int ctr = 0;
+      for (Map val in vals2) {
+        final newDoc = collRef.doc();
+        batch.set(newDoc, val);
+        if (ctr++ > 400) {
+          batch.commit();
+          batch = FirebaseFirestore.instance.batch();
+          ctr = 0;
+        }
+      }
+      batch.commit();
+    }
   }
 
   Future<void> sayHello(String tableBase) async {
     throw UnimplementedError();
   }
+
+  void convertMap(Map val) {}
 }
 
 // like within, but sw/ne instead of circle/radius
+// see https://stackoverflow.com/questions/64592474/geoflutterfire-within-function-shall-simply-return-all-existing-values-in-the-fi
 extension GeoBox on GeoFireCollectionRef {
   static Query _collectionReference;
 
@@ -146,14 +282,13 @@ extension GeoBox on GeoFireCollectionRef {
         var geoPointField =
             distanceDocSnapshot.documentSnapshot.data()[fieldList[0]];
         final GeoPoint geoPoint = geoPointField['geopoint'];
-        bool insideBox = geoPoint.latitude > minlat &&
-            geoPoint.latitude < maxlat &&
-            geoPoint.longitude > minlon &&
-            geoPoint.longitude < maxlon;
+        bool insideBox = geoPoint.latitude >= minlat &&
+            geoPoint.latitude <= maxlat &&
+            geoPoint.longitude >= minlon &&
+            geoPoint.longitude <= maxlon;
         distanceDocSnapshot.distance = insideBox ? 0 : 9999999;
         return distanceDocSnapshot;
       });
-
       final filteredList = mappedList
           .where((DistanceDocSnapshot doc) => doc.distance == 0)
           .toList();
