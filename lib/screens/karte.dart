@@ -7,7 +7,6 @@ import 'package:latlong/latlong.dart' as ll;
 import 'package:location/location.dart';
 import 'package:locations/providers/base_config.dart';
 import 'package:locations/providers/loc_data.dart';
-//import 'package:locations/providers/map_center.dart';
 import 'package:locations/providers/markers.dart';
 import 'package:locations/providers/photos.dart';
 import 'package:locations/providers/settings.dart';
@@ -251,7 +250,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
         final String imagePath = img["image_path"];
         i += 1;
         setState(() => message = "Bild $i von $newImagesLen");
-        final Map map = await strgClnt.imgPost(tableBase, imagePath);
+        final Map map = await strgClnt.postImage(tableBase, imagePath);
         final String url = map["url"];
         await LocationsDB.updateImagesDB(imagePath, "image_url", url, nickName);
         img["image_url"] = url;
@@ -290,6 +289,8 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
     print("1build");
     // strgClnt.sayHello(baseConfig.getDbTableBaseName());
     final settings = Provider.of<Settings>(context);
+    strgClntNL.setClnt(
+        settings.getConfigValueS("storage", defVal: "LocationsServer"));
 
     final configGPS = baseConfigNL.getGPS();
     useGoogle =
@@ -327,6 +328,11 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                   await LocationsDB.setBaseDB(baseConfigNL);
                   await markersNL.readMarkers(
                       baseConfigNL.stellen(), useGoogle, onTappedG);
+                  strgClntNL.initFelder(
+                    datenFelder: baseConfigNL.getDbDatenFelder(),
+                    zusatzFelder: baseConfigNL.getDbZusatzFelder(),
+                    imagesFelder: baseConfigNL.getDbImagesFelder(),
+                  );
                   Navigator.of(context).popAndPushNamed(KartenScreen.routeName);
                 }
               },

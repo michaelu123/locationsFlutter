@@ -47,7 +47,7 @@ class Photos extends ChangeNotifier {
   Future<int> saveImage(
       File imf, String tableBase, String nickName, LocData locData) async {
     final lat = LocationsDB.lat;
-    final lon = LocationsDB.lat;
+    final lon = LocationsDB.lon;
     final latRound = LocationsDB.latRound;
     final lonRound = LocationsDB.lonRound;
 

@@ -9,7 +9,6 @@ import 'package:locations/providers/storage.dart';
 import 'package:locations/utils/db.dart';
 import 'package:locations/utils/utils.dart';
 import 'package:locations/providers/loc_data.dart';
-import 'package:locations/providers/map_center.dart';
 import 'package:locations/providers/markers.dart';
 import 'package:locations/providers/photos.dart';
 import 'package:locations/providers/settings.dart';
@@ -162,6 +161,6 @@ class MyApp extends StatelessWidget {
       zusatzFelder: baseConfig.getDbZusatzFelder(),
       imagesFelder: baseConfig.getDbImagesFelder(),
     );
-    // strgClnt.copyLoc2Fb("abstellanlagen");
+    // strgClnt.copyLoc2Fb("abstellanlagen", settings.getConfigValueI("maxdim"));
   }
 }

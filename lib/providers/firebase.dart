@@ -15,27 +15,43 @@ import 'package:path/path.dart' as path;
 class FirebaseClient extends ChangeNotifier {
   static DateFormat dateFormatterDB = DateFormat('yyyy.MM.dd HH:mm:ss');
   Map felder;
+  Map types;
   String extPath;
   final geo = Geoflutterfire();
 
   void init(
-    String aextPath,
-    List datenFelder,
-    List zusatzFelder,
-    List imagesFelder,
+    String extPath,
   ) {
-    extPath = aextPath;
-    felder = {
-      "daten": datenFelder,
-      "zusatz": zusatzFelder,
-      "images": imagesFelder,
-    };
-
+    this.extPath = extPath;
     //
     // GeoFirePoint latlng = geo.point(latitude: 48.137235, longitude: 11.575540);
     // FirebaseFirestore.instance.collection("abstellanlagen_daten").add({
     //   "latlng": latlng.data,
     // });
+  }
+
+  void initFelder(
+    List datenFelder,
+    List zusatzFelder,
+    List imagesFelder,
+  ) {
+    felder = {
+      "daten": datenFelder,
+      "zusatz": zusatzFelder,
+      "images": imagesFelder,
+    };
+    types = {
+      "daten": {},
+      "zusatz": {},
+      "images": {},
+    };
+    for (String tableName in felder.keys) {
+      Map tmap = types[tableName];
+      List lst = felder[tableName];
+      for (Map m in lst) {
+        tmap[m["name"]] = m["type"];
+      }
+    }
   }
 
   dynamic convertFb2DB(String type, dynamic val) {
@@ -104,7 +120,7 @@ class FirebaseClient extends ChangeNotifier {
     return res;
   }
 
-  Future<Map> imgPost(String tableBase, String imgName) async {
+  Future<Map> postImage(String tableBase, String imgName) async {
     final ref = FirebaseStorage.instance
         .ref()
         .child("${tableBase}_images")
@@ -138,28 +154,71 @@ class FirebaseClient extends ChangeNotifier {
     return f;
   }
 
+  String docidFor(Map val, String tableName) {
+    String id;
+    switch (tableName) {
+      case "daten":
+        id = '${val["lat_round"]}_${val["lon_round"]}_${val["creator"]}';
+        break;
+      case "zusatz":
+        String uniq = (val["created"] as Timestamp).seconds.toRadixString(36);
+        id = '${val["lat_round"]}_${val["lon_round"]}_${val["creator"]}_$uniq';
+        break;
+      case "images":
+        id = '${val["creator"]}_${val["image_path"]}';
+        break;
+    }
+    return id;
+  }
+
   Future<void> post(String tableBase, Map values) async {
     // values is a Map {table: [{colname:colvalue},...]}
     for (final tableName in values.keys) {
       String table = "${tableBase}_$tableName";
       final collRef = FirebaseFirestore.instance.collection(table);
 
-      List vals = values[table];
-      if (vals.length == 0) continue;
-      for (Map val in vals) {
-        val.remove("new_or_modified");
-        convertMap(val);
-      }
-      if (table == "zusatz") {
-        for (Map val in vals) {
-          val.remove("nr");
+      List rows = values[tableName];
+      if (rows.length == 0) continue;
+      double lat;
+      GeoFirePoint latlng;
+      for (Map map in rows) {
+        for (String name in map.keys) {
+          switch (name) {
+            case "created":
+            case "modified":
+              // "2000.01.01 01:00:00" -> 20000101 01:00:00
+              String val = map[name].replaceAll(".", "");
+              final dt = DateTime.parse(val);
+              final msec = dt.millisecondsSinceEpoch;
+              final ts = Timestamp((msec / 1000).round(), 0);
+              map[name] = ts;
+              break;
+            case "lat":
+              double val = map[name];
+              lat = val;
+              break;
+            case "lon":
+              double val = map[name];
+              latlng = geo.point(latitude: lat, longitude: val);
+              break;
+            default:
+              dynamic val = map[name];
+              String type = types[tableName][name];
+              map[name] = convertDb2Fb(type, val);
+          }
         }
+        map["latlng"] = latlng.data;
+        map.remove("new_or_modified");
+        map.remove("nr");
+        map.remove("lat");
+        map.remove("lon");
       }
 
       WriteBatch batch = FirebaseFirestore.instance.batch();
       int ctr = 0;
-      for (Map val in vals) {
-        final newDoc = collRef.doc();
+      for (Map val in rows) {
+        String id = docidFor(val, tableName);
+        final newDoc = collRef.doc(id);
         batch.set(newDoc, val);
         if (ctr++ > 400) {
           batch.commit();
@@ -174,15 +233,14 @@ class FirebaseClient extends ChangeNotifier {
   void postRows(String tableBase, Map values) {
     // values is a Map {table: [[colvalue,...],...]]
     for (final tableName in values.keys) {
-      if (tableName != "zusatz") continue;
       String table = "${tableBase}_$tableName";
       List dbFelder = felder[tableName];
       final collRef = FirebaseFirestore.instance.collection(table);
       double lat;
-      List vals1 = values[tableName];
-      List vals2 = [];
-      if (vals1.length == 0) continue;
-      for (List row in vals1) {
+      List rowsIn = values[tableName];
+      List rowsOut = [];
+      if (rowsIn.length == 0) continue;
+      for (List row in rowsIn) {
         Map<String, dynamic> map = {};
         int index = 0;
         for (Map feld in dbFelder) {
@@ -216,20 +274,23 @@ class FirebaseClient extends ChangeNotifier {
           }
           index++;
         }
-        vals2.add(map);
+        rowsOut.add(map);
       }
 
       WriteBatch batch = FirebaseFirestore.instance.batch();
       int ctr = 0;
-      for (Map val in vals2) {
-        final newDoc = collRef.doc();
+      for (Map val in rowsOut) {
+        String id = docidFor(val, tableName);
+        final newDoc = collRef.doc(id);
         batch.set(newDoc, val);
-        if (ctr++ > 400) {
+        if (ctr++ >= 400) {
+          print("committing $ctr entries for $table");
           batch.commit();
           batch = FirebaseFirestore.instance.batch();
           ctr = 0;
         }
       }
+      print("committing $ctr entries for $table");
       batch.commit();
     }
   }
@@ -237,8 +298,6 @@ class FirebaseClient extends ChangeNotifier {
   Future<void> sayHello(String tableBase) async {
     throw UnimplementedError();
   }
-
-  void convertMap(Map val) {}
 }
 
 // like within, but sw/ne instead of circle/radius

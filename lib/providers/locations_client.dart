@@ -116,17 +116,6 @@ class LocationsClient extends ChangeNotifier {
     throw "Keine Tabelle $table auf dem LocationsServer gefunden";
   }
 
-  Future<Map> imgPost(String tableBase, String imgName) async {
-    String req = "/addimage/${tableBase}_images/$imgName";
-    final headers = {"Content-type": "image/jpeg"};
-
-    final imgPath = path.join(extPath, tableBase, "images", imgName);
-    File f = File(imgPath);
-    final body = await f.readAsBytes();
-    Map res = await reqPostBytesWithRetry(req, body, headers: headers);
-    return res;
-  }
-
   Future<void> post(String tableBase, Map values) async {
     // values is a Map {table: [{colname:colvalue},...]}
     Map<String, String> headers = {"Content-type": "application/json"};
@@ -157,6 +146,17 @@ class LocationsClient extends ChangeNotifier {
       List res2 = await reqWithRetry("GET", req);
       res[table] = res2;
     }
+    return res;
+  }
+
+  Future<Map> postImage(String tableBase, String imgName) async {
+    String req = "/addimage/${tableBase}_images/$imgName";
+    final headers = {"Content-type": "image/jpeg"};
+
+    final imgPath = path.join(extPath, tableBase, "images", imgName);
+    File f = File(imgPath);
+    final body = await f.readAsBytes();
+    Map res = await reqPostBytesWithRetry(req, body, headers: headers);
     return res;
   }
 

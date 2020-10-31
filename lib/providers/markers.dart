@@ -21,14 +21,14 @@ class Markers extends ChangeNotifier {
   final colors = [Colors.red, Colors.yellow, Colors.green];
 
   Future<void> readMarkers(
-      int astellen, bool auseGoogle, Function aonTappedG) async {
+      int stellen, bool useGoogle, Function onTappedG) async {
     if (gmIcons == null) {
       await createGmIcons();
     }
     _markers = {};
-    stellen = astellen;
-    useGoogle = auseGoogle;
-    onTappedG = aonTappedG;
+    this.stellen = stellen;
+    this.useGoogle = useGoogle;
+    this.onTappedG = onTappedG;
     List<Coord> coords = await LocationsDB.readCoords();
     coords.forEach((coord) {
       add(_markers, coord);

@@ -1,5 +1,10 @@
 import 'package:flutter/foundation.dart';
 
+/// This class is initialized with the json files from
+/// assets/config/ and extPath/config (in [MyApp.appInitialize]).
+/// With [setBase] one of them is chosen
+/// and determines the current UI and DB fields. This enables the program to
+/// switch between completely unrelated data.
 class BaseConfig extends ChangeNotifier {
   List _datenFelder;
   List _zusatzFelder;

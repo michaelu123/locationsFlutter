@@ -133,8 +133,8 @@ class LocationsDB {
     return dataFor(lat, lon, stellen);
   }
 
-  static Map makeWritableMap(Map m) {
-    var r = {};
+  static Map<String, dynamic> makeWritableMap(Map m) {
+    var r = Map<String, dynamic>();
     m.keys.forEach((k) {
       r[k] = m[k];
     });
