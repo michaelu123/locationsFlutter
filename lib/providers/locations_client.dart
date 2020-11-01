@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
@@ -132,8 +133,15 @@ class LocationsClient extends ChangeNotifier {
         }
       }
 
-      String body = json.encode(vals);
-      await reqWithRetry("POST", req, body: body, headers: headers);
+      int vl = vals.length;
+      int start = 0;
+      while (start < vl) {
+        int end = min(start + 100, vl);
+        List sub = vals.sublist(start, end);
+        start = end;
+        String body = json.encode(sub);
+        await reqWithRetry("POST", req, body: body, headers: headers);
+      }
     }
   }
 

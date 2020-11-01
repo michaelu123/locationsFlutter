@@ -161,6 +161,14 @@ class MyApp extends StatelessWidget {
       zusatzFelder: baseConfig.getDbZusatzFelder(),
       imagesFelder: baseConfig.getDbImagesFelder(),
     );
+
+    // used during setup of FireBase
+    // copy from LocationsServer to Firebase
     // strgClnt.copyLoc2Fb("abstellanlagen", settings.getConfigValueI("maxdim"));
+
+    // import bicycle_parking.xml into LocatonsServer or Firebase
+    // await OsmImport(extPath, strgClnt, baseConfig.stellen(),
+    //         baseConfig.getDbDatenFelder())
+    //     .osmImport();
   }
 }
