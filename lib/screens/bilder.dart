@@ -131,6 +131,7 @@ class _ImagesScreenState extends State<ImagesScreen>
           locData,
           settingsNL.getConfigValueS("nickname"),
           baseConfig.getDbTableBaseName(),
+          markersNL,
         ),
         builder: (ctx, snap) {
           print(
@@ -208,6 +209,7 @@ class _ImagesScreenState extends State<ImagesScreen>
                         settingsNL.getConfigValueI("maxdim"),
                         settingsNL.getConfigValueS("nickname"),
                         baseConfig.getDbTableBaseName(),
+                        markersNL,
                       );
                       if (x != null) {
                         locData.setImagesIndex(x);

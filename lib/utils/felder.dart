@@ -79,7 +79,7 @@ class Felder {
             locDataNL.setFeld(
                 markersNL, feld['name'], feldType, l[1], nickName);
             int x1 = (index + 1) % felderLength;
-            if (controllers[x1].text == "") {
+            if (controllers[x1].text.isEmpty) {
               FocusScope.of(context).requestFocus(focusNodes[x1]);
             } else {
               // FocusScope.of(context).requestFocus(focusNodes[index]);
@@ -127,14 +127,14 @@ class Felder {
 
   List yes(String text) {
     text = text.toLowerCase();
-    if (text == "") return ["", null];
+    if (text.isEmpty) return ["", null];
     if (text == "1" || text[0] == "y" || text[0] == "j") return ["ja", 1];
     return ["nein", 0];
   }
 
   List limit(String text, Map<String, dynamic> feld) {
     text = text.toLowerCase();
-    if (text == "") return ["", null];
+    if (text.isEmpty) return ["", null];
     final limits = feld["limited"];
     for (final l in limits) {
       if (text[0] == l[0].toLowerCase()) return [l, l];
@@ -154,7 +154,7 @@ class Felder {
         return [text, v];
       }
       if (feld["limited"] != null) return limit(text, feld);
-      return [text, text == "" ? null : text];
+      return [text, text.isEmpty ? null : text];
     } catch (e) {
       return ["", null];
     }

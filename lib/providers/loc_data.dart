@@ -16,6 +16,7 @@ class LocData with ChangeNotifier {
     locDaten = data["daten"].length > 0 ? data["daten"][0] : {};
     locZusatz = data["zusatz"];
     locImages = data["images"];
+    imagesIndex = 0;
     notifyListeners();
   }
 
@@ -159,10 +160,18 @@ class LocData with ChangeNotifier {
     return (locImages.length) == 0;
   }
 
-  int addImage(Map map) {
+  int addImage(Map map, Markers markers) {
     locImages.add(map);
     imagesIndex = locImages.length - 1;
     notifyListeners();
+
+    final coord = Coord();
+    coord.lat = LocationsDB.lat;
+    coord.lon = LocationsDB.lon;
+    coord.quality = LocationsDB.qualityOf(locDaten);
+    coord.hasImage = locImages.length > 0;
+    markers.current(coord);
+
     return imagesIndex;
   }
 

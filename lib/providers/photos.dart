@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:locations/providers/markers.dart';
 import 'package:locations/utils/utils.dart';
 import 'package:path/path.dart' as path;
 import 'package:intl/intl.dart';
@@ -19,6 +20,7 @@ class Photos extends ChangeNotifier {
     int maxDim,
     String nickName,
     String tableBase,
+    Markers markers,
   ) async {
     final PickedFile pf = await ip.getImage(
       source: ImageSource.camera,
@@ -29,23 +31,25 @@ class Photos extends ChangeNotifier {
       return null;
     }
 
-    return await saveImage(File(pf.path), tableBase, nickName, locData);
+    return await saveImage(
+        File(pf.path), tableBase, nickName, locData, markers);
     // notifyListeners();
   }
 
-  Future<void> retrieveLostData(
-      LocData locData, String nickName, String tableBase) async {
+  Future<void> retrieveLostData(LocData locData, String nickName,
+      String tableBase, Markers markers) async {
     final LostData response = await ip.getLostData();
     if (response.isEmpty || response.file == null) {
       print("no lost data");
       return null;
     }
     print("recovered lost data");
-    await saveImage(File(response.file.path), tableBase, nickName, locData);
+    await saveImage(
+        File(response.file.path), tableBase, nickName, locData, markers);
   }
 
-  Future<int> saveImage(
-      File imf, String tableBase, String nickName, LocData locData) async {
+  Future<int> saveImage(File imf, String tableBase, String nickName,
+      LocData locData, Markers markers) async {
     final lat = LocationsDB.lat;
     final lon = LocationsDB.lon;
     final latRound = LocationsDB.latRound;
@@ -74,7 +78,7 @@ class Photos extends ChangeNotifier {
       "new_or_modified": 1,
     };
     await LocationsDB.insert("images", map);
-    int x = locData.addImage(map);
+    int x = locData.addImage(map, markers);
     return x;
   }
 

@@ -286,7 +286,6 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
 
   @override
   Widget build(BuildContext context) {
-    print("1build");
     // strgClnt.sayHello(baseConfig.getDbTableBaseName());
     final settings = Provider.of<Settings>(context);
     strgClntNL.setClnt(

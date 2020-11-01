@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:locations/providers/markers.dart';
 import 'package:locations/utils/db.dart';
 import 'package:locations/providers/photos.dart';
 import 'package:locations/providers/settings.dart';
@@ -47,11 +48,13 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
               final photosNL = Provider.of<Photos>(context, listen: false);
               final locDataNL = Provider.of<LocData>(context, listen: false);
               final settingsNL = Provider.of<Settings>(context, listen: false);
+              final markersNL = Provider.of<Markers>(context, listen: false);
               photosNL.takePicture(
                 locDataNL,
                 settingsNL.getConfigValueI("maxdim"),
                 settingsNL.getConfigValueS("nickname"),
                 baseConfig.getDbTableBaseName(),
+                markersNL,
               );
             },
           ),
@@ -104,7 +107,7 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
             ],
           ),
           Expanded(
-            child: settingsNL.getConfigValueS("nickname") == ""
+            child: settingsNL.getConfigValueS("nickname").isEmpty
                 ? const Center(
                     child: Text(
                       "Bitte erst einen Benutzer/Spitznamen eingeben",

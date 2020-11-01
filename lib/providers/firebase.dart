@@ -132,20 +132,23 @@ class FirebaseClient extends ChangeNotifier {
     return {"url": url};
   }
 
+  // thumbnail suppport requires Firebase Extension "Resize Images"
   Future<File> getImage(
       String tableBase, String imgName, int maxdim, bool thumbnail) async {
     String imgPath = path.join(extPath, tableBase, "images", imgName);
     File f = File(imgPath);
     if (await f.exists()) return f;
-    thumbnail = false; // TODO
     if (thumbnail) {
       imgPath = path.join(extPath, tableBase, "images", "tn_" + imgName);
       f = File(imgPath);
       if (await f.exists()) return f;
+      imgName = imgName.replaceFirst(".jpg", "_200x200.jpg");
     }
     final ref = FirebaseStorage.instance
         .ref()
-        .child("${tableBase}_images")
+        .child(thumbnail
+            ? "${tableBase}_images/thumbnails"
+            : "${tableBase}_images")
         .child(imgName);
     Uint8List res = await ref.getData(10 * 1024 * 1024);
     if (res == null) return null;

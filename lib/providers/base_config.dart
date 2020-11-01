@@ -143,7 +143,7 @@ class BaseConfig extends ChangeNotifier {
 
   void setInitially(Map map, String base) {
     if (baseConfigJS != null) return;
-    if (base == null || base == "") {
+    if (base == null || base.isEmpty) {
       base = map.keys.toList()[0];
     }
     baseConfigJS = map;
