@@ -57,6 +57,9 @@ class _AppConfigState extends State<AppConfig> {
                             ? TextInputType.number
                             : TextInputType.text,
                         onSubmitted: (text) {
+                          text = text.trim();
+                          if (settingJS["key"] == "nickname" && text == "OSM")
+                            return;
                           settings.setConfigValueS(
                               settingJS["key"], settingJS["type"], text);
                         }),

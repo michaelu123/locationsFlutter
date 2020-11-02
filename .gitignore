@@ -51,7 +51,6 @@ app.*.map.json
 /android/app/release
 .metadata
 pubspec.lock
-README.md
 test/widget_test.dart
 .vscode/launch.json
 .vscode/settings.json
