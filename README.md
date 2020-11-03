@@ -28,7 +28,7 @@ Die App zeigt 5 verschiedene Seiten:
 Daneben gibt es noch ein Fenster für die Einstellungen.
 
 ## Die Kartenseite
-![Kartenseite](images\Kartenseite.png)
+![Kartenseite](doc_images/Kartenseite.png)
 
 In der oberen Zeile steht links das Torten-Icon mit den 3 waagerechten Strichen zum Aufklappen des Einstellungen-Dialogs. Dann kommt der Name der Kategorie mit /Karte dahinter. Dann ein Mülleimer-Icon zum Löschen, und 3 vertikale Punkte zum Auswählen der Kategorie.
 
@@ -46,8 +46,8 @@ Sieht man nach "Laden" auf der Karte MapMarker, kann man durch Antippen eines de
 Wenn am Kartenmittelpunkt ein MapMarker steht, werden durch Antippen des Mülleimer-Icons alle Daten, Zusatzdaten und Bilder dieses Ortes lokal gelöscht.
 
 ## Die Einstellungen
-![Einstellungen](images/Einstellungen1.png)
-![Einstellungen](images/Einstellungen2.png)
+![Einstellungen](doc_images/Einstellungen1.png)
+![Einstellungen](doc_images/Einstellungen2.png)
 
 Zu den Einstellungen kommt man auf der Kartenseite über das Torten-Icon oben links, oder indem man von der linken Kante aus zur Bildmitte streicht.
 
@@ -63,7 +63,7 @@ Alle anderen Einstellungen sind vorbelegt.
 * Google Maps Kartentyp: Wenn der Karten-Lieferant Google Maps ist, kann man hier die Kartenart ändern.
 
 ## Die Datenseite
-![Datenseite](images/Datenseite.png)
+![Datenseite](doc_images/Datenseite.png)
 
 Je nach Kategorie werden hier unterschiedliche Felder angezeigt. Das Bild zeigt die ersten Felder der Abstellanlagen. Gleichbleibend sind aber in der oberen Zeile der Zurück-Knopf und das Foto-Icon, und in der Zeile darunter die Knöpfe für Karte, Zusatzdaten und Bilder. Mit diesen wechselt man zur betreffenden Seite.
 
@@ -74,14 +74,14 @@ Die Felder lassen sich am einfachsten von oben nach unten befüllen, indem man i
 Mit dem Foto-Icon nimmt man ein (oder mehrere) Foto(s) des Ortes auf.
 
 ## Die Zusatzdatenseite
-![Zusatzdatenseite](images/Zusatzseite.png)
+![Zusatzdatenseite](doc_images/Zusatzseite.png)
 
 Je nach Kategorie werden hier Sätze von Zusatzdaten eingetragen. In der oberen Zeile gibt es den Zurück-Knopf und ein Mülleimer-Icon. In der Zeile darunter sind Knöpfe für die Karten-, Daten- oder Bilderseite. Darunter sind Knöpfe, mit denen man zum vorherigen oder nächsten Datensatz kommt, oder mit denen man einen neuen Satz anlegen kann. Auch durch Wischen nach links oder rechts kann man den Datensatz wechseln.
 
 Durch Tippen auf das Mülleimer-Icon wird der aktuelle Datensatz lokal gelöscht.
 
 ## Die Bilderseite
-![Bilderseite](images/Bilderseite.png)
+![Bilderseite](doc_images/Bilderseite.png)
 
 In der oberen Zeile gibt es den Zurück-Knopf und ein Mülleimer-Icon. In der Zeile darunter sind Knöpfe für die Karten-, Daten- oder Zusatzseite. Darunter sind Knöpfe, mit denen man zum vorherigen oder nächsten Bild kommt, oder mit denen man ein neues Foto machen kann. Auch durch Wischen nach links oder rechts kann man das Bild wechseln.
 
