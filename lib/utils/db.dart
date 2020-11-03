@@ -364,8 +364,10 @@ class LocationsDB {
   }
 
   static Future<void> fillWithDBValues(Map values) async {
+    Map newData = await getNewData(); // save new data
     for (String table in values.keys) {
       bool isZusatz = table == "zusatz";
+
       List rows = values[table];
       if (rows == null) continue;
       // sort for modification date: newer records overwrite older ones
@@ -383,6 +385,9 @@ class LocationsDB {
         if (isZusatz) row[0] = null; // nr field
         await db.rawInsert("INSERT INTO $table VALUES(${qmarks[table]})", row);
       }
+      // restore new data
+      rows = newData[table];
+      for (final map in rows) await (db.insert(table, map));
     }
   }
 
