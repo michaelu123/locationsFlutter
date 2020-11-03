@@ -15,6 +15,7 @@ class BaseConfig extends ChangeNotifier {
     "type": "bool",
   };
 
+  // the database fields of the images table
   List _dbImagesFelder = [
     {
       "name": "creator",
@@ -55,6 +56,7 @@ class BaseConfig extends ChangeNotifier {
   Map<String, dynamic> baseJS;
   String base = "";
 
+  /// These fields are displayed on the Daten- and Zusatz-Screen.
   List dates = [
     {
       "name": "created",
@@ -70,6 +72,7 @@ class BaseConfig extends ChangeNotifier {
     },
   ];
 
+  /// The invariant fields of the daten-table.
   final List dbDatenPlus = [
     {
       "name": "creator",
@@ -101,6 +104,7 @@ class BaseConfig extends ChangeNotifier {
     },
   ];
 
+  /// The invariant fields of the zusatz-table.
   final List dbZusatzPlus = [
     {
       "name": "nr",
@@ -141,6 +145,8 @@ class BaseConfig extends ChangeNotifier {
     return b;
   }
 
+  /// setInitially is called during startup to set the category that was
+  /// last set via the three vertical dots on the KartenScreen.
   void setInitially(Map map, String base) {
     if (baseConfigJS != null) return;
     if (base == null || base.isEmpty) {
@@ -178,30 +184,36 @@ class BaseConfig extends ChangeNotifier {
     }
   }
 
-  bool setBase(String abase) {
-    print("setBaseBC $base $abase");
-    if (base == abase) return false;
-    _setFelder(abase);
+  /// Sets the current category.
+  bool setBase(String base) {
+    print("setBaseBC ${this.base} $base");
+    if (base == this.base) return false;
+    _setFelder(base);
     notifyListeners();
     return true;
   }
 
+  /// Return the UI fields for "daten"
   List getDatenFelder() {
     return _datenFelder;
   }
 
+  /// Return the UI fields for "zusatz"
   List getZusatzFelder() {
     return _zusatzFelder;
   }
 
+  /// Return the DB fields for "daten"
   List getDbDatenFelder() {
     return _dbDatenFelder;
   }
 
+  /// Return the DB fields for "zusatz"
   List getDbZusatzFelder() {
     return _dbZusatzFelder;
   }
 
+  /// Return the DB fields for "images"
   List getDbImagesFelder() {
     return _dbImagesFelder;
   }
@@ -227,6 +239,9 @@ class BaseConfig extends ChangeNotifier {
     return baseJS["gps"];
   }
 
+  /// Geo coordinates are stored as doubles and as strings rounded to
+  /// "stellen" digits after the decimal point. The strings are used
+  /// as indices in the databases.
   int stellen() {
     return baseJS["gps"]["nachkommastellen"];
   }

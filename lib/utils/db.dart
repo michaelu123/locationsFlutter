@@ -224,6 +224,7 @@ class LocationsDB {
       int res = await db.update(
         table,
         {
+          "creator": nickName,
           name: val,
           if (table != "images") "modified": now,
           "new_or_modified": 1,
@@ -367,6 +368,17 @@ class LocationsDB {
       bool isZusatz = table == "zusatz";
       List rows = values[table];
       if (rows == null) continue;
+      // sort for modification date: newer records overwrite older ones
+      // because of sqlite's onConflict:replace, and primary key not on
+      // creator like on server DBs.
+      switch (table) {
+        case "daten":
+          rows.sort((r1, r2) => (r1[2] as String).compareTo(r2[2] as String));
+          break;
+        case "zusatz":
+          rows.sort((r1, r2) => (r1[3] as String).compareTo(r2[3] as String));
+          break;
+      }
       for (List row in rows) {
         if (isZusatz) row[0] = null; // nr field
         await db.rawInsert("INSERT INTO $table VALUES(${qmarks[table]})", row);

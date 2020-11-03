@@ -3,11 +3,10 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
-class LocationsClient extends ChangeNotifier {
+class LocationsClient {
   //"http://raspberrylan.1qgrvqjevtodmryr.myfritz.net:80/";
   String serverUrl;
   String extPath;
@@ -168,21 +167,20 @@ class LocationsClient extends ChangeNotifier {
     return res;
   }
 
-  Future<File> getImage(
+  Future<List> getImage(
       String tableBase, String imgName, int maxdim, bool thumbnail) async {
     String imgPath = path.join(extPath, tableBase, "images", imgName);
     File f = File(imgPath);
-    if (await f.exists()) return f;
+    if (await f.exists()) return [f, false];
     if (thumbnail) {
       imgPath = path.join(extPath, tableBase, "images", "tn_" + imgName);
       f = File(imgPath);
-      if (await f.exists()) return f;
+      if (await f.exists()) return [f, false];
     }
     final req = "/getimage/${tableBase}_images/$imgName?maxdim=$maxdim";
     Uint8List res = await reqGetBytesWithRetry(req);
     if (res == null) return null;
     await f.writeAsBytes(res, flush: true);
-    if (!thumbnail) notifyListeners(); // changed from thumbnail to full image
-    return f;
+    return [f, !thumbnail];
   }
 }

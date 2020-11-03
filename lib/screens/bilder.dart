@@ -2,23 +2,26 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:locations/providers/base_config.dart';
-import 'package:locations/providers/storage.dart';
-import 'package:locations/utils/db.dart';
 import 'package:locations/providers/loc_data.dart';
 import 'package:locations/providers/markers.dart';
 import 'package:locations/providers/photos.dart';
 import 'package:locations/providers/settings.dart';
+import 'package:locations/providers/storage.dart';
 import 'package:locations/screens/daten.dart';
 import 'package:locations/screens/karte.dart';
 import 'package:locations/screens/photo.dart';
 import 'package:locations/screens/zusatz.dart';
+import 'package:locations/utils/db.dart';
 import 'package:locations/utils/felder.dart';
 import 'package:locations/utils/utils.dart';
 import 'package:provider/provider.dart';
 
-// needed extra IndexModel for left and right arrow. If moving from
-// one page to other triggers locData notification, the image flickers at
-// half the transition, because build is called in between. Looks bad.
+/// IndexModel is needed only for the left and right arrows.
+/// If we trigger [LocData] notification when moving from
+/// one image to another, the image flickers at
+/// half the transition, because build() is called in between.
+/// This looks bad. So we make the arrows only dependent on IndexModel, and
+/// do not notify [LocData] when changing images.
 class IndexModel extends ChangeNotifier {
   int curIndex = 0;
 
@@ -34,6 +37,7 @@ class IndexModel extends ChangeNotifier {
 
 int imageAdded = 0;
 
+/// This class shows images and allows to move between them.
 class ImagesScreen extends StatefulWidget {
   static String routeName = "/images";
   @override

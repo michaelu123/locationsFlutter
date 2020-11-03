@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 // ignore: implementation_imports
 import 'package:geoflutterfire/src/Util.dart';
@@ -12,7 +11,7 @@ import 'package:geoflutterfire/src/models/DistanceDocSnapshot.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 
-class FirebaseClient extends ChangeNotifier {
+class FirebaseClient {
   static DateFormat dateFormatterDB = DateFormat('yyyy.MM.dd HH:mm:ss');
   Map felder;
   Map types;
@@ -133,15 +132,15 @@ class FirebaseClient extends ChangeNotifier {
   }
 
   // thumbnail suppport requires Firebase Extension "Resize Images"
-  Future<File> getImage(
+  Future<List> getImage(
       String tableBase, String imgName, int maxdim, bool thumbnail) async {
     String imgPath = path.join(extPath, tableBase, "images", imgName);
     File f = File(imgPath);
-    if (await f.exists()) return f;
+    if (await f.exists()) return [f, false];
     if (thumbnail) {
       imgPath = path.join(extPath, tableBase, "images", "tn_" + imgName);
       f = File(imgPath);
-      if (await f.exists()) return f;
+      if (await f.exists()) return [f, false];
       imgName = imgName.replaceFirst(".jpg", "_200x200.jpg");
     }
     final ref = FirebaseStorage.instance
@@ -153,8 +152,7 @@ class FirebaseClient extends ChangeNotifier {
     Uint8List res = await ref.getData(10 * 1024 * 1024);
     if (res == null) return null;
     await f.writeAsBytes(res, flush: true);
-    if (!thumbnail) notifyListeners(); // changed from thumbnail to full image
-    return f;
+    return [f, !thumbnail];
   }
 
   String docidFor(Map val, String tableName) {

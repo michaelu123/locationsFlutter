@@ -76,12 +76,16 @@ Mit dem Foto-Icon nimmt man ein (oder mehrere) Foto(s) des Ortes auf.
 ## Die Zusatzdatenseite
 ![Zusatzdatenseite](images/Zusatzseite.png)
 
-Je nach Kategorie werden hier Sätze von Zusatzdaten eingetragen. In der oberen Zeile gibt es den Zurück-Knopf und ein Mülleimer-Icon. In der Zeile darunter sind Knöpfe für die Karten-, Daten- oder Bilderseite. Darunter sind Knöpfe, mit denen man zum vorherigen oder nächsten Datensatz kommt, oder mit denen man einen neuen Satz anlegen kann. Durch Tippen auf das Mülleimer-Icon wird der aktuelle Datensatz lokal gelöscht.
+Je nach Kategorie werden hier Sätze von Zusatzdaten eingetragen. In der oberen Zeile gibt es den Zurück-Knopf und ein Mülleimer-Icon. In der Zeile darunter sind Knöpfe für die Karten-, Daten- oder Bilderseite. Darunter sind Knöpfe, mit denen man zum vorherigen oder nächsten Datensatz kommt, oder mit denen man einen neuen Satz anlegen kann. Auch durch Wischen nach links oder rechts kann man den Datensatz wechseln.
+
+Durch Tippen auf das Mülleimer-Icon wird der aktuelle Datensatz lokal gelöscht.
 
 ## Die Bilderseite
 ![Bilderseite](images/Bilderseite.png)
 
-In der oberen Zeile gibt es den Zurück-Knopf und ein Mülleimer-Icon. In der Zeile darunter sind Knöpfe für die Karten-, Daten- oder Zusatzseite. Darunter sind Knöpfe, mit denen man zum vorherigen oder nächsten Bild kommt, oder mit denen man ein neues Foto machen kann. Durch Tippen auf das Mülleimer-Icon wird der aktuell angezeigte Foto lokal gelöscht.
+In der oberen Zeile gibt es den Zurück-Knopf und ein Mülleimer-Icon. In der Zeile darunter sind Knöpfe für die Karten-, Daten- oder Zusatzseite. Darunter sind Knöpfe, mit denen man zum vorherigen oder nächsten Bild kommt, oder mit denen man ein neues Foto machen kann. Auch durch Wischen nach links oder rechts kann man das Bild wechseln.
 
-Erst in dem Moment, in dem man zur Bilderseite wechselt, wird das angezeigte Bild als Vorschaubild geladen und gespeichert. Tippt man auf das Bild, wird es in voller Auflösung geladen und gespeichert. Gespeicherte Bilder werden natürlich nicht neu geladen. Tippt man noch einmal auf das Bild, wird es auf einer neuen (Foto-)Seite gezeigt, wo man es skalieren, drehen und bewegen kann. Diese Seite hat nur einen Zurück-Knopf. 
+Durch Tippen auf das Mülleimer-Icon wird das aktuell angezeigte Foto lokal gelöscht.
+
+Erst in dem Moment, in dem man zur Bilderseite wechselt, wird das angezeigte Bild als Vorschaubild geladen und gespeichert. Tippt man auf das Bild, wird es in voller Auflösung geladen und gespeichert. Gespeicherte Bilder werden natürlich nicht neu geladen. Tippt man noch einmal auf das Bild, wird es auf einer neuen (Foto-)Seite gezeigt, wo man es skalieren, drehen und verschieben kann. Diese Seite hat nur einen Zurück-Knopf. 
 

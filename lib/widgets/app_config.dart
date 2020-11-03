@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:locations/providers/settings.dart';
 import 'package:provider/provider.dart';
 
+/// AppConfig implements the drawer of the [KartenScreen] screen.
+/// It displays the settings from [Settings].
 class AppConfig extends StatefulWidget {
   @override
   _AppConfigState createState() => _AppConfigState();
@@ -10,6 +12,7 @@ class AppConfig extends StatefulWidget {
 class _AppConfigState extends State<AppConfig> {
   final groupValuesMap = {};
 
+  /// initState sets up the groupvalues for the choice radiobuttons.
   @override
   void initState() {
     super.initState();
@@ -23,6 +26,9 @@ class _AppConfigState extends State<AppConfig> {
     }
   }
 
+  /// build displays a TextField for int or string settings, or a Column of
+  /// RadioButtons for choice settings. Changing a setting will cause a call of
+  /// [Settings.setConfigValue].
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -58,8 +64,8 @@ class _AppConfigState extends State<AppConfig> {
                             : TextInputType.text,
                         onSubmitted: (text) {
                           text = text.trim();
-                          if (settingJS["key"] == "nickname" && text == "OSM")
-                            return;
+                          if (settingJS["key"] == "nickname" &&
+                              (text == "OSM" || text == "STAMM")) return;
                           settings.setConfigValueS(
                               settingJS["key"], settingJS["type"], text);
                         }),

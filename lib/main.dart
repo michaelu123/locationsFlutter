@@ -117,7 +117,6 @@ class MyApp extends StatelessWidget {
     String content = await rootBundle.loadString("assets/config/content.json");
     List contentJS = json.decode(content);
 
-    print("2appI");
     await Future.forEach(contentJS, (f) async {
       final content2 = await rootBundle.loadString("assets/config/" + f);
       final Map content2JS = json.decode(content2);

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:locations/providers/locations_client.dart';
 
 import 'firebase.dart';
@@ -55,8 +56,18 @@ class Storage extends ChangeNotifier {
 
   Future<File> getImage(
       String tableBase, String imgName, int maxdim, bool thumbnail) async {
-    if (useLoc) return locClnt.getImage(tableBase, imgName, maxdim, thumbnail);
-    return fbClnt.getImage(tableBase, imgName, maxdim, thumbnail);
+    // res[0] = imgFile, res[1] = notify, because thumbnail can be replaced
+    // with full res image
+    List res;
+    if (useLoc) {
+      res = await locClnt.getImage(tableBase, imgName, maxdim, thumbnail);
+    } else {
+      res = await fbClnt.getImage(tableBase, imgName, maxdim, thumbnail);
+    }
+    if (res[1]) {
+      notifyListeners(); // changed from thumbnail to full image
+    }
+    return res[0];
   }
 
   Future<void> copyLoc2Fb(String tableBase, int maxdim) async {
@@ -66,7 +77,8 @@ class Storage extends ChangeNotifier {
     final imageList = values["images"];
     for (final imageRow in imageList) {
       String imgName = imageRow[6];
-      File imgFile = await locClnt.getImage(tableBase, imgName, maxdim, false);
+      List lcres = await locClnt.getImage(tableBase, imgName, maxdim, false);
+      File imgFile = lcres[0];
       if (imgFile == null) continue;
       Map res = await fbClnt.postImage(tableBase, imgName);
       String url = res["url"];
