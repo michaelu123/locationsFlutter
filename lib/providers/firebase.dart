@@ -22,11 +22,37 @@ class FirebaseClient {
     String extPath,
   ) {
     this.extPath = extPath;
-    //
-    // GeoFirePoint latlng = geo.point(latitude: 48.137235, longitude: 11.575540);
-    // FirebaseFirestore.instance.collection("abstellanlagen_daten").add({
-    //   "latlng": latlng.data,
-    // });
+
+    /* compute distances between points:
+    var lat = 48.137235;
+    var lon = 11.575540;
+    GeoFirePoint p1 = geo.point(latitude: lat, longitude: lon);
+    print("dist5, ${p1.distance(lat: lat + 0.005, lng: lon)}"); // 0.556
+    print("dist5 ${p1.distance(lat: lat, lng: lon + 0.01)}"); // 0.742
+
+    print("dist10, ${p1.distance(lat: lat + 0.01, lng: lon)}"); // 1.111
+    print("dist10 ${p1.distance(lat: lat, lng: lon + 0.02)}"); // 1.483
+
+    lat = 48.13;
+    lon = 11.57;
+    p1 = geo.point(latitude: lat, longitude: lon);
+
+    // stellen = 3
+    print("dist3, ${p1.distance(lat: lat + 0.001, lng: lon)}"); // 0.111
+    print("dist3 ${p1.distance(lat: lat, lng: lon + 0.001)}"); // 0.074
+
+    // stellen = 4
+    print("dist4, ${p1.distance(lat: lat + 0.0001, lng: lon)}"); // 0.011
+    print("dist4 ${p1.distance(lat: lat, lng: lon + 0.0001)}"); // 0.007
+
+    // stellen = 5
+    print("dist5, ${p1.distance(lat: lat + 0.00001, lng: lon)}"); // 0.001
+    print("dist5 ${p1.distance(lat: lat, lng: lon + 0.00001)}"); // 0.001
+
+    // stellen = 6
+    print("dist6, ${p1.distance(lat: lat + 0.000001, lng: lon)}"); // 0.0
+    print("dist6 ${p1.distance(lat: lat, lng: lon + 0.000001)}"); // 0.0
+    */
   }
 
   void initFelder(

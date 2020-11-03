@@ -7,6 +7,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:locations/providers/base_config.dart';
 import 'package:locations/providers/storage.dart';
 import 'package:locations/utils/db.dart';
+import 'package:locations/utils/syntax.dart';
 import 'package:locations/utils/utils.dart';
 import 'package:locations/providers/loc_data.dart';
 import 'package:locations/providers/markers.dart';
@@ -120,8 +121,14 @@ class MyApp extends StatelessWidget {
     await Future.forEach(contentJS, (f) async {
       final content2 = await rootBundle.loadString("assets/config/" + f);
       final Map content2JS = json.decode(content2);
-      final name = content2JS['name'];
-      bc[name] = content2JS;
+      try {
+        // the bundled config files are ok
+        // checkSyntax(content2JS);
+        final name = content2JS['name'];
+        bc[name] = content2JS;
+      } catch (e) {
+        print(e);
+      }
     });
 
     await initExtPath();
@@ -135,8 +142,13 @@ class MyApp extends StatelessWidget {
         if (f.path.endsWith(".json")) {
           final content2 = await f.readAsString();
           final Map content2JS = json.decode(content2);
-          final name = content2JS['name'];
-          bc[name] = content2JS;
+          try {
+            checkSyntax(content2JS);
+            final name = content2JS['name'];
+            bc[name] = content2JS;
+          } catch (e) {
+            print(e);
+          }
         }
       });
     }
