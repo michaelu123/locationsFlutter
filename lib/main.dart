@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:locations/providers/base_config.dart';
 import 'package:locations/providers/storage.dart';
+import 'package:locations/screens/account.dart';
 import 'package:locations/utils/db.dart';
 import 'package:locations/utils/syntax.dart';
 import 'package:locations/utils/utils.dart';
@@ -93,7 +95,18 @@ class MyApp extends StatelessWidget {
                     ),
                   );
                 }
-                return KartenScreen();
+                return StreamBuilder<User>(
+                  stream: FirebaseAuth.instance.authStateChanges(),
+                  builder: (ctx, snapShot) {
+                    if (snapShot.connectionState == ConnectionState.waiting) {
+                      return SplashScreen();
+                    }
+                    if (snapShot.hasData) {
+                      return KartenScreen();
+                    }
+                    return AccountScreen();
+                  },
+                );
               },
             ),
             routes: {

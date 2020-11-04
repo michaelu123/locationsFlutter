@@ -28,7 +28,7 @@ class LocData with ChangeNotifier {
   }
 
   Future<void> setFeld(Markers markers, String name, String type, Object val,
-      String nickName) async {
+      String userName) async {
     Map res;
     if (isZusatz) {
       // print("setZusatz $name $type $val $zusatzIndex");
@@ -36,7 +36,7 @@ class LocData with ChangeNotifier {
       if (v != val) {
         int nr = locZusatz[zusatzIndex]["nr"];
         locZusatz[zusatzIndex][name] = val;
-        res = await LocationsDB.updateRowDB("zusatz", name, val, nickName,
+        res = await LocationsDB.updateRowDB("zusatz", name, val, userName,
             nr: nr);
         nr = res["nr"];
         //print(
@@ -58,7 +58,7 @@ class LocData with ChangeNotifier {
       final v = locDaten[name];
       if (v != val) {
         locDaten[name] = val;
-        res = await LocationsDB.updateRowDB("daten", name, val, nickName);
+        res = await LocationsDB.updateRowDB("daten", name, val, userName);
         // print("LocDatum $name changed from $v to $val");
         final created = res["created"];
         if (created != null) {

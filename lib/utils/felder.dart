@@ -33,10 +33,10 @@ class Felder {
             final locDataNL = Provider.of<LocData>(context, listen: false);
             final markersNL = Provider.of<Markers>(context, listen: false);
             final settingsNL = Provider.of<Settings>(context, listen: false);
-            final nickName = settingsNL.getConfigValueS("nickname");
+            final userName = settingsNL.getConfigValueS("username");
 
             locDataNL.setFeld(markersNL, felder[index]['name'],
-                felder[index]["type"], l[1], nickName);
+                felder[index]["type"], l[1], userName);
           }
         }
 
@@ -74,10 +74,10 @@ class Felder {
             final locDataNL = Provider.of<LocData>(context, listen: false);
             final markersNL = Provider.of<Markers>(context, listen: false);
             final settingsNL = Provider.of<Settings>(context, listen: false);
-            final nickName = settingsNL.getConfigValueS("nickname");
+            final userName = settingsNL.getConfigValueS("username");
 
             locDataNL.setFeld(
-                markersNL, feld['name'], feldType, l[1], nickName);
+                markersNL, feld['name'], feldType, l[1], userName);
             int x1 = (index + 1) % felderLength;
             if (controllers[x1].text.isEmpty) {
               FocusScope.of(context).requestFocus(focusNodes[x1]);

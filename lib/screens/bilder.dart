@@ -133,7 +133,7 @@ class _ImagesScreenState extends State<ImagesScreen>
       body: FutureBuilder(
         future: photosNL.retrieveLostData(
           locData,
-          settingsNL.getConfigValueS("nickname"),
+          settingsNL.getConfigValueS("username"),
           baseConfig.getDbTableBaseName(),
           markersNL,
         ),
@@ -211,7 +211,7 @@ class _ImagesScreenState extends State<ImagesScreen>
                       int x = await photosNL.takePicture(
                         locData,
                         settingsNL.getConfigValueI("maxdim"),
-                        settingsNL.getConfigValueS("nickname"),
+                        settingsNL.getConfigValueS("username"),
                         baseConfig.getDbTableBaseName(),
                         markersNL,
                       );

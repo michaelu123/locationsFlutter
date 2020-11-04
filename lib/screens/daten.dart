@@ -52,7 +52,7 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
               photosNL.takePicture(
                 locDataNL,
                 settingsNL.getConfigValueI("maxdim"),
-                settingsNL.getConfigValueS("nickname"),
+                settingsNL.getConfigValueS("username"),
                 baseConfig.getDbTableBaseName(),
                 markersNL,
               );
@@ -107,7 +107,7 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
             ],
           ),
           Expanded(
-            child: settingsNL.getConfigValueS("nickname").isEmpty
+            child: settingsNL.getConfigValueS("username").isEmpty
                 ? const Center(
                     child: Text(
                       "Bitte erst einen Benutzer/Spitznamen eingeben",

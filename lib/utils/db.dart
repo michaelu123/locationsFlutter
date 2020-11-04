@@ -208,7 +208,7 @@ class LocationsDB {
   }
 
   static Future<Map> updateRowDB(
-      String table, String name, Object val, String nickName,
+      String table, String name, Object val, String userName,
       {int nr}) async {
     String where;
     List whereArgs;
@@ -224,7 +224,7 @@ class LocationsDB {
       int res = await db.update(
         table,
         {
-          "creator": nickName,
+          "creator": userName,
           name: val,
           if (table != "images") "modified": now,
           "new_or_modified": 1,
@@ -244,7 +244,7 @@ class LocationsDB {
       "lon": lon,
       "lat_round": latRound,
       "lon_round": lonRound,
-      "creator": nickName,
+      "creator": userName,
       "created": now,
       "modified": now,
       "new_or_modified": 1,
@@ -255,7 +255,7 @@ class LocationsDB {
   }
 
   static Future<void> updateImagesDB(
-      String imagePath, String name, Object val, String nickName) async {
+      String imagePath, String name, Object val) async {
     String where = "image_path=?";
     List whereArgs = [imagePath];
     int res = await db.update(

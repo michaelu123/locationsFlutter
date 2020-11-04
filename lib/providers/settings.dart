@@ -57,12 +57,6 @@ class Settings extends ChangeNotifier {
 
   List _settingsJS = [
     {
-      'type': 'string',
-      'title': 'Nickname',
-      'desc': 'Benutzername/Spitzname',
-      'key': 'nickname',
-    },
-    {
       'type': 'int',
       'title': 'Max Dim',
       'desc': 'Max Größe der aufgenommenen Photos',
@@ -117,7 +111,6 @@ class Settings extends ChangeNotifier {
   }
 
   Map _configDefaults = {
-    'nickname': '',
     'maxdim': 1024,
     'thumbnaildim': 200,
     'delta': 5,

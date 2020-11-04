@@ -18,7 +18,7 @@ class Photos extends ChangeNotifier {
   Future<int> takePicture(
     LocData locData,
     int maxDim,
-    String nickName,
+    String userName,
     String tableBase,
     Markers markers,
   ) async {
@@ -32,11 +32,11 @@ class Photos extends ChangeNotifier {
     }
 
     return await saveImage(
-        File(pf.path), tableBase, nickName, locData, markers);
+        File(pf.path), tableBase, userName, locData, markers);
     // notifyListeners();
   }
 
-  Future<void> retrieveLostData(LocData locData, String nickName,
+  Future<void> retrieveLostData(LocData locData, String userName,
       String tableBase, Markers markers) async {
     final LostData response = await ip.getLostData();
     if (response.isEmpty || response.file == null) {
@@ -45,10 +45,10 @@ class Photos extends ChangeNotifier {
     }
     print("recovered lost data");
     await saveImage(
-        File(response.file.path), tableBase, nickName, locData, markers);
+        File(response.file.path), tableBase, userName, locData, markers);
   }
 
-  Future<int> saveImage(File imf, String tableBase, String nickName,
+  Future<int> saveImage(File imf, String tableBase, String userName,
       LocData locData, Markers markers) async {
     final lat = LocationsDB.lat;
     final lon = LocationsDB.lon;
@@ -67,7 +67,7 @@ class Photos extends ChangeNotifier {
     await imf.delete();
 
     final map = {
-      "creator": nickName,
+      "creator": userName,
       "created": dbNow,
       "lat": lat,
       "lon": lon,

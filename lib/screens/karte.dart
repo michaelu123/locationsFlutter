@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart' as fm;
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gm;
@@ -239,7 +240,6 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
       Settings settings, Storage strgClnt, BaseConfig baseConfig) async {
     if (message != null) return;
     try {
-      final nickName = settings.getConfigValueS("nickname");
       setState(() => message = "Neue/geänderte Daten bestimmen");
       final Map newData = await LocationsDB.getNewData();
       final String tableBase = baseConfig.getDbTableBaseName();
@@ -252,7 +252,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
         setState(() => message = "Bild $i von $newImagesLen");
         final Map map = await strgClnt.postImage(tableBase, imagePath);
         final String url = map["url"];
-        await LocationsDB.updateImagesDB(imagePath, "image_url", url, nickName);
+        await LocationsDB.updateImagesDB(imagePath, "image_url", url);
         img["image_url"] = url;
       }
       setState(() => message = "Neue/geänderte Daten speichern");
@@ -304,6 +304,10 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
           title: Text(baseConfigNL.getName() + "/Karte"),
           actions: [
             IconButton(
+              icon: const Icon(Icons.exit_to_app),
+              onPressed: () => FirebaseAuth.instance.signOut(),
+            ),
+            IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () => deleteLoc(markersNL),
             ),
@@ -323,7 +327,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
               onSelected: (String selectedValue) async {
                 if (baseConfigNL.setBase(selectedValue)) {
                   locDataNL.clearLocData();
-                  settingsNL.setConfigValueS("base", "string", selectedValue);
+                  settingsNL.setConfigValue("base", selectedValue);
                   await LocationsDB.setBaseDB(baseConfigNL);
                   await markersNL.readMarkers(
                       baseConfigNL.stellen(), useGoogle, onTappedG);
