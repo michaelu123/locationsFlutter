@@ -1,13 +1,18 @@
-# locations
+# locations (as of Nov. 2020)
 
-Eine App zum Sammeln ortsspezifischer Daten und Photos
+An app to collect location-specific data and photos
+
+Eine App zum Sammeln ortsspezifischer Daten und Fotos
+
+The following short introduction to the app is targeted towards german users and thus written in german.
+The internal documentation is written in english (best effort).
 
 # Kurzeinführung in die App
 ## Kategorien
 Mit der App lassen sich beliebige und ganz unterschiedliche Daten erfassen. Welche das sind, wird in einer Konfigurationsdatei festgelegt. Von denen kann es mehrere geben. Die App kommt mit 4 solcher Dateien, es lassen sich leicht weitere hinzufügen. Mit den 4 Beispiel-Dateien lassen sich Abstellanlagen, Abstellplätze (d.h. wünschbare Abstellanlagen), Alte Bäume oder Sitzbänke erfassen. Zu jeder Kategorie gehört ein Satz von Daten, die sich zu dieser Kategorie erfassen lassen. Bei den Abstellanlagen beispielsweise die Anzahl der Radständer, bei den alten Bäumen der Stammumfang, bei den Sitzbänken das Material der Sitzbank. Das sind Daten, die diesem Ort eindeutig zugeordnet werden. Daneben kann es für einen Ort mehrere Zusatzdaten geben. Ein Beispiel wäre bei den Abstellanlagen, an welchem Tag zu welcher Uhrzeit bei welchem Wetter die Anlage zu wieviel Prozent belegt war.
 
 ## Laden/Speichern
-Die erfaßten Daten werden zentral in einem Server gespeichert. Die App kann Daten von dort laden oder neue oder geänderte Daten dahin speichern. Die Idee ist, daß man die existierendn Daten daheim über WLAN lädt, dann mit dem Handy  herumläuft und Daten evtl. ohne Internetverbindung erfaßt, und dann zuhause die Daten wieder speichert. Wenn man eine Internetverbindung hat, kann man das natürlich auch unterwegs machen. Die Daten verbrauchen wenig Datenvolumen, anders sieht es mit dem Laden und Speichern von Bildern aus.
+Die erfaßten Daten werden zentral in einem Server gespeichert. Die App kann Daten von dort laden oder neue oder geänderte Daten dahin speichern. Die Idee ist, daß man die existierenden Daten daheim über WLAN lädt, dann mit dem Handy  herumläuft und Daten evtl. ohne Internetverbindung erfaßt, und dann zuhause die Daten wieder speichert. Wenn man eine Internetverbindung hat, kann man das natürlich auch unterwegs machen. Die Daten verbrauchen wenig Datenvolumen, anders sieht es mit dem Laden und Speichern von Bildern aus.
 
 Als Server stehen Google oder ein eigens eingerichter Server standardmäßig zur Verfügung. Da der Google-Server Kosten verursacht, ist er vielleicht nicht immer verfügbar, da er sich bei Kostenüberschreitung abschaltet.
 
@@ -19,7 +24,8 @@ Beim Laden werden zuerst alle nicht neuen oder geänderten Daten und Fotos gelö
 Gelöscht wird immer nur lokal. Daten auf dem Server werden also von der App nicht gelöscht. Waren die Daten vorher auf dem Server, sind sie nach "Laden" wieder da. Dauerhaft gelöscht werden nur Daten, die noch nicht gespeichert wurden.
 
 ## Die Seiten
-Die App zeigt 5 verschiedene Seiten:
+Die App zeigt 6 verschiedene Seiten:
+* Die Login-Seite zum Anmelden oder Einloggen.
 * Die Kartenseite ist die Hauptseite.
 * Die Datenseite zeigt oder erfaßt die Daten für einen Ort.
 * Die Zusatzseite zeigt oder erfaßt die zusätzlichen Daten für einen Ort.
@@ -27,10 +33,16 @@ Die App zeigt 5 verschiedene Seiten:
 * In der Fotoseite kann man ein Bild skalieren, rotieren und verschieben.
 Daneben gibt es noch ein Fenster für die Einstellungen.
 
+## Die Loginseite
+![Login](doc_images/Login.png)
+![Anmelden](doc_images/Anmelden.png)
+
+Über diese Seite kann man sich mit einer Email-Adresse, einem Passwort und einem Benutzernamen anmelden, oder sich später wieder einloggen. Der Benutzername wird später bei allen Daten mitgespeichert.
+
 ## Die Kartenseite
 ![Kartenseite](doc_images/Kartenseite.png)
 
-In der oberen Zeile steht links das Torten-Icon mit den 3 waagerechten Strichen zum Aufklappen des Einstellungen-Dialogs. Dann kommt der Name der Kategorie mit /Karte dahinter. Dann ein Mülleimer-Icon zum Löschen, und 3 vertikale Punkte zum Auswählen der Kategorie.
+In der oberen Zeile steht links das Torten-Icon mit den 3 waagerechten Strichen zum Aufklappen des Einstellungen-Dialogs. Dann kommt der Name der Kategorie mit /Karte dahinter (evtl. nur in der Queransicht sichtbar). Dann ein Logout-Icon zum Ausloggenm, ein Mülleimer-Icon zum Löschen, und 3 vertikale Punkte zum Auswählen der Kategorie. Das Ausloggen ist nur notwendig, wenn man den Benutzer wechseln möchte. 
 
 Darunter stehen 5 Knöpfe:
 * Daten: wechselt zur Datenseite.
@@ -51,11 +63,10 @@ Wenn am Kartenmittelpunkt ein MapMarker steht, werden durch Antippen des Müllei
 
 Zu den Einstellungen kommt man auf der Kartenseite über das Torten-Icon oben links, oder indem man von der linken Kante aus zur Bildmitte streicht.
 
-Hier muß als erstes ein Name (Benutzername/Alias/Nickname/Spitzname) eingetragen werden, der bei den Daten mit abgespeichert wird. Derzeit wird kein Login benötigt. Ohne den Namen kommt man nicht zur Datenseite.
-Alle anderen Einstellungen sind vorbelegt.
+Alle Einstellungen sind vorbelegt:
 * MaxDim: Die Handy-Kamera kann Bilder erheblicher Größe erzeugen. Mit MaxDim wird das Bild so geschrumpft, daß die längste Kante MaxDim Pixels lang ist. Das spart Platz auf dem Handy und dem Server.
 * Vorschaubilder Dim: In der Bilderseite wird zuerst vom Server ein Vorschaubild geladen. Erst wenn man es antippt, wird das Bild in voller Auflösung geladen. Beim Google-Server ist diese Größe fest auf 200 festgelegt, und dieser Parameter wird ignoriert.
-* Größe der MapMarker-Region: Der Bereich, für den Daten durch "Laden" geladen werden, läßt sich durch diesen Parameter in der Größe verändern. Mit dem Wert 5 und dem Mittelpunkt Marienplatz wird in etwa der Bereich um den Altstadtring abgedeckt.
+* Größe der MapMarker-Region: Der Bereich, für den Daten durch "Laden" geladen werden, läßt sich durch diesen Parameter in der Größe verändern. Mit dem Wert 5 und dem Mittelpunkt Marienplatz wird in etwa der Bereich um den Altstadtring abgedeckt, mit einer Ausdehnung von ca. 1500m in Ost-West- und 1100m in Nord-Süd-Richtung. Für den Wert 10 ergäben sich ca. 3000m und 2200m. 
 * Server Name: Der Name des eigenen Servers.
 * Server Portnummer: Die Portnummer des eigenen Servers.
 * Karten-Lieferant: Hier kann zwischen OpenStreetMap und Google Maps gewechselt werden. Die Verwendung von Google Maps verursacht Kosten.
@@ -89,3 +100,20 @@ Durch Tippen auf das Mülleimer-Icon wird das aktuell angezeigte Foto lokal gel�
 
 Erst in dem Moment, in dem man zur Bilderseite wechselt, wird das angezeigte Bild als Vorschaubild geladen und gespeichert. Tippt man auf das Bild, wird es in voller Auflösung geladen und gespeichert. Gespeicherte Bilder werden natürlich nicht neu geladen. Tippt man noch einmal auf das Bild, wird es auf einer neuen (Foto-)Seite gezeigt, wo man es skalieren, drehen und verschieben kann. Diese Seite hat nur einen Zurück-Knopf. 
 
+# Servers
+The app loads and stores data and images from/to an external server. Currently two of these are supported:
+* One is a server running on a dedicated machine. This is typically a Linux Server running apache2, mysql, with a REST interface implemented by the Python modules Flask and SQLAlchemy, called "Locationsserver". Its sourcecode can be found at https://github.com/michaelu123/LocationsServer. Currently I use a Raspberry Pi 3B as server. It is attached to a FritzBox router. But as the router is connected to the internet only via DS-Lite, it has no IP V4 address. The mobile phone net, however, is still IP V4 based, and therefore the app cannot reach the server via IP V6. A provider https://www.feste-ip.net/ provides an IP V4 address via a proxy, so ultimately the Locationsserver can be reached via http://locationsserver.feste-ip.net:39885. An example REST call on this server displays a list of database tables: http://locationsserver.feste-ip.net:39885/tables. The Raspberry may not be running all the time. It should be quite easy to setup another Locationsserver, though, and configure its name and port number in the settings. 
+* The other server is based on Google Firebase. Images are stored on Firebase Storage. The database is a Firebase Cloud Firestore. The connection between the App and Firebase is currently not configurable. Using Firebase costs money, and if the costs get too high, I might stop the server.
+
+## Primary Keys, Quality Assurance
+The sqlite database used by the app uses the fields (lat_round, lon_round) as primary key. These fields are strings produced by rounding the lat/lon values of the coordinates to "stellen" digits after the decimal point. "Stellen" is set in the configuration file for the category. 5 is the value normally used. The minimal distance between two points to be kept apart is a bit more than 1m for stellen=5, 10 cm for stellen=6, 10m for stellen=4, 100m for stellen=3. 
+
+The MySQL database used by the Locationsserver uses the fields (creator, lat_round, lon_round) as primary key. This is meant to be used for quality assurance. Each app user, using his own username as creator, can store records for the same location, without causing a primary key violation against other users. It is then up to an admin to consolidate records for the same location from different users, or discard them. The creator name "OSM" is reserved for records coming from OSM. The name "STAMM" is reserved for consolidated records.
+
+Likewise, the Firestore DB uses (lat_round, lon_round, creator) as the document id for "daten"-records, and (lat_round, lon_round, creator, uniq) as the document id for "zusatz"-records.
+
+This ensures that no user can accidentally change the records of another user, or the OSM or STAMM records. Deletion is not possible anyhow, except for the DB admin/consolidator.
+
+A Web Interface for a prospective consolidator must yet be written...
+
+# Category definition files

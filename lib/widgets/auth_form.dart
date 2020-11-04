@@ -64,7 +64,7 @@ class _AuthFormState extends State<AuthForm> {
                     },
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
-                      labelText: 'Email Address',
+                      labelText: 'Email-Adresse',
                     ),
                   ),
                   if (!isLogin)

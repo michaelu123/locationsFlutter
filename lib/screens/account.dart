@@ -33,6 +33,11 @@ class _AccountScreenState extends State<AccountScreen> {
           email: email,
           password: password,
         );
+        DocumentSnapshot dss = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(authResult.user.uid)
+            .get();
+        settingsNL.setConfigValue("username", dss.data()["username"]);
       } else {
         try {
           authResult = await auth.createUserWithEmailAndPassword(
@@ -48,7 +53,6 @@ class _AccountScreenState extends State<AccountScreen> {
             password: password,
           );
         }
-
         await FirebaseFirestore.instance
             .collection('users')
             .doc(authResult.user.uid)
