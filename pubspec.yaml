@@ -53,9 +53,9 @@ dev_dependencies:
 flutter_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/images/Locations1024.png"
+  image_path: "assets/images/Locations1024margin.png"
   adaptive_icon_background: "#1f1f1f"
-  adaptive_icon_foreground: "assets/images/Locations1024.png"
+  adaptive_icon_foreground: "assets/images/Locations1024margin.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
