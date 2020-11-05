@@ -66,14 +66,18 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
     if (gmapController != null) gmapController.dispose();
   }
 
+  Future<void> readMarkers() async {
+    await LocationsDB.setBaseDB(baseConfigNL);
+    await markersNL.readMarkers(baseConfigNL.stellen(), useGoogle, onTappedG);
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     useGoogle =
         settingsNL.getConfigValueS("mapprovider", defVal: "OpenStreetMap")[0] ==
             "G";
-    markersFuture =
-        markersNL.readMarkers(baseConfigNL.stellen(), useGoogle, onTappedG);
+    markersFuture = readMarkers();
     center = getCenter(baseConfigNL, settingsNL);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -324,13 +328,10 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                   ),
                 );
               },
-              onSelected: (String selectedValue) async {
+              onSelected: (String selectedValue) {
                 if (baseConfigNL.setBase(selectedValue)) {
                   locDataNL.clearLocData();
                   settingsNL.setConfigValue("base", selectedValue);
-                  await LocationsDB.setBaseDB(baseConfigNL);
-                  await markersNL.readMarkers(
-                      baseConfigNL.stellen(), useGoogle, onTappedG);
                   strgClntNL.initFelder(
                     datenFelder: baseConfigNL.getDbDatenFelder(),
                     zusatzFelder: baseConfigNL.getDbZusatzFelder(),

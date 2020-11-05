@@ -29,7 +29,7 @@ class LocationsDB {
   static DateFormat dateFormatterDB = DateFormat('yyyy.MM.dd HH:mm:ss');
 
   static Future<void> setBaseDB(BaseConfig baseConfig) async {
-    print("setBaseDB");
+    if (dbName == baseConfig.getDbName()) return;
     if (db != null) await db.close();
     db = null;
     createStmts = [];
@@ -289,7 +289,6 @@ class LocationsDB {
   }
 
   static Future<List<Coord>> readCoords() async {
-    // print("readCoords");
     String key;
     Map<String, Coord> map = {};
     final resD = await db.query("daten");
