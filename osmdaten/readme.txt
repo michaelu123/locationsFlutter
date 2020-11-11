@@ -1,3 +1,20 @@
+bicycle_parking.xml extracted from http://overpass-turbo.eu/ . 
+Move Map to Munich, and set amenity:
+
+node
+  [amenity=bicycle_parking]
+  ({{bbox}});
+out;
+
+Run "Ausführen", switch from "Karte" to "Daten", copy and paste.
+
+
+
+
+
+
+This is a list of returned values:
+
 capacity: {15, 130, ~80, 10-15, >50}
 bicycle_parking: {stands, wall_loops, wide_stands, surface, rack, multi-storey, anchors, shed, bollard}
 bike_ride: {yes}

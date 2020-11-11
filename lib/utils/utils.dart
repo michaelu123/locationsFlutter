@@ -29,6 +29,8 @@ String _extPath;
 Future<void> initExtPath() async {
   if (Platform.isAndroid) {
     _extPath = (await getExternalStorageDirectory()).path;
+  } else if (Platform.isIOS) {
+    _extPath = (await getApplicationDocumentsDirectory()).path;
   } else {
     _extPath = "./extPath";
     //but Windows or other platforms fail elsewhere,

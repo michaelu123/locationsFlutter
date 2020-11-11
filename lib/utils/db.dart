@@ -381,6 +381,7 @@ class LocationsDB {
           break;
       }
       for (List row in rows) {
+        row.add(null); // for new_or_modified
         if (isZusatz) row[0] = null; // nr field
         await db.rawInsert("INSERT INTO $table VALUES(${qmarks[table]})", row);
       }

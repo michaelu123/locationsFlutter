@@ -57,6 +57,8 @@ Sieht man nach "Laden" auf der Karte MapMarker, kann man durch Antippen eines de
 
 Wenn am Kartenmittelpunkt ein MapMarker steht, werden durch Antippen des Mülleimer-Icons alle Daten, Zusatzdaten und Bilder dieses Ortes lokal gelöscht.
 
+Für Orte mit Fotos wird ein anderer Marker angezeigt als für solche ohne. Für die Kategorie "Abstellanlagen" gibt es noch einen speziellen Programmcode, der die Abstellanlagen je nach "Güte" rot, gelb oder grün färbt. Die Güte ist um so höher, je mehr der Ja/Nein-Abfragen bei den Daten zu den Abstellanlagen mit Ja beantwortet werden. Für Grün müssen die Fragen "Abschließbar?", "Anlehnbar?", "Abstand OK?",  "Ausparken sicher?", "Witterungsgeschützt?" mit Ja beantwortet werden, und die Qualität der Anlage muß hoch sein.
+
 ## Die Einstellungen
 ![Einstellungen](doc_images/Einstellungen1.png)
 ![Einstellungen](doc_images/Einstellungen2.png)
@@ -102,7 +104,7 @@ Erst in dem Moment, in dem man zur Bilderseite wechselt, wird das angezeigte Bil
 
 # Servers
 The app loads and stores data and images from/to an external server. Currently two of these are supported:
-* One is a server running on a dedicated machine. This is typically a Linux Server running apache2, mysql, with a REST interface implemented by the Python modules Flask and SQLAlchemy, called "Locationsserver". Its sourcecode can be found at https://github.com/michaelu123/LocationsServer. Currently I use a Raspberry Pi 3B as server. It is attached to a FritzBox router. But as the router is connected to the internet only via DS-Lite, it has no IP V4 address. The mobile phone net, however, is still IP V4 based, and therefore the app cannot reach the server via IP V6. A provider https://www.feste-ip.net/ provides an IP V4 address via a proxy, so ultimately the Locationsserver can be reached via http://locationsserver.feste-ip.net:39885. An example REST call on this server displays a list of database tables: http://locationsserver.feste-ip.net:39885/tables. The Raspberry may not be running all the time. It should be quite easy to setup another Locationsserver, though, and configure its name and port number in the settings. 
+* One is a server running on a dedicated machine. This is a Linux Server running Apache2, Mysql, with a REST interface implemented by the Python modules Flask and SQLAlchemy, called "Locationsserver". Its sourcecode can be found at https://github.com/michaelu123/LocationsServer. Currently I use a Raspberry Pi 3B as server, with a 250GB SSD. It is attached to a FritzBox router. But as the router is connected to the internet only via DSL-Lite, it has no IP V4 address. With IPV6 it can be reached via http://raspberrylan.1qgrvqjevtodmryr.myfritz.net. The mobile phone net, however, is still IP V4 based, and therefore the app cannot reach the server via IP V6. A provider https://www.feste-ip.net/ provides an IP V4 address via a proxy, so in the end the Locationsserver can be reached via http://locationsserver.feste-ip.net:39885. An example REST call on this server displays a list of database tables: http://locationsserver.feste-ip.net:39885/tables. The Raspberry may not be running all the time. It should be quite easy to setup another Locationsserver, though, and configure its name and port number in the settings. 
 * The other server is based on Google Firebase. Images are stored on Firebase Storage. The database is a Firebase Cloud Firestore. The connection between the App and Firebase is currently not configurable. Using Firebase costs money, and if the costs get too high, I might stop the server.
 
 ## Primary Keys, Quality Assurance
@@ -117,3 +119,68 @@ This ensures that no user can accidentally change the records of another user, o
 A Web Interface for a prospective consolidator must yet be written...
 
 # Category definition files
+At the heart of the app are the configuration files for each category, e.g. assets/config/Abstellanlagen.json. If you look at the file, you see:
+
+    {
+        "name": "Abstellanlagen",
+        "db_name": "Abstellanlagen.db",
+        "db_tabellenname": "abstellanlagen",
+        "gps": {
+            "min_lat": 48.0,
+            "max_lat": 48.25,
+            "min_lon": 11.4,
+            "max_lon": 11.8,
+            "center_lat": 48.137235,
+            "center_lon": 11.57554,
+            "nachkommastellen": 5,
+            "min_zoom": 11
+        },
+        "daten": {
+            "felder": [...]
+        },
+        "zusatz": {
+            "felder": [...]
+        }
+    }
+
+* "name" is the category name. It is shown when you select a category by touching the icon with the 3 vertical dots on the Karten-screen.
+* "db_name" is the name of the Sqlite-database.
+* "db_tabellenname" is the prefix of the 3 tables used by the app, with the suffixes _daten, _zusatz, _images, e.g. abstellanlagen_daten.
+* "gps": 
+    * "min_lat" to "max_lon" describe the rectangular area shown by the map. 
+    * "center_lat" and "center_lon" are the coordinates to which the "Zentrieren"-button moves.
+    * "nachkommastellen" is the "stellen"-parameter described above.
+    * "min_zoom" is the smallest zoom, so that the user may not zoom out of the map too far. The max zoom is 19.
+* "daten": 1:1 data collected by the Daten-Screen.
+* zusatz": 0:n data collected by the Zusatz-Screen.
+    * "felder": describes each data field.
+
+Each field has these subfields:
+
+    {
+    "name": "auslastung",
+    "hint_text": "Auslastung %",
+    "helper_text": "Belegungsgrad in Prozent",
+    "type": "prozent"
+    },
+
+* "name" is the name of the field. This is e.g. used as column name in the database.
+* "hint_text" and "helper_text" are shown in the UI.
+* "type" is the type of the data. Possible values are
+    * "string"
+    * "bool"
+    * "int"
+    * "float"
+    * "prozent"
+
+String valued fields may be limited to a range of values with the "limited" field, e.g. to limit values for "quality" you may specify
+"limited": ["exceptional", "high", "medium", "low", "abominable"].
+
+The syntax of each configuration file is described and checked in lib/utils/syntax.dart. The files are used to create the tables of the Sqlite-DB and of the MySQL-DB,
+the latter by locationsserver/mysqlCreateTables.py.
+
+Currently, 4 category files are part of the app, and stored as assets. These files can not be seen on a non-rooted Android device with a file manager like e.g. Astro. 
+But more files could be added on Android to the external storage directory /sdcard/Android/data/de.adfcmuenchen.locations/files/config. Not sure if this is possible on IOS.
+For the MySQL-DB it would then be necessary to create the DB, which on the locationsserver only I can do at the moment. On Google Firestore no configuration or creation is necessary.
+
+
