@@ -39,6 +39,22 @@ class _AccountScreenState extends State<AccountScreen> {
             .get();
         settingsNL.setConfigValue("username", dss.data()["username"]);
       } else {
+        QuerySnapshot qss = await FirebaseFirestore.instance
+            .collection('users')
+            .where("username", isEqualTo: username)
+            .get();
+        for (QueryDocumentSnapshot d in qss.docs) {
+          Map data = d.data();
+          if (data["email"] != email) {
+            ScaffoldMessenger.of(ctx).showSnackBar(
+              SnackBar(
+                content: Text("Der Benutzername $username ist schon vergeben!"),
+                backgroundColor: Theme.of(ctx).errorColor,
+              ),
+            );
+            return;
+          }
+        }
         try {
           authResult = await auth.createUserWithEmailAndPassword(
             email: email,
