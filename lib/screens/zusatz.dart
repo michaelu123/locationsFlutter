@@ -143,7 +143,7 @@ class _ZusatzScreenState extends State<ZusatzScreen>
                   itemBuilder: (ctx, index) {
                     return Padding(
                       child: textFields[index],
-                      padding: EdgeInsets.symmetric(vertical: 10),
+                      padding: EdgeInsets.all(10),
                     );
                   },
                 ),

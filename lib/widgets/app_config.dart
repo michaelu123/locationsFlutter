@@ -52,7 +52,7 @@ class _AppConfigState extends State<AppConfig> {
                   controller.text =
                       settings.getConfigValue(settingJS["key"]).toString();
                   return Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10),
+                    padding: EdgeInsets.all(10),
                     child: TextField(
                         controller: controller,
                         decoration: InputDecoration(
@@ -73,37 +73,40 @@ class _AppConfigState extends State<AppConfig> {
                   final choices = settingJS["choices"];
                   final key = settingJS["key"];
                   String groupValue = groupValuesMap[key];
-                  return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Divider(),
-                        Text(
-                          settingJS["title"],
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                  return Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Divider(),
+                          Text(
+                            settingJS["title"],
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        Column(
-                          children: List.generate(choices.length, (index2) {
-                            return Row(children: [
-                              SizedBox(
-                                child: Text(choices[index2]),
-                                width: 120,
-                              ),
-                              Radio(
-                                groupValue: groupValue,
-                                value: choices[index2],
-                                onChanged: (value) {
-                                  settings.setConfigValueS(
-                                      key, "string", value);
-                                  setState(() => groupValuesMap[key] = value);
-                                },
-                              ),
-                            ]);
-                          }),
-                        ),
-                      ]);
+                          Column(
+                            children: List.generate(choices.length, (index2) {
+                              return Row(children: [
+                                SizedBox(
+                                  child: Text(choices[index2]),
+                                  width: 120,
+                                ),
+                                Radio(
+                                  groupValue: groupValue,
+                                  value: choices[index2],
+                                  onChanged: (value) {
+                                    settings.setConfigValueS(
+                                        key, "string", value);
+                                    setState(() => groupValuesMap[key] = value);
+                                  },
+                                ),
+                              ]);
+                            }),
+                          ),
+                        ]),
+                  );
                 }
                 // not reached, hopefully
                 return Container();

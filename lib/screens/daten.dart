@@ -126,7 +126,7 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
                         itemBuilder: (ctx, index) {
                           return Padding(
                             child: textFields[index],
-                            padding: EdgeInsets.symmetric(vertical: 10),
+                            padding: EdgeInsets.all(10),
                           );
                         },
                       );
