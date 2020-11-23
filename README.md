@@ -53,9 +53,11 @@ Darunter stehen 5 Knöpfe:
 
 Die Karte zeigt ein Fadenkreuz und links unten die Koordinaten des Mittelpunkts. Sie läßt sich mit einem Finger verschieben und mit 2 Fingern skalieren. Die Karte läßt sich aber nicht aus dem in der Konfigurationsdatei festgelegten Bereich bewegen, in den Beispielen die Region oder die Stadt München.
 
-Sieht man nach "Laden" auf der Karte MapMarker, kann man durch Antippen eines der Marker diesen zum Kartenmittelpunkt machen. Nach kurzer Zeit wird dann zur Datenseite mit den Daten des MapMarkers gewechselt.
+Um Daten für einen neuen Ort zu erfassen, muß dieser im Fadenkreuz stehen. Dann tippt man auf "Daten" und kann die Daten erfassen. Geht man zur Karte zurück, sieht man jetzt einen Marker für den neu erfaßten Ort.
 
-Wenn am Kartenmittelpunkt ein MapMarker steht, werden durch Antippen des Mülleimer-Icons alle Daten, Zusatzdaten und Bilder dieses Ortes lokal gelöscht.
+Sieht man nach "Laden" auf der Karte MapMarker, kann man durch Antippen eines der Marker diesen zum Kartenmittelpunkt machen. Nach kurzer Zeit wird dann zur Datenseite mit den Daten des MapMarkers gewechselt. Die Daten kann man jetzt ansehen oder ändern. 
+
+Wenn am Kartenmittelpunkt ein MapMarker steht, werden durch Antippen des Mülleimer-Icons alle Daten, Zusatzdaten und Bilder dieses Ortes lokal gelöscht. Falls Daten schon auf dem Server gespeichert sind, werden diese NICHT gelöscht.
 
 Für Orte mit Fotos wird ein anderer Marker angezeigt als für solche ohne. Für die Kategorie "Abstellanlagen" gibt es noch einen speziellen Programmcode, der die Abstellanlagen je nach "Güte" rot, gelb oder grün färbt. Die Güte ist um so höher, je mehr der Ja/Nein-Abfragen bei den Daten zu den Abstellanlagen mit Ja beantwortet werden. Für Grün müssen die Fragen "Abschließbar?", "Anlehnbar?", "Abstand OK?",  "Ausparken sicher?", "Witterungsgeschützt?" mit Ja beantwortet werden, und die Qualität der Anlage muß hoch sein.
 
@@ -83,6 +85,8 @@ Je nach Kategorie werden hier unterschiedliche Felder angezeigt. Das Bild zeigt 
 Wenn man in der Karte auf einen Marker getippt hat, wird der Kartenmittelpunkt kurz auf den Marker bewegt, und dann zur Datenseite mit den Daten des Markers gewechselt. Diese kann man jetzt betrachten und ggfs. ändern. War am Kartenmittelpunkt, auf den man vielleicht über GPS Fix gekommen ist, kein Marker, kann man jetzt auf der Datenseite einen neuen Ort erfassen. Wechselt man zurück zur Kartenseite, sieht man am Kartenmittelpunkt jetzt einen neuen Marker.
 
 Die Felder lassen sich am einfachsten von oben nach unten befüllen, indem man in der Tastatur jedesmal auf den blauen Rechtspfeil unten rechts tippt. Bei Felder, die eine Wahl erfordern, wie z.B. beim Wetter gut/mittel/schlecht, reicht die Eingabe des ersten Buchstabens.
+
+Ein geänderter Feld-Wert wird sofort in die Datenbank übernommen, wenn man das Feld verläßt, d.h. etwas anderes antippt. Es gibt also keinen "Submit"- oder "Speichern"-Knopf, den man extra drücken müßte, um die Eingaben zu speichern.
 
 Mit dem Foto-Icon nimmt man ein (oder mehrere) Foto(s) des Ortes auf.
 
