@@ -23,7 +23,8 @@ class Storage extends ChangeNotifier {
       List datenFelder,
       List zusatzFelder,
       List imagesFelder}) {
-    locClnt.init(serverUrl, extPath);
+    bool hasZusatz = zusatzFelder.length > 0;
+    locClnt.init(serverUrl, extPath, hasZusatz);
     fbClnt.init(extPath);
     fbClnt.initFelder(datenFelder, zusatzFelder, imagesFelder);
   }

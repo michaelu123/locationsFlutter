@@ -10,10 +10,12 @@ class LocationsClient {
   //"http://raspberrylan.1qgrvqjevtodmryr.myfritz.net:80/";
   String serverUrl;
   String extPath;
+  bool hasZusatz;
 
-  void init(String aserverUrl, String aextPath) {
-    serverUrl = aserverUrl;
-    extPath = aextPath;
+  void init(String serverUrl, String extPath, bool hasZusatz) {
+    this.serverUrl = serverUrl;
+    this.extPath = extPath;
+    this.hasZusatz = hasZusatz;
   }
 
   Future<dynamic> _req2(String method, String req,
@@ -147,7 +149,7 @@ class LocationsClient {
   Future<Map> getValuesWithin(String tableBase, double minlat, double maxlat,
       double minlon, double maxlon) async {
     final res = {};
-    for (String table in ["daten", "zusatz", "images"]) {
+    for (String table in ["daten", if (hasZusatz) "zusatz", "images"]) {
       String req =
           "/region/${tableBase}_$table?minlat=$minlat&maxlat=$maxlat&minlon=$minlon&maxlon=$maxlon";
       List res2 = await reqWithRetry("GET", req);

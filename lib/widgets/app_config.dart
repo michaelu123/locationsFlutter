@@ -35,6 +35,11 @@ class _AppConfigState extends State<AppConfig> {
         child: Column(
       children: [
         AppBar(
+          leading: IconButton(
+              icon: Icon(Icons.menu),
+              onPressed: () {
+                Navigator.of(context).pop();
+              }),
           title: const Text('Einstellungen'),
         ),
         Consumer<Settings>(builder: (ctx, settings, _) {

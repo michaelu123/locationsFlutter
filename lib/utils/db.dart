@@ -347,7 +347,9 @@ class LocationsDB {
     String where = "new_or_modified is null";
     await db.delete("daten", where: where);
     await db.delete("images", where: where);
-    await db.delete("zusatz", where: where);
+    if (hasZusatz) {
+      await db.delete("zusatz", where: where);
+    }
   }
 
   static Future<void> deleteZusatz(int nr) async {
