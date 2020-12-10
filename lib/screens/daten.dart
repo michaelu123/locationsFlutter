@@ -87,7 +87,11 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
                         Provider.of<LocData>(context, listen: false);
                     final map = await LocationsDB.dataForSameLoc();
                     locDataNL.dataFor("zusatz", map);
-                    Navigator.of(context).pushNamed(ZusatzScreen.routeName);
+                    await Navigator.of(context)
+                        .pushNamed(ZusatzScreen.routeName);
+                    // without the next statement, after pressing back button 
+                    // from zusatz the datenscreen shows wrong data
+                    locDataNL.setIsZusatz(false);
                   },
                   child: const Text(
                     'Zusatzdaten',

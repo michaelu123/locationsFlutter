@@ -76,7 +76,7 @@ class LocData with ChangeNotifier {
     final coord = Coord();
     coord.lat = LocationsDB.lat;
     coord.lon = LocationsDB.lon;
-    coord.quality = LocationsDB.qualityOf(locDaten);
+    coord.quality = LocationsDB.qualityOfLoc(locDaten, locZusatz);
     coord.hasImage = locImages.length > 0;
     markers.current(coord);
     // no notify
@@ -168,7 +168,7 @@ class LocData with ChangeNotifier {
     final coord = Coord();
     coord.lat = LocationsDB.lat;
     coord.lon = LocationsDB.lon;
-    coord.quality = LocationsDB.qualityOf(locDaten);
+    coord.quality = LocationsDB.qualityOfLoc(locDaten, locZusatz);
     coord.hasImage = locImages.length > 0;
     markers.current(coord);
 
@@ -184,7 +184,7 @@ class LocData with ChangeNotifier {
     final coord = Coord();
     coord.lat = LocationsDB.lat;
     coord.lon = LocationsDB.lon;
-    coord.quality = LocationsDB.qualityOf(locDaten);
+    coord.quality = LocationsDB.qualityOfLoc(locDaten, locZusatz);
     coord.hasImage = locImages.length > 0;
     markers.current(coord);
 
@@ -201,5 +201,11 @@ class LocData with ChangeNotifier {
     if (locImages.length == 0) return null;
     final imageUrl = locImages[imagesIndex]["image_url"];
     return imageUrl;
+  }
+
+  void setIsZusatz(bool b) {
+    if (isZusatz == b) return;
+    isZusatz = b;
+    notifyListeners();
   }
 }

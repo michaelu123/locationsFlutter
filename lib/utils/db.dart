@@ -17,6 +17,7 @@ class Coord {
 class LocationsDB {
   static String dbName;
   static String tableBase;
+  static String baseName;
   static List<String> createStmts;
   static Database db;
   static bool hasZusatz;
@@ -25,11 +26,13 @@ class LocationsDB {
   static int stellen;
   static String latRound, lonRound;
   static Map<String, String> qmarks = {};
+  static String nineMonthsAgo; // Date 9 months ago
 
   static DateFormat dateFormatterDB = DateFormat('yyyy.MM.dd HH:mm:ss');
 
   static Future<void> setBaseDB(BaseConfig baseConfig) async {
     if (dbName == baseConfig.getDbName()) return;
+    baseName = baseConfig.getName();
     if (db != null) await db.close();
     db = null;
     createStmts = [];
@@ -47,6 +50,8 @@ class LocationsDB {
     createStmts.addAll(stmtsFor(felder, "images"));
     db = await database();
     lat = lon = null;
+    nineMonthsAgo =
+        dateFormatterDB.format(DateTime.now().subtract(Duration(days: 270)));
   }
 
   static const dbType = {
@@ -270,22 +275,37 @@ class LocationsDB {
     print("updateImagesDB $res");
   }
 
-  // works only for Abstellanlagen...
-  static int qualityOf(Map row) {
+  // special hardwired code for some configurations
+  static int qualityOfRecord(String table, Map res) {
     var good = 0;
-    for (final f in [
-      "abschließbar",
-      "anlehnbar",
-      "abstand",
-      "ausparken",
-      "geschützt",
-    ]) {
-      if (row[f] == 1) good += 1;
+    if (baseName == "Abstellanlagen" && table == "daten") {
+      for (final f in [
+        "abschließbar",
+        "anlehnbar",
+        "abstand",
+        "ausparken",
+        "geschützt",
+      ]) {
+        if (res[f] == 1) good += 1;
+      }
+      if (good == 5 && res["zustand"] == "hoch") return 2;
+      if (good >= 2 && res["zustand"] != null && res["zustand"] != "niedrig")
+        return 1;
+      return 0;
     }
-    if (good == 5 && row["zustand"] == "hoch") return 2;
-    if (good >= 2 && row["zustand"] != null && row["zustand"] != "niedrig")
-      return 1;
+    if (baseName == "Nistkästen" && table == "zusatz") {
+      return (nineMonthsAgo.compareTo(res['modified']) < 0 ? 2 : 0);
+    }
     return 0;
+  }
+
+  static int qualityOfLoc(Map daten, List zusatz) {
+    int q = qualityOfRecord("daten", daten);
+    for (final z in zusatz) {
+      int qz = qualityOfRecord("zusatz", z);
+      if (qz > q) q = qz;
+    }
+    return q;
   }
 
   static Future<List<Coord>> readCoords() async {
@@ -296,7 +316,7 @@ class LocationsDB {
       final coord = Coord();
       coord.lat = res["lat"];
       coord.lon = res["lon"];
-      coord.quality = qualityOf(res);
+      coord.quality = qualityOfRecord("daten", res);
       coord.hasImage = false;
       key = '${res["lat_round"]}:${res["lon_round"]}';
       map[key] = coord;
@@ -310,9 +330,12 @@ class LocationsDB {
           coord = Coord();
           coord.lat = res["lat"];
           coord.lon = res["lon"];
-          coord.quality = 0;
+          coord.quality = qualityOfRecord("zusatz", res);
           coord.hasImage = false;
           map[key] = coord;
+        } else {
+          final q = qualityOfRecord("zusatz", res);
+          if (q > coord.quality) coord.quality = q;
         }
       }
     }
@@ -329,6 +352,7 @@ class LocationsDB {
       }
       coord.hasImage = true;
     }
+
     return map.values.toList();
   }
 
@@ -389,7 +413,10 @@ class LocationsDB {
       }
       // restore new data
       rows = newData[table];
-      for (final map in rows) await (db.insert(table, map));
+      for (final map in rows) {
+        if (isZusatz) map['nr'] = null;
+        await (db.insert(table, map));
+      }
     }
   }
 

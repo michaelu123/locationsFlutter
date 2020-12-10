@@ -1,0 +1,86 @@
+{
+  "name": "Nistkästen",
+  "db_name": "Nistkästen.db",
+  "db_tabellenname": "nistkästen",
+  "gps": {
+    "min_lat": 48.0,
+    "max_lat": 48.25,
+    "min_lon": 11.4,
+    "max_lon": 11.8,
+    "center_lat": 48.137235,
+    "center_lon": 11.57554,
+    "nachkommastellen": 5,
+    "min_zoom": 11
+  },
+  "daten": {
+    "protected": false,
+    "felder": [
+      {
+        "name": "revier",
+        "hint_text": "Revier",
+        "helper_text": "z.B. Neuhofener Berg",
+        "type": "string"
+      },
+      {
+        "name": "kasten",
+        "hint_text": "Kastenname/nummer",
+        "helper_text": "z.B. 36, X3",
+        "type": "string"
+      },
+      {
+        "name": "groesse",
+        "hint_text": "Größe des Nistkastens",
+        "helper_text": "Klein/Groß/Fledermaus",
+        "type": "string",
+        "limited": ["Klein", "Groß", "Fledermaus"]
+      },
+      {
+        "name": "zustand",
+        "hint_text": "Zustand",
+        "helper_text": "Zustand des Kastens:gut/mittel/schlecht",
+        "type": "string",
+        "limited": ["gut", "mittel", "schlecht"]
+      },
+      {
+        "name": "fabrikat",
+        "hint_text": "Nistkastenfabrikat",
+        "helper_text": "z.B. Schwegler 1B",
+        "type": "string"
+      },
+      {
+        "name": "bemerkung",
+        "hint_text": "Bemerkung",
+        "helper_text": "Sonstiges",
+        "type": "string"
+      }
+    ]
+  },
+  "zusatz": {
+    "felder": [
+      {
+        "name": "leer",
+        "hint_text": "Kasten leer?",
+        "helper_text": "Ist der Kasten leer? (j/n)",
+        "type": "bool"
+      },
+      {
+        "name": "beobachtung1",
+        "hint_text": "Beobachtung 1",
+        "helper_text": "Vogelnest (Art?), Fledermauskot, Siebenschläfer,..",
+        "type": "string"
+      },
+      {
+        "name": "beobachtung2",
+        "hint_text": "Beobachtung 2",
+        "helper_text": "Vogelnest (Art?), Fledermauskot, Siebenschläfer,..",
+        "type": "string"
+      },
+      {
+        "name": "bemerkung",
+        "hint_text": "Bemerkung",
+        "helper_text": "Sonstiges",
+        "type": "string"
+      }
+    ]
+  }
+}

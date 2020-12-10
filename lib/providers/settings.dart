@@ -115,7 +115,7 @@ class Settings extends ChangeNotifier {
     'thumbnaildim': 200,
     'delta': 5,
     'servername': "locationsserver.feste-ip.net",
-    'serverport': 39885,
+    'serverport': 52733,
     'mapprovider': 'OpenStreetMap',
     'maptype': 'Normal',
     'storage': 'LocationsServer',
