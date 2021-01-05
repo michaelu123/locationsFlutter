@@ -9,7 +9,7 @@ The internal documentation is written in english (best effort).
 
 # Kurzeinführung in die App
 
-## Achtung: weil ich eine neue FritzBox habe, muß die Portnummer bei den Einstellungen auf 52733 gesetzt werden!
+## Achtung: weil ich eine neue FritzBox habe, muß die Portnummer bei den Einstellungen auf 52733 gesetzt werden! Danach App bitte neu starten. Oder "Google Firebase" selektieren.
 
 ## Kategorien
 Mit der App lassen sich beliebige und ganz unterschiedliche Daten erfassen. Welche das sind, wird in einer Konfigurationsdatei festgelegt. Von denen kann es mehrere geben. Die App kommt mit 4 solcher Dateien, es lassen sich leicht weitere hinzufügen. Mit den 4 Beispiel-Dateien lassen sich Abstellanlagen, Abstellplätze (d.h. wünschbare Abstellanlagen), Alte Bäume oder Sitzbänke erfassen. Zu jeder Kategorie gehört ein Satz von Daten, die sich zu dieser Kategorie erfassen lassen. Bei den Abstellanlagen beispielsweise die Anzahl der Radständer, bei den alten Bäumen der Stammumfang, bei den Sitzbänken das Material der Sitzbank. Das sind Daten, die diesem Ort eindeutig zugeordnet werden. Daneben kann es für einen Ort mehrere Zusatzdaten geben. Ein Beispiel wäre bei den Abstellanlagen, an welchem Tag zu welcher Uhrzeit bei welchem Wetter die Anlage zu wieviel Prozent belegt war.
