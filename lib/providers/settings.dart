@@ -76,6 +76,12 @@ class Settings extends ChangeNotifier {
     },
     {
       'type': 'string',
+      'title': 'Region/Gebiet',
+      'desc': 'Name der Region/des Gebiets',
+      'key': 'region',
+    },
+    {
+      'type': 'string',
       'title': 'Server Name',
       'desc': 'Name des LocationsServer',
       'key': 'servername',
@@ -114,6 +120,7 @@ class Settings extends ChangeNotifier {
     'maxdim': 1024,
     'thumbnaildim': 200,
     'delta': 5,
+    'region': "",
     'servername': "locationsserver.feste-ip.net",
     'serverport': 52733,
     'mapprovider': 'OpenStreetMap',

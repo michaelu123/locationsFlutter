@@ -15,6 +15,7 @@ import 'package:locations/utils/db.dart';
 import 'package:locations/utils/felder.dart';
 import 'package:locations/utils/utils.dart';
 import 'package:provider/provider.dart';
+import 'package:tuple/tuple.dart';
 
 /// IndexModel is needed only for the left and right arrows.
 /// If we trigger [LocData] notification when moving from
@@ -77,15 +78,17 @@ class _ImagesScreenState extends State<ImagesScreen>
     return f;
   }
 
-  Future<File> getImageFileIndexed(
+  Future<Tuple2<File, String>> getImageFileIndexed(
     BaseConfig baseConfig,
     Storage strgClnt,
     LocData locData,
     int index,
-  ) {
+  ) async {
     String imgPath = locData.getImgPath(index);
     String imgUrl = locData.getImgUrl(index);
-    return getImageFile(baseConfig, strgClnt, imgPath, imgUrl);
+    String bemerkung = locData.getImgBemerkung(index);
+    File img = await getImageFile(baseConfig, strgClnt, imgPath, imgUrl);
+    return Tuple2(img, bemerkung);
   }
 
   @override
@@ -134,6 +137,7 @@ class _ImagesScreenState extends State<ImagesScreen>
         future: photosNL.retrieveLostData(
           locData,
           settingsNL.getConfigValueS("username"),
+          settingsNL.getConfigValueS("region"),
           baseConfig.getDbTableBaseName(),
           markersNL,
         ),
@@ -212,6 +216,7 @@ class _ImagesScreenState extends State<ImagesScreen>
                         locData,
                         settingsNL.getConfigValueI("maxdim"),
                         settingsNL.getConfigValueS("username"),
+                        settingsNL.getConfigValueS("region"),
                         baseConfig.getDbTableBaseName(),
                         markersNL,
                       );
@@ -277,6 +282,11 @@ class _ImagesScreenState extends State<ImagesScreen>
                           future: getImageFileIndexed(
                               baseConfig, strgClnt, locData, index),
                           builder: (ctx, snap) {
+                            TextEditingController controller =
+                                TextEditingController(
+                                    text: snap.data != null
+                                        ? snap.data.item2
+                                        : "");
                             if (snap.connectionState ==
                                 ConnectionState.waiting) {
                               return const Center(
@@ -299,36 +309,52 @@ class _ImagesScreenState extends State<ImagesScreen>
                                 ),
                               );
                             }
-                            return snap.data == null
-                                ? Center(
-                                    child: const Text(
-                                    "Bild nicht gefunden",
-                                    style: TextStyle(
-                                      backgroundColor: Colors.white,
-                                      color: Colors.black,
-                                      fontSize: 20,
+                            if (snap.data == null) {
+                              return Center(
+                                  child: const Text(
+                                "Bild nicht gefunden",
+                                style: TextStyle(
+                                  backgroundColor: Colors.white,
+                                  color: Colors.black,
+                                  fontSize: 20,
+                                ),
+                              ));
+                            }
+                            return Column(
+                              children: [
+                                Padding(
+                                  child: TextField(
+                                      decoration: InputDecoration(
+                                          labelText: "Bemerkung"),
+                                      controller: controller,
+                                      onSubmitted: (text) {
+                                        locData.setImgBemerkung(text, index);
+                                      }),
+                                  padding: EdgeInsets.all(10),
+                                ),
+                                Expanded(
+                                    child: Stack(
+                                  children: [
+                                    Image.file(
+                                      snap.data.item1,
+                                      fit: BoxFit.contain,
+                                      width: double.infinity,
                                     ),
-                                  ))
-                                : Stack(
-                                    children: [
-                                      Image.file(
-                                        snap.data,
-                                        fit: BoxFit.contain,
-                                        width: double.infinity,
-                                      ),
-                                      Positioned(
-                                        child: Text(
-                                          locData.getImgCreated(index),
-                                          style: const TextStyle(
-                                            backgroundColor: Colors.white,
-                                            color: Colors.black,
-                                          ),
+                                    Positioned(
+                                      child: Text(
+                                        locData.getImgCreated(index),
+                                        style: const TextStyle(
+                                          backgroundColor: Colors.white,
+                                          color: Colors.black,
                                         ),
-                                        bottom: 20,
-                                        right: 20,
                                       ),
-                                    ],
-                                  );
+                                      bottom: 20,
+                                      right: 20,
+                                    ),
+                                  ],
+                                ))
+                              ],
+                            );
                           },
                         );
                       },

@@ -33,7 +33,8 @@ Map syntax = {
             "type": "auswahl",
             "auswahl": ["string", "bool", "int", "float", "prozent"]
           },
-          "limited": {"required": false, "type": "array", "elem": "string"}
+          "limited": {"required": false, "type": "array", "elem": "string"},
+          "required": {"required": false, "type": "bool"},
         }
       }
     }
@@ -54,7 +55,8 @@ Map syntax = {
             "type": "auswahl",
             "auswahl": ["string", "bool", "int", "float", "prozent"]
           },
-          "limited": {"required": false, "type": "array", "elem": "string"}
+          "limited": {"required": false, "type": "array", "elem": "string"},
+          "required": {"required": false, "type": "bool"},
         }
       }
     }

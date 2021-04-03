@@ -85,7 +85,7 @@ class Markers extends ChangeNotifier {
 
   List<fm.Marker> markersF() {
     if (changedF) {
-      fmList = List<fm.Marker>();
+      fmList = List<fm.Marker>.filled(0,null, growable:true);
       for (fm.Marker m in _markers.values) {
         fmList.add(m);
       }
@@ -132,7 +132,7 @@ class Markers extends ChangeNotifier {
       "yellow_plus48.png",
       "green_plus48.png",
     ];
-    gmIcons = List<gm.BitmapDescriptor>(6);
+    gmIcons = List<gm.BitmapDescriptor>.filled(6, null);
     for (int i = 0; i < 6; i++) {
       // this crashes with "failed to decode image. the provided image must be a bitmap"
       // gmIcons[i] = await gm.BitmapDescriptor.fromAssetImage(

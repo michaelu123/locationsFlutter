@@ -146,6 +146,7 @@ class OsmImport {
       Map<String, dynamic> val = Map<String, dynamic>.from(defVal);
       val.addAll({
         "creator": "OSM",
+        "region": "",
         "created": d2000,
         "modified": d2000,
         "lat": lat,

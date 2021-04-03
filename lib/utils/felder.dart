@@ -34,8 +34,9 @@ class Felder {
             final markersNL = Provider.of<Markers>(context, listen: false);
             final settingsNL = Provider.of<Settings>(context, listen: false);
             final userName = settingsNL.getConfigValueS("username");
+            final region = settingsNL.getConfigValueS("region");
 
-            locDataNL.setFeld(markersNL, felder[index]['name'],
+            locDataNL.setFeld(markersNL, region, felder[index]['name'],
                 felder[index]["type"], l[1], userName);
           }
         }
@@ -75,9 +76,10 @@ class Felder {
             final markersNL = Provider.of<Markers>(context, listen: false);
             final settingsNL = Provider.of<Settings>(context, listen: false);
             final userName = settingsNL.getConfigValueS("username");
+            final region = settingsNL.getConfigValueS("region");
 
             locDataNL.setFeld(
-                markersNL, feld['name'], feldType, l[1], userName);
+                markersNL, region, feld['name'], feldType, l[1], userName);
             int x1 = (index + 1) % felderLength;
             if (controllers[x1].text.isEmpty) {
               FocusScope.of(context).requestFocus(focusNodes[x1]);

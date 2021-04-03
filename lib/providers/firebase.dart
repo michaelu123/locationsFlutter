@@ -91,7 +91,8 @@ class FirebaseClient {
     return val;
   }
 
-  Future<Map> getValuesWithin(String tableBase, double minlat, double maxlat,
+  Future<Map> getValuesWithin(String tableBase, String region, 
+      double minlat, double maxlat,
       double minlon, double maxlon) async {
     final geo = Geoflutterfire();
     final res = {};
@@ -110,7 +111,8 @@ class FirebaseClient {
       final rows = [];
       dssList.forEach((DocumentSnapshot dss) {
         final data = dss.data();
-        final row = List(len);
+        if (region != "" && data["region"] != region) return;
+        final row = List<dynamic>.filled(len, null);
         dynamic val;
         int index = 0;
         for (Map feld in dbFelder) {

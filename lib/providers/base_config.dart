@@ -26,6 +26,10 @@ class BaseConfig extends ChangeNotifier {
       "type": "string",
     },
     {
+      "name": "region",
+      "type": "string",
+    },
+    {
       "name": "lat",
       "type": "float",
     },
@@ -47,6 +51,10 @@ class BaseConfig extends ChangeNotifier {
     },
     {
       "name": "image_url",
+      "type": "string",
+    },
+    {
+      "name": "bemerkung",
       "type": "string",
     },
     newOrModified
@@ -87,6 +95,10 @@ class BaseConfig extends ChangeNotifier {
       "type": "string",
     },
     {
+      "name": "region",
+      "type": "string",
+    },
+    {
       "name": "lat",
       "type": "float",
     },
@@ -120,6 +132,10 @@ class BaseConfig extends ChangeNotifier {
     },
     {
       "name": "modified",
+      "type": "string",
+    },
+    {
+      "name": "region",
       "type": "string",
     },
     {

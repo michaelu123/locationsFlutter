@@ -21,6 +21,7 @@ class LocationsClient {
   Future<dynamic> _req2(String method, String req,
       {Map<String, String> headers, String body}) async {
     http.Response resp;
+
     if (method == "GET") {
       resp = await http.get(serverUrl + req, headers: headers);
     } else {
@@ -49,7 +50,7 @@ class LocationsClient {
         headers: headers,
         body: body,
       );
-    } on HttpException catch (e) {
+    } catch (e) {
       print("http exc $e");
       res = await _req2(
         method,
@@ -75,7 +76,7 @@ class LocationsClient {
     Uint8List res;
     try {
       res = await _reqGetBytes(req, headers: headers);
-    } on HttpException catch (e) {
+    } catch (e) {
       print("http exc $e");
       res = await _reqGetBytes(req, headers: headers);
     }
@@ -101,7 +102,7 @@ class LocationsClient {
     Map res;
     try {
       res = await _reqPostBytes(req, body, headers: headers);
-    } on HttpException catch (e) {
+    } catch (e) {
       print("http exc $e");
       res = await _reqPostBytes(req, body, headers: headers);
     }
@@ -146,12 +147,12 @@ class LocationsClient {
     }
   }
 
-  Future<Map> getValuesWithin(String tableBase, double minlat, double maxlat,
-      double minlon, double maxlon) async {
+  Future<Map> getValuesWithin(String tableBase, String region, double minlat,
+      double maxlat, double minlon, double maxlon) async {
     final res = {};
     for (String table in ["daten", if (hasZusatz) "zusatz", "images"]) {
       String req =
-          "/region/${tableBase}_$table?minlat=$minlat&maxlat=$maxlat&minlon=$minlon&maxlon=$maxlon";
+          "/region/${tableBase}_$table?minlat=$minlat&maxlat=$maxlat&minlon=$minlon&maxlon=$maxlon&region=$region";
       List res2 = await reqWithRetry("GET", req);
       res[table] = res2;
     }
@@ -184,5 +185,17 @@ class LocationsClient {
     if (res == null) return null;
     await f.writeAsBytes(res, flush: true);
     return [f, !thumbnail];
+  }
+
+  Future<List> getConfigs() async {
+    final req = "/configs";
+    List res = await reqWithRetry("GET", req);
+    return res;
+  }
+
+  Future<Map> getConfig(String name) async {
+    final req = "/config/$name";
+    Map res = await reqWithRetry("GET", req);
+    return res;
   }
 }

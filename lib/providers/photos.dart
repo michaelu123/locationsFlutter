@@ -19,6 +19,7 @@ class Photos extends ChangeNotifier {
     LocData locData,
     int maxDim,
     String userName,
+    String region,
     String tableBase,
     Markers markers,
   ) async {
@@ -32,11 +33,11 @@ class Photos extends ChangeNotifier {
     }
 
     return await saveImage(
-        File(pf.path), tableBase, userName, locData, markers);
+        File(pf.path), tableBase, userName, region, locData, markers);
     // notifyListeners();
   }
 
-  Future<void> retrieveLostData(LocData locData, String userName,
+  Future<void> retrieveLostData(LocData locData, String userName, String region,
       String tableBase, Markers markers) async {
     final LostData response = await ip.getLostData();
     if (response.isEmpty || response.file == null) {
@@ -45,11 +46,11 @@ class Photos extends ChangeNotifier {
     }
     print("recovered lost data");
     await saveImage(
-        File(response.file.path), tableBase, userName, locData, markers);
+        File(response.file.path), tableBase, userName, region, locData, markers);
   }
 
-  Future<int> saveImage(File imf, String tableBase, String userName,
-      LocData locData, Markers markers) async {
+  Future<int> saveImage(File imf, String tableBase, String userName, 
+      String region, LocData locData, Markers markers) async {
     final lat = LocationsDB.lat;
     final lon = LocationsDB.lon;
     final latRound = LocationsDB.latRound;
@@ -69,12 +70,14 @@ class Photos extends ChangeNotifier {
     final map = {
       "creator": userName,
       "created": dbNow,
+      "region": region,
       "lat": lat,
       "lon": lon,
       "lat_round": latRound,
       "lon_round": lonRound,
       "image_path": imgName,
       "image_url": null,
+      "bemerkung": null,
       "new_or_modified": 1,
     };
     await LocationsDB.insert("images", map);

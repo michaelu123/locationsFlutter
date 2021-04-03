@@ -48,11 +48,11 @@ class Storage extends ChangeNotifier {
     return fbClnt.post(tableBase, values);
   }
 
-  Future<Map> getValuesWithin(String tableBase, double minlat, double maxlat,
+  Future<Map> getValuesWithin(String tableBase, String region, double minlat, double maxlat,
       double minlon, double maxlon) async {
     if (useLoc)
-      return locClnt.getValuesWithin(tableBase, minlat, maxlat, minlon, maxlon);
-    return fbClnt.getValuesWithin(tableBase, minlat, maxlat, minlon, maxlon);
+      return locClnt.getValuesWithin(tableBase, region, minlat, maxlat, minlon, maxlon);
+    return fbClnt.getValuesWithin(tableBase, region, minlat, maxlat, minlon, maxlon);
   }
 
   Future<File> getImage(
@@ -72,7 +72,7 @@ class Storage extends ChangeNotifier {
   }
 
   Future<void> copyLoc2Fb(String tableBase, int maxdim) async {
-    Map values = await locClnt.getValuesWithin(tableBase, -90, 90, -180, 180);
+    Map values = await locClnt.getValuesWithin(tableBase, "", -90, 90, -180, 180);
     // Map values = await locClnt.getValuesWithin(
     //    tableBase, 48.0808, 48.0809, 11.5270, 11.5275);
     final imageList = values["images"];

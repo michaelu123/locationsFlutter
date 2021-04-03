@@ -27,8 +27,8 @@ class LocData with ChangeNotifier {
     isZusatz = false;
   }
 
-  Future<void> setFeld(Markers markers, String name, String type, Object val,
-      String userName) async {
+  Future<void> setFeld(Markers markers, String region, String name, String type,
+      Object val, String userName) async {
     Map res;
     if (isZusatz) {
       // print("setZusatz $name $type $val $zusatzIndex");
@@ -36,7 +36,8 @@ class LocData with ChangeNotifier {
       if (v != val) {
         int nr = locZusatz[zusatzIndex]["nr"];
         locZusatz[zusatzIndex][name] = val;
-        res = await LocationsDB.updateRowDB("zusatz", name, val, userName,
+        res = await LocationsDB.updateRowDB(
+            "zusatz", region, name, val, userName,
             nr: nr);
         nr = res["nr"];
         //print(
@@ -58,7 +59,8 @@ class LocData with ChangeNotifier {
       final v = locDaten[name];
       if (v != val) {
         locDaten[name] = val;
-        res = await LocationsDB.updateRowDB("daten", name, val, userName);
+        res =
+            await LocationsDB.updateRowDB("daten", region, name, val, userName);
         // print("LocDatum $name changed from $v to $val");
         final created = res["created"];
         if (created != null) {
@@ -154,6 +156,16 @@ class LocData with ChangeNotifier {
 
   String getImgCreated(int index) {
     return locImages[index]["created"];
+  }
+
+  String getImgBemerkung(int index) {
+    return locImages[index]["bemerkung"];
+  }
+
+  void setImgBemerkung(String text, int index) {
+    locImages[index]["bemerkung"] = text;
+    String imgPath = getImgPath(index);
+    LocationsDB.updateImagesDB(imgPath, "bemerkung", text);
   }
 
   bool isEmptyImages() {

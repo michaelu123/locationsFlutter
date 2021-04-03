@@ -16,16 +16,11 @@
     "protected": false,
     "felder": [
       {
-        "name": "revier",
-        "hint_text": "Revier",
-        "helper_text": "z.B. Neuhofener Berg",
-        "type": "string"
-      },
-      {
         "name": "kasten",
         "hint_text": "Kastenname/nummer",
         "helper_text": "z.B. 36, X3",
-        "type": "string"
+        "type": "string",
+        "required": true
       },
       {
         "name": "groesse",
@@ -61,7 +56,8 @@
         "name": "leer",
         "hint_text": "Kasten leer?",
         "helper_text": "Ist der Kasten leer? (j/n)",
-        "type": "bool"
+        "type": "bool",
+        "required": true
       },
       {
         "name": "beobachtung1",

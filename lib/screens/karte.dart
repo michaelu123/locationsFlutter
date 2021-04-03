@@ -202,11 +202,12 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   }
 
   Future<void> getDataFromServer(
-      Storage strgClnt, String tableName, int delta) async {
+      Storage strgClnt, String tableName, String region, int delta) async {
     double f = delta / 1000;
     // await LocationsDB.deleteAll();
     Map values = await strgClnt.getValuesWithin(
       tableName,
+      region,
       mapLat - f,
       mapLat + f,
       mapLon - 2 * f,
@@ -231,6 +232,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
       await getDataFromServer(
         strgClnt,
         baseConfig.getDbTableBaseName(),
+        settings.getConfigValueS("region"),
         settings.getConfigValueI("delta"),
       );
       setState(() => message = "Lade MapMarker");
@@ -274,11 +276,11 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
             title: const Text('Sicher?'),
             content: const Text('Wollen Sie die App verlassen?'),
             actions: <Widget>[
-              FlatButton(
+              TextButton(
                 child: const Text("Nein"),
                 onPressed: () => Navigator.of(context).pop(false),
               ),
-              FlatButton(
+              TextButton(
                 child: const Text("Ja"),
                 onPressed: () => Navigator.of(context).pop(true),
               ),
@@ -536,7 +538,7 @@ class OsmMap extends StatelessWidget {
           );
         },
       ),
-      layers: [
+      nonRotatedLayers: [
         fm.TileLayerOptions(
             minZoom: configGPS["min_zoom"] * 1.0,
             maxZoom: 19,

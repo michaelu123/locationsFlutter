@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:locations/providers/base_config.dart';
+import 'package:locations/providers/locations_client.dart';
 import 'package:locations/providers/storage.dart';
 import 'package:locations/screens/account.dart';
 import 'package:locations/utils/db.dart';
@@ -56,6 +56,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (BuildContext context) => IndexModel(),
         ),
+        ChangeNotifierProvider(
+          create: (BuildContext context) => MsgModel(),
+        ),
       ],
       child: Consumer3<BaseConfig, Settings, Storage>(
         builder: (ctx, baseConfig, settings, strgClnt, _) {
@@ -78,7 +81,7 @@ class MyApp extends StatelessWidget {
               // read config.json files only once at program start
               future: baseConfig.isInited()
                   ? null
-                  : appInitialize(baseConfig, settings, strgClnt),
+                  : appInitialize(baseConfig, settings, strgClnt, ctx),
               builder: (ctx, snap) {
                 if (snap.connectionState == ConnectionState.waiting) {
                   return SplashScreen();
@@ -123,49 +126,61 @@ class MyApp extends StatelessWidget {
   }
 
   // conveniently do all asynchronous initialization
-  Future<void> appInitialize(
-      BaseConfig baseConfig, Settings settings, Storage strgClnt) async {
-    // read all assets/config/*.json files
-    var bc = Map<String, dynamic>();
-    // I cannot obtain list of bundle content, therefore I need a TOC file...
-    String content = await rootBundle.loadString("assets/config/content.json");
-    List contentJS = json.decode(content);
+  Future<void> appInitialize(BaseConfig baseConfig, Settings settings,
+      Storage strgClnt, BuildContext ctx) async {
+    MsgModel msgModel = Provider.of<MsgModel>(ctx, listen: false);
 
-    await Future.forEach(contentJS, (f) async {
-      final content2 = await rootBundle.loadString("assets/config/" + f);
-      final Map content2JS = json.decode(content2);
-      try {
-        // the bundled config files are ok
-        // checkSyntax(content2JS);
-        final name = content2JS['name'];
-        bc[name] = content2JS;
-      } catch (e) {
-        print(e);
-      }
-    });
-
+    msgModel.setMessage("Loading...");
     await initExtPath();
     // allow external storage config files
     final extPath = getExtPath();
     final configPath = path.join(extPath, "config");
     Directory configDir = Directory(configPath);
-    if (await configDir.exists()) {
-      List<File> configFiles = await configDir.list().toList();
-      await Future.forEach(configFiles, (f) async {
-        if (f.path.endsWith(".json")) {
-          final content2 = await f.readAsString();
-          final Map content2JS = json.decode(content2);
-          try {
-            checkSyntax(content2JS);
-            final name = content2JS['name'];
-            bc[name] = content2JS;
-          } catch (e) {
-            print(e);
-          }
-        }
-      });
+    await configDir.create();
+
+    await settings.getSharedPreferences();
+    String serverName = settings.getConfigValueS("servername");
+    int serverPort = settings.getConfigValueI("serverport");
+    String serverUrl = "http://$serverName:$serverPort";
+    msgModel.setMessage("Loading configurations from $serverUrl...");
+    try {
+      LocationsClient lc = LocationsClient();
+      lc.init(serverUrl, extPath, false);
+      List configs = await lc.getConfigs();
+      print("lc $configs");
+      for (String config in configs) {
+        File f = File(path.join(configPath, config));
+        if (await f.exists()) continue;
+        Map cmap = await lc.getConfig(config);
+        await f.writeAsString(json.encode(cmap), flush: true);
+        print("ok");
+      }
+    } catch (e) {
+      msgModel.setMessage("Error $e");
     }
+
+    // used during setup of FireBase
+    // copy from LocationsServer to Firebase
+    // strgClnt.copyLoc2Fb("abstellanlagen", settings.getConfigValueI("maxdim"));
+
+    var bc = Map<String, dynamic>();
+    msgModel.setMessage("Loading config files from $configDir");
+    List<FileSystemEntity> configFiles = await configDir.list().toList();
+    await Future.forEach(configFiles, (f) async {
+      if (f is File && f.path.endsWith(".json")) {
+        final content2 = await f.readAsString();
+        try {
+          final Map content2JS = json.decode(content2);
+          checkSyntax(content2JS);
+          final name = content2JS['name'];
+          bc[name] = content2JS;
+        } catch (e) {
+          msgModel.setMessage("Error $e");
+        }
+      }
+    });
     print("bc ${bc.keys}");
+
     await settings.getSharedPreferences();
     baseConfig.setInitially(bc, settings.initialBase());
     await LocationsDB.setBaseDB(baseConfig);
@@ -175,9 +190,6 @@ class MyApp extends StatelessWidget {
 
     strgClnt.setClnt(
         settings.getConfigValueS("storage", defVal: "LocationsServer"));
-    String serverName = settings.getConfigValueS("servername");
-    int serverPort = settings.getConfigValueI("serverport");
-    String serverUrl = "http://$serverName:$serverPort";
     strgClnt.init(
       serverUrl: serverUrl,
       extPath: extPath,

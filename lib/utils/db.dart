@@ -213,7 +213,7 @@ class LocationsDB {
   }
 
   static Future<Map> updateRowDB(
-      String table, String name, Object val, String userName,
+      String table, String region, String name, Object val, String userName,
       {int nr}) async {
     String where;
     List whereArgs;
@@ -230,6 +230,7 @@ class LocationsDB {
         table,
         {
           "creator": userName,
+          "region": region,
           name: val,
           if (table != "images") "modified": now,
           "new_or_modified": 1,
@@ -245,6 +246,7 @@ class LocationsDB {
     }
     int res = await db.insert(table, {
       // nr is autoincremented
+      "region": region,
       "lat": lat,
       "lon": lon,
       "lat_round": latRound,
@@ -263,7 +265,7 @@ class LocationsDB {
       String imagePath, String name, Object val) async {
     String where = "image_path=?";
     List whereArgs = [imagePath];
-    int res = await db.update(
+    await db.update(
       "images",
       {
         name: val,
@@ -272,7 +274,6 @@ class LocationsDB {
       whereArgs: whereArgs,
       conflictAlgorithm: sql.ConflictAlgorithm.replace,
     );
-    print("updateImagesDB $res");
   }
 
   // special hardwired code for some configurations
@@ -409,7 +410,12 @@ class LocationsDB {
       for (List row in rows) {
         row.add(null); // for new_or_modified
         if (isZusatz) row[0] = null; // nr field
-        await db.rawInsert("INSERT INTO $table VALUES(${qmarks[table]})", row);
+        try {
+          await db.rawInsert(
+              "INSERT INTO $table VALUES(${qmarks[table]})", row);
+        } catch (e) {
+          print("db exception $e");
+        }
       }
       // restore new data
       rows = newData[table];
