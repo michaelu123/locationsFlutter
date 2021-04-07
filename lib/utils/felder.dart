@@ -59,7 +59,7 @@ class Felder {
         final feld = felder[index];
         final feldType = feld["type"];
         return TextField(
-          enabled: index < felderLength - 2,
+          enabled: index < felderLength - 3,
           textInputAction: TextInputAction.next,
           controller: controllers[index],
           focusNode: focusNodes[index],

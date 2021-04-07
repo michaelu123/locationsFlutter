@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:locations/parser/parser.dart';
 import 'package:locations/providers/base_config.dart';
 import 'package:sqflite/sqflite.dart' as sql;
 import 'package:path/path.dart' as path;
@@ -26,7 +27,7 @@ class LocationsDB {
   static int stellen;
   static String latRound, lonRound;
   static Map<String, String> qmarks = {};
-  static String nineMonthsAgo; // Date 9 months ago
+  static List<Statement> statements;
 
   static DateFormat dateFormatterDB = DateFormat('yyyy.MM.dd HH:mm:ss');
 
@@ -50,8 +51,7 @@ class LocationsDB {
     createStmts.addAll(stmtsFor(felder, "images"));
     db = await database();
     lat = lon = null;
-    nineMonthsAgo =
-        dateFormatterDB.format(DateTime.now().subtract(Duration(days: 270)));
+    statements = parseProgram(baseConfig.getProgram());
   }
 
   static const dbType = {
@@ -276,84 +276,68 @@ class LocationsDB {
     );
   }
 
-  // special hardwired code for some configurations
-  static int qualityOfRecord(String table, Map res) {
-    var good = 0;
-    if (baseName == "Abstellanlagen" && table == "daten") {
-      for (final f in [
-        "abschließbar",
-        "anlehnbar",
-        "abstand",
-        "ausparken",
-        "geschützt",
-      ]) {
-        if (res[f] == 1) good += 1;
-      }
-      if (good == 5 && res["zustand"] == "hoch") return 2;
-      if (good >= 2 && res["zustand"] != null && res["zustand"] != "niedrig")
-        return 1;
-      return 0;
-    }
-    if (baseName == "Nistkästen" && table == "zusatz") {
-      return (nineMonthsAgo.compareTo(res['modified']) < 0 ? 2 : 0);
-    }
+  static int qualityOfLoc(Map daten, List zusatz) {
     return 0;
   }
 
-  static int qualityOfLoc(Map daten, List zusatz) {
-    int q = qualityOfRecord("daten", daten);
-    for (final z in zusatz) {
-      int qz = qualityOfRecord("zusatz", z);
-      if (qz > q) q = qz;
-    }
-    return q;
-  }
-
   static Future<List<Coord>> readCoords() async {
-    String key;
+    Map<String, Map<String, dynamic>> daten = {};
+    Map<String, List<Map<String, dynamic>>> zusatz = {};
     Map<String, Coord> map = {};
     final resD = await db.query("daten");
     for (final res in resD) {
       final coord = Coord();
       coord.lat = res["lat"];
       coord.lon = res["lon"];
-      coord.quality = qualityOfRecord("daten", res);
       coord.hasImage = false;
-      key = '${res["lat_round"]}:${res["lon_round"]}';
+      final key = '${res["lat_round"]}:${res["lon_round"]}';
       map[key] = coord;
+      daten[key] = res;
     }
     if (hasZusatz) {
       final resZ = await db.query("zusatz");
       for (final res in resZ) {
-        key = '${res["lat_round"]}:${res["lon_round"]}';
+        final key = '${res["lat_round"]}:${res["lon_round"]}';
         var coord = map[key];
         if (coord == null) {
           coord = Coord();
           coord.lat = res["lat"];
           coord.lon = res["lon"];
-          coord.quality = qualityOfRecord("zusatz", res);
           coord.hasImage = false;
           map[key] = coord;
-        } else {
-          final q = qualityOfRecord("zusatz", res);
-          if (q > coord.quality) coord.quality = q;
+          List l = zusatz[key];
+          if (l == null) {
+            l = [];
+            zusatz[key] = l;
+          }
+          l.add(res);
         }
       }
     }
     final resI = await db.query("images");
     for (final res in resI) {
-      key = '${res["lat_round"]}:${res["lon_round"]}';
+      final key = '${res["lat_round"]}:${res["lon_round"]}';
       var coord = map[key];
       if (coord == null) {
         coord = Coord();
         coord.lat = res["lat"];
         coord.lon = res["lon"];
-        coord.quality = 0;
         map[key] = coord;
       }
       coord.hasImage = true;
     }
 
+    map.forEach((key, coord) {
+      final m = makeWritableMap(daten[key]);
+      final z = zusatz[key];
+      List<Map<String, dynamic>> l;
+      if (z != null) {
+        l = makeWritableList(z);
+      } else {
+        l = [];
+      }
+      coord.quality = evalProgram(statements, m, l);
+    });
     return map.values.toList();
   }
 

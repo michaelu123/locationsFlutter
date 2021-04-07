@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 /// This class is initialized with the json files from
-/// assets/config/ and extPath/config (in [MyApp.appInitialize]).
+/// extPath/config (in [MyApp.appInitialize]).
 /// With [setBase] one of them is chosen
 /// and determines the current UI and DB fields. This enables the program to
 /// switch between completely unrelated data.
@@ -66,6 +66,12 @@ class BaseConfig extends ChangeNotifier {
 
   /// These fields are displayed on the Daten- and Zusatz-Screen.
   List dates = [
+    {
+      "name": "region",
+      "hint_text": "Region/Gebiet",
+      "helper_text": null,
+      "type": "string",
+    },
     {
       "name": "created",
       "hint_text": "Erzeugt",
@@ -264,5 +270,19 @@ class BaseConfig extends ChangeNotifier {
 
   bool hasZusatz() {
     return _zusatzFelder.length > 0;
+  }
+
+  String getProgram() {
+    return '''
+good = 0;
+if abschließbar then good = good + 1 end;
+if anlehnbar then good = good + 1 end;
+if abstand then good = good + 1 end;
+if ausparken then good = good + 1 end;
+if geschützt then good = good + 1 end;
+if good == 5 and zustand == "hoch" then return 2 end;
+if good >= 2 and zustand != "niedrig" then return 1 end;
+return 0
+''';
   }
 }

@@ -538,7 +538,7 @@ class OsmMap extends StatelessWidget {
           );
         },
       ),
-      nonRotatedLayers: [
+      layers: [
         fm.TileLayerOptions(
             minZoom: configGPS["min_zoom"] * 1.0,
             maxZoom: 19,
