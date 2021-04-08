@@ -277,12 +277,14 @@ class LocationsDB {
   }
 
   static int qualityOfLoc(Map daten, List zusatz) {
-    return 0;
+    int r = evalProgram(statements, daten, zusatz);
+    if (r == null || r < 0 || r > 2) r = 0;
+    return r;
   }
 
   static Future<List<Coord>> readCoords() async {
     Map<String, Map<String, dynamic>> daten = {};
-    Map<String, List<Map<String, dynamic>>> zusatz = {};
+    Map<String, List> zusatz = {};
     Map<String, Coord> map = {};
     final resD = await db.query("daten");
     for (final res in resD) {
@@ -298,6 +300,12 @@ class LocationsDB {
       final resZ = await db.query("zusatz");
       for (final res in resZ) {
         final key = '${res["lat_round"]}:${res["lon_round"]}';
+        List l = zusatz[key];
+        if (l == null) {
+          l = [];
+          zusatz[key] = l;
+        }
+        l.add(res);
         var coord = map[key];
         if (coord == null) {
           coord = Coord();
@@ -305,12 +313,6 @@ class LocationsDB {
           coord.lon = res["lon"];
           coord.hasImage = false;
           map[key] = coord;
-          List l = zusatz[key];
-          if (l == null) {
-            l = [];
-            zusatz[key] = l;
-          }
-          l.add(res);
         }
       }
     }
@@ -328,15 +330,15 @@ class LocationsDB {
     }
 
     map.forEach((key, coord) {
-      final m = makeWritableMap(daten[key]);
+      final m = daten[key] != null ? makeWritableMap(daten[key]) : {};
       final z = zusatz[key];
-      List<Map<String, dynamic>> l;
+      List l;
       if (z != null) {
         l = makeWritableList(z);
       } else {
         l = [];
       }
-      coord.quality = evalProgram(statements, m, l);
+      coord.quality = qualityOfLoc(m, l);
     });
     return map.values.toList();
   }

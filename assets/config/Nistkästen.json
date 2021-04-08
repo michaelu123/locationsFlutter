@@ -78,5 +78,10 @@
         "type": "string"
       }
     ]
-  }
+  },
+  "program": [
+    "foreach(modified, desc)",
+      "if modified < 180 then return 2 end",
+    "end"
+  ]
 }

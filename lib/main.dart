@@ -180,6 +180,12 @@ class MyApp extends StatelessWidget {
       }
     });
     print("bc ${bc.keys}");
+    if (bc.isEmpty) {
+      msgModel.setMessage("Keine Konfigurationen gefunden");
+      for (;;) {
+        await Future.delayed(Duration(seconds: 1));
+      }
+    }
 
     await settings.getSharedPreferences();
     baseConfig.setInitially(bc, settings.initialBase());
@@ -197,6 +203,7 @@ class MyApp extends StatelessWidget {
       zusatzFelder: baseConfig.getDbZusatzFelder(),
       imagesFelder: baseConfig.getDbImagesFelder(),
     );
+    msgModel.setMessage("");
 
     // used during setup of FireBase
     // copy from LocationsServer to Firebase

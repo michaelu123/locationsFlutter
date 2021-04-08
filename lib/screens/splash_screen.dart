@@ -4,9 +4,10 @@ import 'package:provider/provider.dart';
 class MsgModel with ChangeNotifier {
   String msg = "Loading...";
 
-  void setMessage(String m) {
+  void setMessage(String m) async {
     debugPrint("Message: $m");
     msg = m;
+    await Future.delayed(Duration(seconds: 1), () => notifyListeners());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notifyListeners();
     });

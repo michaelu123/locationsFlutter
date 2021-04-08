@@ -273,16 +273,15 @@ class BaseConfig extends ChangeNotifier {
   }
 
   String getProgram() {
-    return '''
-good = 0;
-if abschließbar then good = good + 1 end;
-if anlehnbar then good = good + 1 end;
-if abstand then good = good + 1 end;
-if ausparken then good = good + 1 end;
-if geschützt then good = good + 1 end;
-if good == 5 and zustand == "hoch" then return 2 end;
-if good >= 2 and zustand != "niedrig" then return 1 end;
-return 0
-''';
+    var p = "return 0";
+    final prog = baseJS["program"];
+    if (prog != null) {
+      if (prog is List) {
+        p = prog.join('');
+      } else if (prog is String) {
+        p = prog;
+      }
+    }
+    return p;
   }
 }
