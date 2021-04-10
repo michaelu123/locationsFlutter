@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart' hide Settings;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:locations/providers/settings.dart';
+import 'package:locations/widgets/app_config.dart';
 import 'package:locations/widgets/auth_form.dart';
 import 'package:provider/provider.dart';
 
@@ -80,9 +81,9 @@ class _AccountScreenState extends State<AccountScreen> {
       }
     } catch (err) {
       var message = "An error occurred, please check your credentials!";
-      if (err.message != null) {
+      try {
         message = err.message;
-      }
+      } catch (_) {}
       print("plaex $err $message");
       ScaffoldMessenger.of(ctx).showSnackBar(
         SnackBar(
@@ -103,6 +104,10 @@ class _AccountScreenState extends State<AccountScreen> {
   Widget build(BuildContext context) {
     settingsNL = Provider.of<Settings>(context, listen: false);
     return Scaffold(
+      appBar: AppBar(
+        title: Text("Login/SignOn"),
+      ),
+      drawer: AppConfig(),
       backgroundColor: Theme.of(context).primaryColor,
       body: AuthForm(
         submitAuthForm,

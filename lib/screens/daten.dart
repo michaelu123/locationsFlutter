@@ -90,7 +90,7 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
                     locDataNL.dataFor("zusatz", map);
                     await Navigator.of(context)
                         .pushNamed(ZusatzScreen.routeName);
-                    // without the next statement, after pressing back button 
+                    // without the next statement, after pressing back button
                     // from zusatz the datenscreen shows wrong data
                     locDataNL.setIsZusatz(false);
                   },
@@ -112,7 +112,7 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
             ],
           ),
           Expanded(
-            child: settingsNL.getConfigValueS("username").isEmpty
+            child: settingsNL.getConfigValueS("username", defVal: "").isEmpty
                 ? const Center(
                     child: Text(
                       "Bitte erst einen Benutzer/Spitznamen eingeben",
