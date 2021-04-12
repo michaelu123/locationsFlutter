@@ -163,7 +163,7 @@ class MyApp extends StatelessWidget {
     // copy from LocationsServer to Firebase
     // strgClnt.copyLoc2Fb("abstellanlagen", settings.getConfigValueI("maxdim"));
 
-    var bc = Map<String, dynamic>();
+    var bc = Map<String, List>();
     msgModel.setMessage("Loading config files from $configDir");
     List<FileSystemEntity> configFiles = await configDir.list().toList();
     await Future.forEach(configFiles, (f) async {
@@ -173,7 +173,8 @@ class MyApp extends StatelessWidget {
           final Map content2JS = json.decode(content2);
           checkSyntax(content2JS);
           final name = content2JS['name'];
-          bc[name] = content2JS;
+          if (bc[name] == null) bc[name] = [];
+          bc[name].add(content2JS);
         } catch (e) {
           msgModel.setMessage("Error $e");
         }

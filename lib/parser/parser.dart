@@ -189,6 +189,6 @@ List<Statement> parseProgram(String program) {
 int evalProgram(List<Statement> statements, Map daten, List zusatz) {
   final eval = Eval(daten, zusatz);
   final r = eval.evalStmts(statements);
-  print('res $r');
+  // print('res $r');
   return r as int;
 }

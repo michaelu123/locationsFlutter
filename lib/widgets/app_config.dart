@@ -46,12 +46,36 @@ class _AppConfigState extends State<AppConfig> {
           final settingsJS = settings.settingsJS();
           final controllers =
               List.generate(settingsJS.length, (_) => TextEditingController());
+          final List<FocusNode> focusNodes = List.generate(
+            settingsJS.length,
+            (_) => FocusNode(),
+          );
+          List<void Function()> focusHandlers = List.generate(
+            settingsJS.length,
+            (index) {
+              void cb() {
+                var fn = focusNodes[index];
+                if (!fn.hasFocus) {
+                  final text = controllers[index].text.trim();
+                  final settingJS = settingsJS[index];
+                  settings.setConfigValueS(
+                      settingJS["key"], settingJS["type"], text);
+                }
+              }
+
+              return cb;
+            },
+          );
           return Expanded(
             child: ListView.builder(
               itemCount: settingsJS.length,
               itemBuilder: (ctx, index1) {
                 final settingJS = settingsJS[index1];
                 final controller = controllers[index1];
+                final focusNode = focusNodes[index1];
+                final focusHandler = focusHandlers[index1];
+                focusNode.addListener(focusHandler);
+
                 if (settingJS["type"] == "int" ||
                     settingJS["type"] == "string") {
                   controller.text =
@@ -60,6 +84,7 @@ class _AppConfigState extends State<AppConfig> {
                     padding: EdgeInsets.all(10),
                     child: TextField(
                         controller: controller,
+                        focusNode: focusNode,
                         decoration: InputDecoration(
                           labelText: settingJS["title"],
                           helperText: settingJS["desc"],
@@ -81,6 +106,7 @@ class _AppConfigState extends State<AppConfig> {
                     padding: EdgeInsets.all(10),
                     child: TextField(
                         controller: controller,
+                        focusNode: focusNode,
                         decoration: InputDecoration(
                           labelText: settingJS["title"],
                           helperText: settingJS["desc"],

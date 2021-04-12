@@ -69,6 +69,7 @@ class Settings extends ChangeNotifier {
   Future<void> setConfigValueS(String key, String type, String val) async {
     if (type == "int") prefs.setInt(key, int.parse(val));
     if (type == "string") prefs.setString(key, val);
+    if (type == "float") prefs.setDouble(key, double.parse(val));
     notifyListeners();
   }
 

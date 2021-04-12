@@ -1,12 +1,13 @@
 import 'dart:io';
+import 'dart:math';
 
+import 'package:intl/intl.dart';
 import 'package:locations/parser/parser.dart';
 import 'package:locations/providers/base_config.dart';
-import 'package:sqflite/sqflite.dart' as sql;
-import 'package:path/path.dart' as path;
-import 'package:sqflite/sqlite_api.dart';
-import 'package:intl/intl.dart';
 import 'package:locations/utils/utils.dart';
+import 'package:path/path.dart' as path;
+import 'package:sqflite/sqflite.dart' as sql;
+import 'package:sqflite/sqlite_api.dart';
 
 class Coord {
   double lat;
@@ -20,13 +21,16 @@ class LocationsDB {
   static String tableBase;
   static String baseName;
   static List<String> createStmts;
+  static List<String> updateStmts;
   static Database db;
   static bool hasZusatz;
+  static int bcVers;
 
   static double lat, lon;
   static int stellen;
   static String latRound, lonRound;
   static Map<String, String> qmarks = {};
+  static Map<String, String> colNames = {};
   static List<Statement> statements;
 
   static DateFormat dateFormatterDB = DateFormat('yyyy.MM.dd HH:mm:ss');
@@ -34,21 +38,39 @@ class LocationsDB {
   static Future<void> setBaseDB(BaseConfig baseConfig) async {
     if (dbName == baseConfig.getDbName()) return;
     baseName = baseConfig.getName();
+    dbName = baseConfig.getDbName();
     if (db != null) await db.close();
     db = null;
     createStmts = [];
-    dbName = baseConfig.getDbName();
+    updateStmts = [];
+    bcVers = baseConfig.getVersion();
+    int dbVers = await dbVersion();
+    if (bcVers >= dbVers) {
+      final diffs = baseConfig.getDiff(dbVers, bcVers);
+      final addedDaten = diffs.item1;
+      final removedDaten = diffs.item2;
+      final addedZusatz = diffs.item3;
+      final removedZusatz = diffs.item4;
+      print("ne $addedDaten $removedDaten $addedZusatz, $removedZusatz");
+      updateStmts.addAll(updateAddStatementsFor(addedDaten, "daten"));
+      updateStmts.addAll(updateAddStatementsFor(addedZusatz, "zusatz"));
+      // cannot remove columns from DB, see https://www.sqlitetutorial.net/sqlite-alter-table/
+    }
+
     tableBase = baseConfig.getDbTableBaseName();
     var felder = baseConfig.getDbDatenFelder();
     qmarks["daten"] = List.generate(felder.length, (_) => "?").join(",");
-    createStmts.addAll(stmtsFor(felder, "daten"));
+    colNames["daten"] = felder.map((feld) => feld["name"]).join(",");
+    createStmts.addAll(createStmtsFor(felder, "daten"));
     felder = baseConfig.getDbZusatzFelder();
     qmarks["zusatz"] = List.generate(felder.length, (_) => "?").join(",");
+    colNames["zusatz"] = felder.map((feld) => feld["name"]).join(",");
     hasZusatz = felder.length > 0;
-    if (hasZusatz) createStmts.addAll(stmtsFor(felder, "zusatz"));
+    if (hasZusatz) createStmts.addAll(createStmtsFor(felder, "zusatz"));
     felder = baseConfig.getDbImagesFelder();
     qmarks["images"] = List.generate(felder.length, (_) => "?").join(",");
-    createStmts.addAll(stmtsFor(felder, "images"));
+    colNames["images"] = felder.map((feld) => feld["name"]).join(",");
+    createStmts.addAll(createStmtsFor(felder, "images"));
     db = await database();
     lat = lon = null;
     statements = parseProgram(baseConfig.getProgram());
@@ -62,7 +84,7 @@ class LocationsDB {
     "prozent": "INTEGER",
   };
 
-  static List<String> stmtsFor(List felder, String table) {
+  static List<String> createStmtsFor(List felder, String table) {
     List<String> stmts = [];
     List<String> dbfelder = felder.map((feld) {
       return '${feld["name"]} ${dbType[feld["type"]]}';
@@ -88,9 +110,15 @@ class LocationsDB {
     return stmts;
   }
 
-  static Future<Database> database() async {
-// only dir visible in Astro: getExternalStorageDirectory
+  // sorry no DROP COLUMN in Sqflite
+  static List<String> updateAddStatementsFor(List felder, String table) {
+    List<String> stmts = felder.map((feld) {
+      return 'ALTER TABLE $table ADD COLUMN ${feld["name"]} ${dbType[feld["type"]]}';
+    }).toList();
+    return stmts;
+  }
 
+  static Future<Database> database() async {
     final extPath = getExtPath();
 
     // while we are at the extstor:
@@ -110,9 +138,37 @@ class LocationsDB {
           }
         });
       },
-      version: 1,
+      onUpgrade: (Database db, int oldv, int newv) async {
+        print("upgrade from $oldv to $newv");
+        await Future.forEach(updateStmts, (stmt) async {
+          try {
+            await db.execute(stmt);
+          } catch (e) {
+            print("db exception $e");
+          }
+        });
+      },
+      onDowngrade: (Database db, int oldv, int newv) {
+        print("downgrade from $oldv to $newv");
+      },
+      version: bcVers,
     );
     return db;
+  }
+
+  static Future<int> dbVersion() async {
+    try {
+      final extPath = getExtPath();
+      final dbPath = path.join(extPath, "db", dbName);
+      final db = await sql.openDatabase(dbPath, readOnly: true);
+
+      final res = await db.getVersion();
+      await db.close();
+      return res;
+    } catch (e) {
+      print("db exc $e");
+    }
+    return 0;
   }
 
   static Future<void> deleteDBNotUsed() async {
@@ -393,15 +449,26 @@ class LocationsDB {
           rows.sort((r1, r2) => (r1[3] as String).compareTo(r2[3] as String));
           break;
       }
-      for (List row in rows) {
-        row.add(null); // for new_or_modified
-        if (isZusatz) row[0] = null; // nr field
-        try {
-          await db.rawInsert(
-              "INSERT INTO $table VALUES(${qmarks[table]})", row);
-        } catch (e) {
-          print("db exception $e");
+
+      int rl = rows.length;
+      int start = 0;
+      while (start < rl) {
+        int end = min(start + 100, rl);
+        final batch = db.batch();
+        List sub = rows.sublist(start, end);
+        start = end;
+        for (List row in sub) {
+          row.add(null); // for new_or_modified
+          if (isZusatz) row[0] = null; // nr field
+          try {
+            batch.rawInsert(
+                "INSERT INTO $table(${colNames[table]}) VALUES(${qmarks[table]})",
+                row);
+          } catch (e) {
+            print("db exception $e");
+          }
         }
+        await batch.commit(noResult: true);
       }
       // restore new data
       rows = newData[table];
