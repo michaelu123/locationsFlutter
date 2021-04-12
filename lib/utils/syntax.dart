@@ -7,12 +7,6 @@ Map syntax = {
   "gps": {
     "required": true,
     "type": {
-      "min_lat": {"required": true, "type": "float"},
-      "max_lat": {"required": true, "type": "float"},
-      "min_lon": {"required": true, "type": "float"},
-      "max_lon": {"required": true, "type": "float"},
-      "center_lat": {"required": true, "type": "float"},
-      "center_lon": {"required": true, "type": "float"},
       "nachkommastellen": {"required": true, "type": "int"},
       "min_zoom": {"required": true, "type": "int"}
     }

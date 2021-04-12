@@ -37,9 +37,43 @@ class Settings extends ChangeNotifier {
     return defVal ?? _configDefaults[key];
   }
 
+  Map getGPS() {
+    double minLat = getConfigValue("south");
+    double maxLat = getConfigValue("north");
+    double minLon = getConfigValue("west");
+    double maxLon = getConfigValue("east");
+    if (minLat < -90.0) minLat = -90.0;
+    if (maxLat > 90.0) maxLat = 90.0;
+    if (minLon < -180.0) minLon = -180.0;
+    if (maxLon > 180.0) maxLon = 180.0;
+    if (minLat >= maxLat) {
+      minLat = -90.0;
+      maxLat = 90.0;
+    }
+    if (minLon >= maxLon) {
+      minLon = -180.0;
+      maxLon = 180.0;
+    }
+    final centerLat = (minLat + maxLat) / 2.0;
+    final centerLon = (minLon + maxLon) / 2.0;
+    return {
+      "min_lat": minLat,
+      "max_lat": maxLat,
+      "min_lon": minLon,
+      "max_lon": maxLon,
+      "center_lat": centerLat,
+      "center_lon": centerLon,
+    };
+  }
+
   Future<void> setConfigValueS(String key, String type, String val) async {
     if (type == "int") prefs.setInt(key, int.parse(val));
     if (type == "string") prefs.setString(key, val);
+    notifyListeners();
+  }
+
+  Future<void> setConfigValueF(String key, double val) async {
+    prefs.setDouble(key, val);
     notifyListeners();
   }
 
@@ -79,6 +113,30 @@ class Settings extends ChangeNotifier {
       'title': 'Region/Gebiet',
       'desc': 'Name der Region/des Gebiets',
       'key': 'region',
+    },
+    {
+      'type': 'float',
+      'title': 'Nördliche Grenze',
+      'desc': 'Breitengrad Maximum der Karte',
+      'key': 'north',
+    },
+    {
+      'type': 'float',
+      'title': 'Südliche Grenze',
+      'desc': 'Breitengrad Minimum der Karte',
+      'key': 'south',
+    },
+    {
+      'type': 'float',
+      'title': 'Östliche Grenze',
+      'desc': 'Längengrad Maximum der Karte',
+      'key': 'east',
+    },
+    {
+      'type': 'float',
+      'title': 'Westliche Grenze',
+      'desc': 'Längengrad Minimum der Karte',
+      'key': 'west',
     },
     {
       'type': 'string',
@@ -126,6 +184,10 @@ class Settings extends ChangeNotifier {
     'mapprovider': 'OpenStreetMap',
     'maptype': 'Normal',
     'storage': 'LocationsServer',
+    'north': 90.0,
+    'south': -90.0,
+    'west': -180.0,
+    'east': 180.0,
   };
 
   Map configDefaults() {

@@ -74,6 +74,26 @@ class _AppConfigState extends State<AppConfig> {
                         }),
                   );
                 }
+                if (settingJS["type"] == "float") {
+                  controller.text =
+                      settings.getConfigValue(settingJS["key"]).toString();
+                  return Padding(
+                    padding: EdgeInsets.all(10),
+                    child: TextField(
+                        controller: controller,
+                        decoration: InputDecoration(
+                          labelText: settingJS["title"],
+                          helperText: settingJS["desc"],
+                        ),
+                        keyboardType: TextInputType.numberWithOptions(
+                            decimal: true, signed: true),
+                        onSubmitted: (text) {
+                          text = text.trim();
+                          settings.setConfigValueF(
+                              settingJS["key"], double.parse(text));
+                        }),
+                  );
+                }
                 if (settingJS["type"] == "choice") {
                   final choices = settingJS["choices"];
                   final key = settingJS["key"];

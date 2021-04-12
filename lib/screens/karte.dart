@@ -98,13 +98,13 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
     Settings settings,
   ) {
     if (base == baseConfig.base) return center;
-    final configGPS = baseConfig.getGPS();
-    final configLat = configGPS["center_lat"];
-    final configLon = configGPS["center_lon"];
-    final configMinLat = configGPS["min_lat"];
-    final configMinLon = configGPS["min_lon"];
-    final configMaxLat = configGPS["max_lat"];
-    final configMaxLon = configGPS["max_lon"];
+    final settingsGPS = settings.getGPS();
+    final configLat = settingsGPS["center_lat"];
+    final configLon = settingsGPS["center_lon"];
+    final configMinLat = settingsGPS["min_lat"];
+    final configMinLon = settingsGPS["min_lon"];
+    final configMaxLat = settingsGPS["max_lat"];
+    final configMaxLon = settingsGPS["max_lon"];
 
     ll.LatLng c = LocationsDB.lat == null
         ? ll.LatLng(
@@ -297,7 +297,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
     strgClntNL.setClnt(
         settings.getConfigValueS("storage", defVal: "LocationsServer"));
 
-    final configGPS = baseConfigNL.getGPS();
+    final settingsGPS = settings.getGPS();
     useGoogle =
         settings.getConfigValueS("mapprovider", defVal: "OpenStreetMap")[0] ==
             "G";
@@ -403,7 +403,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
                     backgroundColor: Colors.amber,
                   ),
                   onPressed: () async {
-                    move(configGPS["center_lat"], configGPS["center_lon"]);
+                    move(settingsGPS["center_lat"], settingsGPS["center_lon"]);
                   },
                   child: const Text(
                     'Zentrieren',
@@ -504,18 +504,19 @@ class OsmMap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final configGPS = state.baseConfigNL.getGPS();
+    final settingsGPS = state.settingsNL.getGPS();
 
     return fm.FlutterMap(
       mapController: state.fmapController,
       options: fm.MapOptions(
         center: state.getCenter(state.baseConfigNL, state.settingsNL),
         swPanBoundary: ll.LatLng(
-          configGPS["min_lat"],
-          configGPS["min_lon"],
+          settingsGPS["min_lat"],
+          settingsGPS["min_lon"],
         ), // LatLng(48.0, 11.4),
         nePanBoundary: ll.LatLng(
-          configGPS["max_lat"],
-          configGPS["max_lon"],
+          settingsGPS["max_lat"],
+          settingsGPS["max_lon"],
         ), // LatLng(48.25, 11.8),
         onPositionChanged: (pos, b) {
           // onPositionChanged is called too early during build, must defer
@@ -560,6 +561,7 @@ class MyGoogleMap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final configGPS = state.baseConfigNL.getGPS();
+    final settingsGPS = state.settingsNL.getGPS();
 
     String mapTypeS = state.settingsNL.getConfigValueS("maptype");
     gm.MapType mt = gm.MapType.normal;
@@ -602,12 +604,12 @@ class MyGoogleMap extends StatelessWidget {
       ),
       cameraTargetBounds: gm.CameraTargetBounds(gm.LatLngBounds(
         southwest: gm.LatLng(
-          configGPS["min_lat"],
-          configGPS["min_lon"],
+          settingsGPS["min_lat"],
+          settingsGPS["min_lon"],
         ),
         northeast: gm.LatLng(
-          configGPS["max_lat"],
-          configGPS["max_lon"],
+          settingsGPS["max_lat"],
+          settingsGPS["max_lon"],
         ),
       )),
       initialCameraPosition: gm.CameraPosition(
