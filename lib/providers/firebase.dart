@@ -91,15 +91,14 @@ class FirebaseClient {
     return val;
   }
 
-  Future<Map> getValuesWithin(String tableBase, String region, 
-      double minlat, double maxlat,
-      double minlon, double maxlon) async {
+  Future<Map> getValuesWithin(String tableBase, String region, double minlat,
+      double maxlat, double minlon, double maxlon) async {
     final geo = Geoflutterfire();
     final res = {};
     for (String tableName in ["daten", "zusatz", "images"]) {
       String table = "${tableBase}_$tableName";
       List dbFelder = felder[tableName];
-      int len = dbFelder.length;
+      int len = dbFelder.length - 1; // without new_or_modified
       final collRef = FirebaseFirestore.instance.collection(table);
       // Stream<List<DocumentSnapshot>> stream = geo
       //     .collection(collectionRef: collRef)
@@ -112,7 +111,7 @@ class FirebaseClient {
       dssList.forEach((DocumentSnapshot dss) {
         final data = dss.data();
         if (region != "" && data["region"] != region) return;
-        final row = List<dynamic>.filled(len, null);
+        final row = List<dynamic>.filled(len, null, growable: true);
         dynamic val;
         int index = 0;
         for (Map feld in dbFelder) {
@@ -135,6 +134,8 @@ class FirebaseClient {
             case "nr":
               val = dss.id;
               break;
+            case "new_or_modified":
+              continue;
             default:
               val = convertFb2DB(feld["type"], data[name]);
           }

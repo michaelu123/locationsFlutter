@@ -45,7 +45,7 @@ class LocationsDB {
     updateStmts = [];
     bcVers = baseConfig.getVersion();
     int dbVers = await dbVersion();
-    if (bcVers >= dbVers) {
+    if (bcVers > dbVers) {
       final diffs = baseConfig.getDiff(dbVers, bcVers);
       final addedDaten = diffs.item1;
       final removedDaten = diffs.item2;

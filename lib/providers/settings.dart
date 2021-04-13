@@ -117,27 +117,27 @@ class Settings extends ChangeNotifier {
     },
     {
       'type': 'float',
-      'title': 'Nördliche Grenze',
-      'desc': 'Breitengrad Maximum der Karte',
-      'key': 'north',
-    },
-    {
-      'type': 'float',
       'title': 'Südliche Grenze',
       'desc': 'Breitengrad Minimum der Karte',
       'key': 'south',
     },
     {
       'type': 'float',
-      'title': 'Östliche Grenze',
-      'desc': 'Längengrad Maximum der Karte',
-      'key': 'east',
+      'title': 'Nördliche Grenze',
+      'desc': 'Breitengrad Maximum der Karte',
+      'key': 'north',
     },
     {
       'type': 'float',
       'title': 'Westliche Grenze',
       'desc': 'Längengrad Minimum der Karte',
       'key': 'west',
+    },
+    {
+      'type': 'float',
+      'title': 'Östliche Grenze',
+      'desc': 'Längengrad Maximum der Karte',
+      'key': 'east',
     },
     {
       'type': 'string',
@@ -185,10 +185,10 @@ class Settings extends ChangeNotifier {
     'mapprovider': 'OpenStreetMap',
     'maptype': 'Normal',
     'storage': 'LocationsServer',
-    'north': 90.0,
-    'south': -90.0,
-    'west': -180.0,
-    'east': 180.0,
+    'south': 48.0,
+    'north': 48.25,
+    'west': 11.4,
+    'east': 11.8,
   };
 
   Map configDefaults() {
