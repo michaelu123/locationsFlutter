@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -155,7 +156,7 @@ class FirebaseClient {
         .child(imgName);
     String imgPath = path.join(extPath, tableBase, "images", imgName);
     File f = File(imgPath);
-    StorageTaskSnapshot snap = await ref.putFile(f).onComplete;
+    TaskSnapshot snap = await ref.putFile(f);
     String url = await snap.ref.getDownloadURL();
     return {"url": url};
   }
@@ -327,6 +328,21 @@ class FirebaseClient {
 
   Future<void> sayHello(String tableBase) async {
     throw UnimplementedError();
+  }
+
+  Future<List> getConfigs() async {
+    final lr = await FirebaseStorage.instance.ref().child("configs").listAll();
+    return lr.items.map((l) => l.name).toList();
+  }
+
+  Future<Map> getConfig(String config) async {
+    Uint8List resBytes = await FirebaseStorage.instance
+        .ref()
+        .child("configs")
+        .child(config)
+        .getData();
+    final Map map = json.decode(Utf8Decoder().convert(resBytes));
+    return map;
   }
 }
 

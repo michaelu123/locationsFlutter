@@ -160,7 +160,7 @@ class LocParserDefinition extends LocGrammarDefinition {
       });
 
   @override
-  Parser stringToken() => ref(stringPrimitive).trim();
+  Parser stringToken() => ref0(stringPrimitive).trim();
 
   @override
   Parser stringPrimitive() => super.stringPrimitive().map((each) {

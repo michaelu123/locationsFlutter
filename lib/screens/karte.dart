@@ -530,6 +530,8 @@ class OsmMap extends StatelessWidget {
         zoom: 16.0,
         minZoom: configGPS["min_zoom"] * 1.0,
         maxZoom: 19,
+        interactiveFlags:
+            fm.InteractiveFlag.pinchZoom | fm.InteractiveFlag.drag,
         onTap: (latlng) {
           state.onTappedF(
             markers,

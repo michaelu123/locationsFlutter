@@ -5,7 +5,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:locations/providers/base_config.dart';
-import 'package:locations/providers/locations_client.dart';
 import 'package:locations/providers/storage.dart';
 import 'package:locations/screens/account.dart';
 import 'package:locations/utils/db.dart';
@@ -143,15 +142,27 @@ class MyApp extends StatelessWidget {
     int serverPort = settings.getConfigValueI("serverport");
     String serverUrl = "http://$serverName:$serverPort";
     msgModel.setMessage("Loading configurations from $serverUrl...");
+
+    final fbApp = await Firebase.initializeApp();
+    print("fbapp $fbApp");
+
+    strgClnt.setClnt(
+        settings.getConfigValueS("storage", defVal: "LocationsServer"));
+    strgClnt.init(
+      serverUrl: serverUrl,
+      extPath: extPath,
+      datenFelder: [],
+      zusatzFelder: [],
+      imagesFelder: [],
+    );
+
     try {
-      LocationsClient lc = LocationsClient();
-      lc.init(serverUrl, extPath, false);
-      List configs = await lc.getConfigs();
+      List configs = await strgClnt.getConfigs();
       print("lc $configs");
       for (String config in configs) {
         File f = File(path.join(configPath, config));
         if (await f.exists()) continue;
-        Map cmap = await lc.getConfig(config);
+        Map cmap = await strgClnt.getConfig(config);
         await f.writeAsString(json.encode(cmap), flush: true);
         print("ok");
       }
@@ -192,11 +203,6 @@ class MyApp extends StatelessWidget {
     baseConfig.setInitially(bc, settings.initialBase());
     await LocationsDB.setBaseDB(baseConfig);
 
-    final fbApp = await Firebase.initializeApp();
-    print("fbapp $fbApp");
-
-    strgClnt.setClnt(
-        settings.getConfigValueS("storage", defVal: "LocationsServer"));
     strgClnt.init(
       serverUrl: serverUrl,
       extPath: extPath,

@@ -16,7 +16,7 @@ import 'package:petitparser/petitparser.dart';
 
 class LocGrammarDefinition extends GrammarDefinition {
   @override
-  Parser start() => ref(statements).end();
+  Parser start() => ref0(statements).end();
   Parser token(Object source, [String name]) {
     if (source is String) {
       return source.toParser(message: 'Expected ${name ?? source}').trim();
@@ -29,57 +29,57 @@ class LocGrammarDefinition extends GrammarDefinition {
   }
 
   Parser statements() =>
-      ref(statement).separatedBy(ref(token, ';'), includeSeparators: false);
+      ref0(statement).separatedBy(ref1(token, ';'), includeSeparators: false);
   Parser statement() => [
-        ref(assignment),
-        ref(ifStatement),
-        ref(forEachStatement),
-        ref(returnStatement),
+        ref0(assignment),
+        ref0(ifStatement),
+        ref0(forEachStatement),
+        ref0(returnStatement),
       ].toChoiceParser(/*failureJoiner: selectFarthestJoined*/);
-  Parser assignment() => ref(idToken) & ref(token, '=') & ref(expression);
+  Parser assignment() => ref0(idToken) & ref1(token, '=') & ref0(expression);
   Parser ifStatement() =>
-      ref(token, 'if') &
-      ref(expression) &
-      ref(token, 'then') &
-      ref(statements) &
-      ref(elifStatement).star() &
-      ref(elseStatement).optional() &
-      ref(token, 'end');
+      ref1(token, 'if') &
+      ref0(expression) &
+      ref1(token, 'then') &
+      ref0(statements) &
+      ref0(elifStatement).star() &
+      ref0(elseStatement).optional() &
+      ref1(token, 'end');
   Parser elifStatement() =>
-      ref(token, 'elif') &
-      ref(expression) &
-      ref(token, 'then') &
-      ref(statements);
-  Parser elseStatement() => ref(token, 'else') & ref(statements);
+      ref1(token, 'elif') &
+      ref0(expression) &
+      ref1(token, 'then') &
+      ref0(statements);
+  Parser elseStatement() => ref1(token, 'else') & ref0(statements);
   Parser forEachStatement() =>
-      ref(token, 'foreach') &
-      ref(token, '(') &
-      ref(idToken) &
-      ref(direction).optional() &
-      ref(token, ')') &
-      ref(statements) &
-      ref(token, 'end');
+      ref1(token, 'foreach') &
+      ref1(token, '(') &
+      ref0(idToken) &
+      ref0(direction).optional() &
+      ref1(token, ')') &
+      ref0(statements) &
+      ref1(token, 'end');
   Parser direction() =>
-      ref(token, ',') & (ref(token, 'asc') | ref(token, 'desc'));
-  Parser returnStatement() => ref(token, 'return') & ref(expression);
+      ref1(token, ',') & (ref1(token, 'asc') | ref1(token, 'desc'));
+  Parser returnStatement() => ref1(token, 'return') & ref0(expression);
   Parser value() => [
-        ref(numberToken),
-        ref(stringToken),
-        ref(trueToken),
-        ref(falseToken),
-        ref(nullToken),
-        ref(idToken),
+        ref0(numberToken),
+        ref0(stringToken),
+        ref0(trueToken),
+        ref0(falseToken),
+        ref0(nullToken),
+        ref0(idToken),
       ].toChoiceParser(/*failureJoiner: selectFarthestJoined*/);
 
-  Parser trueToken() => ref(token, 'true');
-  Parser falseToken() => ref(token, 'false');
-  Parser nullToken() => ref(token, 'null');
-  Parser idToken() => ref(token, ref(idPrimitive), 'id');
-  Parser stringToken() => ref(token, ref(stringPrimitive), 'string');
-  Parser numberToken() => ref(token, ref(numberPrimitive), 'number');
+  Parser trueToken() => ref1(token, 'true');
+  Parser falseToken() => ref1(token, 'false');
+  Parser nullToken() => ref1(token, 'null');
+  Parser idToken() => ref2(token, ref0(idPrimitive), 'id');
+  Parser stringToken() => ref2(token, ref0(stringPrimitive), 'string');
+  Parser numberToken() => ref2(token, ref0(numberPrimitive), 'number');
 
   Parser characterPrimitive() =>
-      ref(characterNormal) | ref(characterEscape) | ref(characterUnicode);
+      ref0(characterNormal) | ref0(characterEscape) | ref0(characterUnicode);
   Parser characterNormal() => pattern('^"\\');
   Parser characterEscape() => char('\\') & pattern(escapeChars.keys.join());
   Parser characterUnicode() => string('\\u') & pattern('0-9A-Fa-f').times(4);
@@ -89,9 +89,9 @@ class LocGrammarDefinition extends GrammarDefinition {
     return CharacterParser(DeLetterCharPredicate(), message);
   }
 
-  Parser idPrimitive() => ref(buchstabe).star();
+  Parser idPrimitive() => ref0(buchstabe).star();
   Parser stringPrimitive() =>
-      char('"') & ref(characterPrimitive).star() & char('"');
+      char('"') & ref0(characterPrimitive).star() & char('"');
 
   Parser expression() {
     final builder = ExpressionBuilder();
@@ -100,18 +100,18 @@ class LocGrammarDefinition extends GrammarDefinition {
 
     builder.group()..left(char('+').trim())..left(char('-').trim());
     builder.group()
-      ..left(ref(token, 'contains'))
-      ..left(ref(token, 'startswith'))
-      ..left(ref(token, 'endswith'));
+      ..left(ref1(token, 'contains'))
+      ..left(ref1(token, 'startswith'))
+      ..left(ref1(token, 'endswith'));
     builder.group()
-      ..left(ref(token, '<'))
-      ..left(ref(token, '<='))
-      ..left(ref(token, '=='))
-      ..left(ref(token, '>='))
-      ..left(ref(token, '>'))
-      ..left(ref(token, '!='));
-    builder.group().left(ref(token, 'and'));
-    builder.group().left(ref(token, 'or'));
+      ..left(ref1(token, '<'))
+      ..left(ref1(token, '<='))
+      ..left(ref1(token, '=='))
+      ..left(ref1(token, '>='))
+      ..left(ref1(token, '>'))
+      ..left(ref1(token, '!='));
+    builder.group().left(ref1(token, 'and'));
+    builder.group().left(ref1(token, 'or'));
     final parser = builder.build();
     return parser;
   }
