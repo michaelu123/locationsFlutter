@@ -45,11 +45,11 @@ class Photos extends ChangeNotifier {
       return null;
     }
     print("recovered lost data");
-    await saveImage(
-        File(response.file.path), tableBase, userName, region, locData, markers);
+    await saveImage(File(response.file.path), tableBase, userName, region,
+        locData, markers);
   }
 
-  Future<int> saveImage(File imf, String tableBase, String userName, 
+  Future<int> saveImage(File imf, String tableBase, String userName,
       String region, LocData locData, Markers markers) async {
     final lat = LocationsDB.lat;
     final lon = LocationsDB.lon;
@@ -95,9 +95,12 @@ class Photos extends ChangeNotifier {
     });
     // pictures taken by Camera
     imgDirPath = path.join(extPath, "Pictures");
-    images = Directory(imgDirPath).list();
-    images.forEach((image) async {
-      await image.delete();
-    });
+    final imagesDir = Directory(imgDirPath);
+    if (await imagesDir.exists()) {
+      images = imagesDir.list();
+      images.forEach((image) async {
+        await image.delete();
+      });
+    }
   }
 }

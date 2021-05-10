@@ -107,7 +107,9 @@ class _ZusatzScreenState extends State<ZusatzScreen>
               IconButton(
                 iconSize: 40,
                 icon: const Icon(Icons.add),
-                onPressed: baseConfig.hasZusatz() ? locData.addZusatz : null,
+                onPressed: baseConfig.hasZusatz() && !locData.isEmpty()
+                    ? locData.addZusatz
+                    : null,
               ),
               IconButton(
                 iconSize: 40,

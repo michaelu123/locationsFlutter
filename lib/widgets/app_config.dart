@@ -83,6 +83,7 @@ class _AppConfigState extends State<AppConfig> {
                   return Padding(
                     padding: EdgeInsets.all(10),
                     child: TextField(
+                        enabled: settingJS["key"] != "username",
                         controller: controller,
                         focusNode: focusNode,
                         decoration: InputDecoration(

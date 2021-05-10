@@ -152,6 +152,12 @@ class Settings extends ChangeNotifier {
       'key': 'serverport',
     },
     {
+      'type': 'string',
+      'title': 'Benutzername',
+      'desc': 'Name des Benutzers laut Anmeldung',
+      'key': 'username',
+    },
+    {
       'type': 'choice',
       'title': 'Karten-Lieferant',
       'choices': ['OpenStreetMap', 'Google Maps'],
@@ -182,6 +188,7 @@ class Settings extends ChangeNotifier {
     'region': "",
     'servername': "locationsserver.feste-ip.net",
     'serverport': 52733,
+    'username': '',
     'mapprovider': 'OpenStreetMap',
     'maptype': 'Normal',
     'storage': 'LocationsServer',

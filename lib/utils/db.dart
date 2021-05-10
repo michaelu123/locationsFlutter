@@ -45,7 +45,7 @@ class LocationsDB {
     updateStmts = [];
     bcVers = baseConfig.getVersion();
     int dbVers = await dbVersion();
-    if (bcVers > dbVers) {
+    if (dbVers != 0 && bcVers > dbVers) {
       final diffs = baseConfig.getDiff(dbVers, bcVers);
       final addedDaten = diffs.item1;
       final removedDaten = diffs.item2;
@@ -165,8 +165,8 @@ class LocationsDB {
       final res = await db.getVersion();
       await db.close();
       return res;
-    } catch (e) {
-      print("db exc $e");
+    } catch (ex) {
+      print("db exc $ex");
     }
     return 0;
   }
@@ -334,7 +334,8 @@ class LocationsDB {
 
   static int qualityOfLoc(Map daten, List zusatz) {
     int r = evalProgram(statements, daten, zusatz);
-    if (r == null || r < 0 || r > 2) r = 0;
+    if (r == null || r < 0) r = 0;
+    if (r > 2) r = 2;
     return r;
   }
 

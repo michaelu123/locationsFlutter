@@ -141,7 +141,7 @@ class MyApp extends StatelessWidget {
     String serverName = settings.getConfigValueS("servername");
     int serverPort = settings.getConfigValueI("serverport");
     String serverUrl = "http://$serverName:$serverPort";
-    msgModel.setMessage("Loading configurations from $serverUrl...");
+    msgModel.setMessage("Server has URL $serverUrl...");
 
     final fbApp = await Firebase.initializeApp();
     print("fbapp $fbApp");
@@ -155,24 +155,6 @@ class MyApp extends StatelessWidget {
       zusatzFelder: [],
       imagesFelder: [],
     );
-
-    try {
-      List configs = await strgClnt.getConfigs();
-      print("lc $configs");
-      for (String config in configs) {
-        File f = File(path.join(configPath, config));
-        if (await f.exists()) continue;
-        Map cmap = await strgClnt.getConfig(config);
-        await f.writeAsString(json.encode(cmap), flush: true);
-        print("ok");
-      }
-    } catch (e) {
-      msgModel.setMessage("Error $e");
-    }
-
-    // used during setup of FireBase
-    // copy from LocationsServer to Firebase
-    // strgClnt.copyLoc2Fb("abstellanlagen", settings.getConfigValueI("maxdim"));
 
     var bc = Map<String, List>();
     msgModel.setMessage("Loading config files from $configDir");
@@ -194,9 +176,28 @@ class MyApp extends StatelessWidget {
     print("bc ${bc.keys}");
     if (bc.isEmpty) {
       msgModel.setMessage("Keine Konfigurationen gefunden");
-      for (;;) {
-        await Future.delayed(Duration(seconds: 1));
-      }
+      bc = {
+        "undef": [
+          {
+            "daten": {
+              "felder": [
+                {
+                  "helper_text": "null",
+                  "hint_text": "null",
+                  "name": "undef",
+                  "type": "string"
+                },
+              ]
+            },
+            "db_name": "undef.db",
+            "db_tabellenname": "undef",
+            "gps": {"min_zoom": 11, "nachkommastellen": 5},
+            "name": "undef",
+            "version": 1,
+            "program": ["return 0"]
+          }
+        ]
+      };
     }
 
     await settings.getSharedPreferences();

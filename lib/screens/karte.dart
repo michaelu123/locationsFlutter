@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,9 +18,11 @@ import 'package:locations/screens/daten.dart';
 import 'package:locations/screens/splash_screen.dart';
 import 'package:locations/utils/db.dart';
 import 'package:locations/utils/felder.dart';
+import 'package:locations/utils/utils.dart';
 import 'package:locations/widgets/app_config.dart';
 import 'package:locations/widgets/crosshair.dart';
 import 'package:provider/provider.dart';
+import 'package:path/path.dart' as path;
 
 ll.LatLng g2m(gm.LatLng a) {
   return ll.LatLng(a.latitude, a.longitude);
@@ -219,6 +223,29 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   Future<void> laden(
       Settings settings, Storage strgClnt, BaseConfig baseConfig) async {
     if (message != null) return;
+
+    try {
+      final extPath = getExtPath();
+      final configPath = path.join(extPath, "config");
+      List configs = await strgClnt.getConfigs();
+      print("lc $configs");
+      for (String config in configs) {
+        File f = File(path.join(configPath, config));
+        if (await f.exists()) continue;
+        Map cmap = await strgClnt.getConfig(config);
+        await f.writeAsString(json.encode(cmap), flush: true);
+        print("ok");
+      }
+      if (baseConfigNL.base == "undef") {
+        setState(() => message = "Bitte App neu starten!");
+        for (;;) {
+          await Future.delayed(Duration(seconds: 1));
+        }
+      }
+    } catch (e) {
+      setState(() => message = "Error $e");
+    }
+
     try {
       setState(() => message = "Lösche alte Daten");
       await LocationsDB.deleteOldData();
