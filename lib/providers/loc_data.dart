@@ -78,8 +78,10 @@ class LocData with ChangeNotifier {
     final coord = Coord();
     coord.lat = LocationsDB.lat;
     coord.lon = LocationsDB.lon;
-    coord.quality = LocationsDB.qualityOfLoc(locDaten, locZusatz);
-    coord.hasImage = locImages.length > 0;
+    coord.dcount = 1;
+    coord.icount = locImages.length;
+    coord.quality =
+        LocationsDB.qualityOfLoc(locDaten, locZusatz, locImages, coord.dcount);
     markers.current(coord);
     // no notify
   }
@@ -180,8 +182,10 @@ class LocData with ChangeNotifier {
     final coord = Coord();
     coord.lat = LocationsDB.lat;
     coord.lon = LocationsDB.lon;
-    coord.quality = LocationsDB.qualityOfLoc(locDaten, locZusatz);
-    coord.hasImage = locImages.length > 0;
+    coord.dcount = 1;
+    coord.icount = locImages.length;
+    coord.quality =
+        LocationsDB.qualityOfLoc(locDaten, locZusatz, locImages, coord.dcount);
     markers.current(coord);
 
     return imagesIndex;
@@ -196,8 +200,10 @@ class LocData with ChangeNotifier {
     final coord = Coord();
     coord.lat = LocationsDB.lat;
     coord.lon = LocationsDB.lon;
-    coord.quality = LocationsDB.qualityOfLoc(locDaten, locZusatz);
-    coord.hasImage = locImages.length > 0;
+    coord.dcount = 1;
+    coord.icount = locImages.length;
+    coord.quality =
+        LocationsDB.qualityOfLoc(locDaten, locZusatz, locImages, coord.dcount);
     markers.current(coord);
 
     return imgPath;

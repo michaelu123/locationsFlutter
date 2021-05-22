@@ -23,7 +23,10 @@ class Value {
   }
 
   static dynamic getValForId(String name) {
-    dynamic r = context2[name] ?? context[name];
+    dynamic r = context2["_" + name] ?? context["_" + name];
+    if (r == null) {
+      r = context2[name] ?? context[name];
+    }
     if (name != 'created' && name != 'modified') return r;
     // "2000.01.01 01:00:00" -> 20000101 01:00:00
     String val = r.replaceAll(".", "");

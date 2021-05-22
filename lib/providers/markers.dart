@@ -46,7 +46,7 @@ class Markers extends ChangeNotifier {
       height: 36.0,
       point: ll.LatLng(coord.lat, coord.lon),
       builder: (ctx) => Icon(
-        coord.hasImage ? Icons.location_on_outlined : Icons.location_on,
+        coord.icount > 0 ? Icons.location_on_outlined : Icons.location_on,
         color: color,
         size: 40,
       ),
@@ -56,7 +56,7 @@ class Markers extends ChangeNotifier {
   gm.Marker coord2MarkerG(Coord coord) {
     // final color = colors[coord.quality];
     return gm.Marker(
-      icon: iconFor(coord.quality, coord.hasImage),
+      icon: iconFor(coord.quality, coord.icount > 0),
       markerId: gm.MarkerId("${coord.lat}:${coord.lon}"),
       consumeTapEvents: false,
       onTap: () {
@@ -85,7 +85,7 @@ class Markers extends ChangeNotifier {
 
   List<fm.Marker> markersF() {
     if (changedF) {
-      fmList = List<fm.Marker>.filled(0,null, growable:true);
+      fmList = List<fm.Marker>.filled(0, null, growable: true);
       for (fm.Marker m in _markers.values) {
         fmList.add(m);
       }

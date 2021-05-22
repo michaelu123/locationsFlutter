@@ -7,7 +7,7 @@ import 'package:petitparser/petitparser.dart';
 <statement>: <assignment> | <if-statement> | <foreach-statement> | <return-statement>
 <assignment>: <id> = <expr>
 <if-statement>: if <expr> then <statements> [elif <expr> then <statements> ]* [else <statements>] end
-<foreach-statement>: foreach(<id>[, asc|desc]) <statements> end
+<foreach-statement>: foreach("zusatz"|"bilder" , <id>[, asc|desc]) <statements> end
 <return-statement>: return <expr>
 <expr>: <id> | <value> | <expr> <op> <expr> | ( <expr> )
 <op>: + | - | contains | startswith | endswith | and | or | < | > | <= | >= | == | != 
@@ -54,11 +54,14 @@ class LocGrammarDefinition extends GrammarDefinition {
   Parser forEachStatement() =>
       ref1(token, 'foreach') &
       ref1(token, '(') &
+      ref0(listName) &
+      ref1(token, ',') &
       ref0(idToken) &
       ref0(direction).optional() &
       ref1(token, ')') &
       ref0(statements) &
       ref1(token, 'end');
+  Parser listName() => ref1(token, 'zusatz') | ref1(token, 'bilder');
   Parser direction() =>
       ref1(token, ',') & (ref1(token, 'asc') | ref1(token, 'desc'));
   Parser returnStatement() => ref1(token, 'return') & ref0(expression);

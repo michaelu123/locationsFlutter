@@ -62,15 +62,16 @@ class IfStatement extends Statement {
 }
 
 class ForEachStatement extends Statement {
+  String listName;
   Id id;
   String direction;
   List statements;
-  ForEachStatement(this.id, this.direction, this.statements) {
+  ForEachStatement(this.listName, this.id, this.direction, this.statements) {
     super.stmtType = StmtType.forS;
   }
   @override
   String toString() {
-    return 'foreach: id=$id dir=$direction stmts=$statements';
+    return 'foreach: list=$listName id=$id dir=$direction stmts=$statements';
   }
 }
 
@@ -141,8 +142,8 @@ class LocParserDefinition extends LocGrammarDefinition {
   @override
   Parser forEachStatement() => super.forEachStatement().map((each) {
         var dir = 'asc';
-        if (each[3] != null) dir = each[3][1];
-        return ForEachStatement(each[2], dir, each[5]);
+        if (each[5] != null) dir = each[5][1];
+        return ForEachStatement(each[2], each[4], dir, each[7]);
       });
   @override
   Parser expression() => super.expression().map((each) {
@@ -186,8 +187,9 @@ List<Statement> parseProgram(String program) {
   return statements;
 }
 
-int evalProgram(List<Statement> statements, Map daten, List zusatz) {
-  final eval = Eval(daten, zusatz);
+int evalProgram(
+    List<Statement> statements, Map daten, List zusatz, List images) {
+  final eval = Eval(daten, zusatz, images);
   final r = eval.evalStmts(statements);
   // print('res $r');
   return r as int;

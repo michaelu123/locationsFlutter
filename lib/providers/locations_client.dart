@@ -160,7 +160,7 @@ class LocationsClient {
   }
 
   Future<Map> postImage(String tableBase, String imgName) async {
-    String req = "/addimage/${tableBase}_images/$imgName";
+    String req = "/addimage/$tableBase/$imgName";
     final headers = {"Content-type": "image/jpeg"};
 
     final imgPath = path.join(extPath, tableBase, "images", imgName);
@@ -180,7 +180,7 @@ class LocationsClient {
       f = File(imgPath);
       if (await f.exists()) return [f, false];
     }
-    final req = "/getimage/${tableBase}_images/$imgName?maxdim=$maxdim";
+    final req = "/getimage/$tableBase/$imgName?maxdim=$maxdim";
     Uint8List res = await reqGetBytesWithRetry(req);
     if (res == null) return null;
     await f.writeAsBytes(res, flush: true);

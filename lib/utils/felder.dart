@@ -12,10 +12,12 @@ class Felder {
   List<TextField> textFields;
   List<TextEditingController> controllers;
 
-  void initFelder(BuildContext context, BaseConfig baseConfig, bool useZusatz) {
-    print("1initFelder ${baseConfig.base}");
-    List felder =
-        useZusatz ? baseConfig.getZusatzFelder() : baseConfig.getDatenFelder();
+  void initFelder(BuildContext context, bool useZusatz) {
+    final baseConfigNL = Provider.of<BaseConfig>(context, listen: false);
+    print("1initFelder ${baseConfigNL.base}");
+    List felder = useZusatz
+        ? baseConfigNL.getZusatzFelder()
+        : baseConfigNL.getDatenFelder();
     int felderLength = felder.length;
     focusNodes = List.generate(
       felderLength,

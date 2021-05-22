@@ -4,6 +4,7 @@ import 'package:locations/providers/loc_data.dart';
 import 'package:locations/screens/bilder.dart';
 import 'package:locations/screens/daten.dart';
 import 'package:locations/screens/karte.dart';
+import 'package:locations/utils/utils.dart';
 import 'package:provider/provider.dart';
 
 import 'package:locations/providers/base_config.dart';
@@ -20,8 +21,7 @@ class _ZusatzScreenState extends State<ZusatzScreen>
   @override
   void initState() {
     super.initState();
-    final baseConfigNL = Provider.of<BaseConfig>(context, listen: false);
-    initFelder(context, baseConfigNL, true);
+    initFelder(context, true);
   }
 
   @override
@@ -30,7 +30,9 @@ class _ZusatzScreenState extends State<ZusatzScreen>
     deleteFelder();
   }
 
-  void deleteZusatz(LocData locData) {
+  Future<void> deleteZusatz(LocData locData) async {
+    if (!await areYouSure(context, 'Wollen Sie das Bild wirklich löschen?'))
+      return;
     int nr = locData.deleteZusatz();
     LocationsDB.deleteZusatz(nr);
   }

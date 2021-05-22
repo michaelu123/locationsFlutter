@@ -4,8 +4,9 @@ import 'val.dart';
 class Eval {
   final Map context;
   final List zusatz;
+  final List images;
 
-  Eval(this.context, this.zusatz) {
+  Eval(this.context, this.zusatz, this.images) {
     Value.setContext(context);
   }
 
@@ -47,9 +48,9 @@ class Eval {
   dynamic evalForS(ForEachStatement stmt) {
     final desc = stmt.direction == 'desc';
     final id = stmt.id.id;
-    zusatz
-        .sort((a, b) => desc ? b[id].compareTo(a[id]) : a[id].compareTo(b[id]));
-    for (final m in zusatz) {
+    final lst = stmt.listName == "images" ? images : zusatz;
+    lst.sort((a, b) => desc ? b[id].compareTo(a[id]) : a[id].compareTo(b[id]));
+    for (final m in lst) {
       Value.setContext2(m);
       final r = evalStmts(stmt.statements);
       if (r != null) {

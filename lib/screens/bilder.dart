@@ -47,47 +47,55 @@ class ImagesScreen extends StatefulWidget {
 
 class _ImagesScreenState extends State<ImagesScreen>
     with Felder, SingleTickerProviderStateMixin {
+  BaseConfig baseConfigNL;
+  LocData locDataNL;
+  Storage strgClntNL;
+  Markers markersNL;
+  Settings settingsNL;
+  IndexModel indexModelNL;
+  String tableBase;
+
   @override
   void initState() {
     super.initState();
-    final idx = Provider.of<IndexModel>(context, listen: false);
-    idx.curIndex = 0;
+    baseConfigNL = Provider.of<BaseConfig>(context, listen: false);
+    locDataNL = Provider.of<LocData>(context, listen: false);
+    strgClntNL = Provider.of<Storage>(context, listen: false);
+    markersNL = Provider.of<Markers>(context, listen: false);
+    settingsNL = Provider.of<Settings>(context, listen: false);
+    indexModelNL = Provider.of<IndexModel>(context, listen: false);
+    tableBase = baseConfigNL.getDbTableBaseName();
+
+    indexModelNL.curIndex = 0;
   }
 
-  Future<void> deleteImage(
-    LocData locData,
-    BaseConfig baseConfig,
-    Markers markers,
-    IndexModel indexModel,
-  ) async {
-    String imgPath = locData.deleteImage(markers);
-    indexModel.set(locData.imagesIndex);
+  Future<void> deleteImage() async {
+    if (!await areYouSure(context, 'Wollen Sie das Bild wirklich löschen?'))
+      return;
+
+    String imgPath = locDataNL.deleteImage(markersNL);
+    indexModelNL.set(locDataNL.imagesIndex);
     await LocationsDB.deleteImage(imgPath);
-    String tableBase = baseConfig.getDbTableBaseName();
+    String tableBase = baseConfigNL.getDbTableBaseName();
     await deleteImageFile(tableBase, imgPath);
-    // perhaps delete on Server?
-    // or not delete if not newer lastStored?
   }
 
-  Future<File> getImageFile(BaseConfig baseConfig, Storage strgClnt,
-      String imgPath, String imgUrl) async {
+  Future<File> getImageFile(String imgPath, String imgUrl) async {
     final settingsNL = Provider.of<Settings>(context, listen: false);
-    String tableBase = baseConfig.getDbTableBaseName();
+    String tableBase = baseConfigNL.getDbTableBaseName();
     int dim = settingsNL.getConfigValueI("thumbnaildim");
-    File f = await strgClnt.getImage(tableBase, imgPath, dim, true);
+    File f = await strgClntNL.getImage(tableBase, imgPath, dim, true);
     return f;
   }
 
   Future<Tuple2<File, String>> getImageFileIndexed(
-    BaseConfig baseConfig,
-    Storage strgClnt,
     LocData locData,
     int index,
   ) async {
     String imgPath = locData.getImgPath(index);
     String imgUrl = locData.getImgUrl(index);
     String bemerkung = locData.getImgBemerkung(index);
-    File img = await getImageFile(baseConfig, strgClnt, imgPath, imgUrl);
+    File img = await getImageFile(imgPath, imgUrl);
     return Tuple2(img, bemerkung);
   }
 
@@ -95,12 +103,7 @@ class _ImagesScreenState extends State<ImagesScreen>
   Widget build(BuildContext context) {
     final baseConfig = Provider.of<BaseConfig>(context);
     final locData = Provider.of<LocData>(context);
-    final strgClnt = Provider.of<Storage>(context);
-    final markersNL = Provider.of<Markers>(context, listen: false);
     final photosNL = Provider.of<Photos>(context, listen: false);
-    final settingsNL = Provider.of<Settings>(context, listen: false);
-    final indexModelNL = Provider.of<IndexModel>(context, listen: false);
-
     final pageController = PageController();
 
     // Big problem to move to new image, AND have the right
@@ -122,14 +125,7 @@ class _ImagesScreenState extends State<ImagesScreen>
         actions: [
           IconButton(
             icon: const Icon(Icons.delete),
-            onPressed: locData.isEmptyImages()
-                ? null
-                : () => deleteImage(
-                      locData,
-                      baseConfig,
-                      markersNL,
-                      indexModelNL,
-                    ),
+            onPressed: locData.isEmptyImages() ? null : () => deleteImage(),
           ),
         ],
       ),
@@ -279,8 +275,7 @@ class _ImagesScreenState extends State<ImagesScreen>
                       itemCount: locData.getImagesCount(),
                       itemBuilder: (ctx, index) {
                         return FutureBuilder(
-                          future: getImageFileIndexed(
-                              baseConfig, strgClnt, locData, index),
+                          future: getImageFileIndexed(locData, index),
                           builder: (ctx, snap) {
                             TextEditingController controller =
                                 TextEditingController(

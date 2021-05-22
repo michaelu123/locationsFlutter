@@ -40,7 +40,7 @@ class KartenScreen extends StatefulWidget {
 
 class _KartenScreenState extends State<KartenScreen> with Felder {
   double mapLat = 0, mapLon = 0;
-  final fmapController = fm.MapController();
+  fm.MapController fmapController;
   gm.GoogleMapController gmapController;
   Future markersFuture;
   ll.LatLng center;
@@ -53,6 +53,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   Settings settingsNL;
   Storage strgClntNL;
   LocData locDataNL;
+  String tableBase;
 
   @override
   void initState() {
@@ -62,6 +63,8 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
     settingsNL = Provider.of<Settings>(context, listen: false);
     strgClntNL = Provider.of<Storage>(context, listen: false);
     locDataNL = Provider.of<LocData>(context, listen: false);
+    tableBase = baseConfigNL.getDbTableBaseName();
+    fmapController = fm.MapController();
   }
 
   @override
@@ -199,7 +202,9 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
     }
   }
 
-  void deleteLoc(Markers markers) {
+  Future<void> deleteLoc(Markers markers) async {
+    if (!await areYouSure(context, 'Wollen Sie den Ort wirklich löschen?'))
+      return;
     LocationsDB.deleteAllLoc(mapLat, mapLon);
     markers.deleteLoc(mapLat, mapLon);
     setState2();
@@ -251,14 +256,14 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
       await LocationsDB.deleteOldData();
       Set newImagePaths = await LocationsDB.getNewImagePaths();
       setState(() => message = "Lösche alte Photos");
-      await Provider.of<Photos>(context, listen: false).deleteAllImagesExcept(
-          baseConfig.getDbTableBaseName(), newImagePaths);
+      await Provider.of<Photos>(context, listen: false)
+          .deleteAllImagesExcept(tableBase, newImagePaths);
       settings.setConfigValue("center_lat_${baseConfig.base}", mapLat);
       settings.setConfigValue("center_lon_${baseConfig.base}", mapLon);
       setState(() => message = "Lade neue Daten");
       await getDataFromServer(
         strgClnt,
-        baseConfig.getDbTableBaseName(),
+        tableBase,
         settings.getConfigValueS("region"),
         settings.getConfigValueI("delta"),
       );
@@ -275,7 +280,6 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
     try {
       setState(() => message = "Neue/geänderte Daten bestimmen");
       final Map newData = await LocationsDB.getNewData();
-      final String tableBase = baseConfig.getDbTableBaseName();
       final newImages = newData["images"];
       final newImagesLen = newImages.length;
       int i = 0;
@@ -319,7 +323,7 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
 
   @override
   Widget build(BuildContext context) {
-    // strgClnt.sayHello(baseConfig.getDbTableBaseName());
+    // strgClnt.sayHello(tableBase);
     final settings = Provider.of<Settings>(context);
     strgClntNL.setClnt(
         settings.getConfigValueS("storage", defVal: "LocationsServer"));

@@ -13,7 +13,7 @@ class Coord {
   double lat;
   double lon;
   int quality;
-  bool hasImage;
+  int dcount, icount;
 }
 
 class LocationsDB {
@@ -178,6 +178,14 @@ class LocationsDB {
     db = await database();
   }
 
+  static String keyFor(String latRound, String lonRound) {
+    return latRound + ":" + lonRound;
+  }
+
+  static String keyOf(Map<String, Object> data) {
+    return keyFor(data["lat_round"].toString(), data["lon_round"].toString());
+  }
+
   static Future<int> insert(String table, Map<String, Object> data) async {
     return await db.insert(
       table,
@@ -332,8 +340,11 @@ class LocationsDB {
     );
   }
 
-  static int qualityOfLoc(Map daten, List zusatz) {
-    int r = evalProgram(statements, daten, zusatz);
+  static int qualityOfLoc(Map daten, List zusatz, List images, int dcount) {
+    daten["_d_zahl"] = dcount;
+    daten["_z_zahl"] = zusatz.length;
+    daten["_i_zahl"] = images.length;
+    int r = evalProgram(statements, daten, zusatz, images);
     if (r == null || r < 0) r = 0;
     if (r > 2) r = 2;
     return r;
@@ -342,21 +353,25 @@ class LocationsDB {
   static Future<List<Coord>> readCoords() async {
     Map<String, Map<String, dynamic>> daten = {};
     Map<String, List> zusatz = {};
+    Map<String, List> images = {};
     Map<String, Coord> map = {};
     final resD = await db.query("daten");
     for (final res in resD) {
       final coord = Coord();
       coord.lat = res["lat"];
       coord.lon = res["lon"];
-      coord.hasImage = false;
-      final key = '${res["lat_round"]}:${res["lon_round"]}';
+      final key = keyOf(res);
+      final prev = map[key];
+      coord.dcount = prev != null ? prev.dcount + 1 : 1;
+      coord.icount = 0;
+      // here, newer records replace older ones
       map[key] = coord;
       daten[key] = res;
     }
     if (hasZusatz) {
       final resZ = await db.query("zusatz");
       for (final res in resZ) {
-        final key = '${res["lat_round"]}:${res["lon_round"]}';
+        final key = keyOf(res);
         List l = zusatz[key];
         if (l == null) {
           l = [];
@@ -368,34 +383,51 @@ class LocationsDB {
           coord = Coord();
           coord.lat = res["lat"];
           coord.lon = res["lon"];
-          coord.hasImage = false;
+          coord.dcount = 0;
+          coord.icount = 0;
           map[key] = coord;
         }
       }
     }
     final resI = await db.query("images");
     for (final res in resI) {
-      final key = '${res["lat_round"]}:${res["lon_round"]}';
+      final key = keyOf(res);
+      List l = images[key];
+      if (l == null) {
+        l = [];
+        images[key] = l;
+      }
+      l.add(res);
       var coord = map[key];
       if (coord == null) {
         coord = Coord();
         coord.lat = res["lat"];
         coord.lon = res["lon"];
+        coord.dcount = 0;
+        coord.icount = 1;
         map[key] = coord;
+      } else {
+        coord.icount += 1;
       }
-      coord.hasImage = true;
     }
 
     map.forEach((key, coord) {
       final m = daten[key] != null ? makeWritableMap(daten[key]) : {};
       final z = zusatz[key];
-      List l;
+      final i = images[key];
+      List zl;
       if (z != null) {
-        l = makeWritableList(z);
+        zl = makeWritableList(z);
       } else {
-        l = [];
+        zl = [];
       }
-      coord.quality = qualityOfLoc(m, l);
+      List il;
+      if (i != null) {
+        il = makeWritableList(i);
+      } else {
+        il = [];
+      }
+      coord.quality = qualityOfLoc(m, zl, il, coord.dcount);
     });
     return map.values.toList();
   }

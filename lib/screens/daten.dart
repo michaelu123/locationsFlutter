@@ -19,11 +19,19 @@ class DatenScreen extends StatefulWidget {
 }
 
 class _DatenScreenState extends State<DatenScreen> with Felder {
+  BaseConfig baseConfigNL;
+  LocData locDataNL;
+  Settings settingsNL;
+  String tableBase;
+
   @override
   void initState() {
     super.initState();
     final baseConfigNL = Provider.of<BaseConfig>(context, listen: false);
-    initFelder(context, baseConfigNL, false);
+    locDataNL = Provider.of<LocData>(context, listen: false);
+    settingsNL = Provider.of<Settings>(context, listen: false);
+    tableBase = baseConfigNL.getDbTableBaseName();
+    initFelder(context, false);
   }
 
   @override
@@ -35,7 +43,6 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
   @override
   Widget build(BuildContext context) {
     final baseConfig = Provider.of<BaseConfig>(context);
-    final settingsNL = Provider.of<Settings>(context, listen: false);
     final felder = baseConfig.getDatenFelder();
 
     return Scaffold(
@@ -46,15 +53,13 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
             icon: const Icon(Icons.add_a_photo),
             onPressed: () {
               final photosNL = Provider.of<Photos>(context, listen: false);
-              final locDataNL = Provider.of<LocData>(context, listen: false);
-              final settingsNL = Provider.of<Settings>(context, listen: false);
               final markersNL = Provider.of<Markers>(context, listen: false);
               photosNL.takePicture(
                 locDataNL,
                 settingsNL.getConfigValueI("maxdim"),
                 settingsNL.getConfigValueS("username"),
                 settingsNL.getConfigValueS("region"),
-                baseConfig.getDbTableBaseName(),
+                tableBase,
                 markersNL,
               );
             },
@@ -84,8 +89,6 @@ class _DatenScreenState extends State<DatenScreen> with Felder {
                     backgroundColor: Colors.amber,
                   ),
                   onPressed: () async {
-                    final locDataNL =
-                        Provider.of<LocData>(context, listen: false);
                     final map = await LocationsDB.dataForSameLoc();
                     locDataNL.dataFor("zusatz", map);
                     await Navigator.of(context)

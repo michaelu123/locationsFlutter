@@ -146,16 +146,6 @@ class MyApp extends StatelessWidget {
     final fbApp = await Firebase.initializeApp();
     print("fbapp $fbApp");
 
-    strgClnt.setClnt(
-        settings.getConfigValueS("storage", defVal: "LocationsServer"));
-    strgClnt.init(
-      serverUrl: serverUrl,
-      extPath: extPath,
-      datenFelder: [],
-      zusatzFelder: [],
-      imagesFelder: [],
-    );
-
     var bc = Map<String, List>();
     msgModel.setMessage("Loading config files from $configDir");
     List<FileSystemEntity> configFiles = await configDir.list().toList();
@@ -204,6 +194,8 @@ class MyApp extends StatelessWidget {
     baseConfig.setInitially(bc, settings.initialBase());
     await LocationsDB.setBaseDB(baseConfig);
 
+    strgClnt.setClnt(
+        settings.getConfigValueS("storage", defVal: "LocationsServer"));
     strgClnt.init(
       serverUrl: serverUrl,
       extPath: extPath,
