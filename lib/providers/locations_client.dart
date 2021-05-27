@@ -4,6 +4,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:locations/screens/locaccount.dart';
 import 'package:path/path.dart' as path;
 
 class LocationsClient {
@@ -11,11 +12,30 @@ class LocationsClient {
   String serverUrl;
   String extPath;
   bool hasZusatz;
+  String id;
 
   void init(String serverUrl, String extPath, bool hasZusatz) {
     this.serverUrl = serverUrl;
     this.extPath = extPath;
     this.hasZusatz = hasZusatz;
+  }
+
+  void checkError(http.Response resp, String fct) {
+    if (resp.statusCode >= 400) {
+      String errBody = resp.body;
+      print("$fct code ${resp.statusCode} ${resp.reasonPhrase} $errBody");
+      if (resp.statusCode == 401) {
+        checkExpiration(null);
+      }
+      try {
+        Map m = json.decode(errBody);
+        errBody = m.values.first;
+      } catch (_) {}
+      throw HttpException(errBody);
+    }
+    if (resp.headers.keys.contains("x-auth")) {
+      checkExpiration(resp.headers["x-auth"]);
+    }
   }
 
   Future<dynamic> _req2(String method, String req,
@@ -27,22 +47,19 @@ class LocationsClient {
     } else {
       resp = await http.post(serverUrl + req, headers: headers, body: body);
     }
-    if (resp.statusCode >= 400) {
-      // Map errbody = json.decode(resp.body);
-      // String msg = errbody['error']['message'] ?? "Unknown error";
-      // throw HttpException(msg);
-      String errBody = resp.body;
-      print("errbody $errBody");
-      // throw HttpException(errBody);
-      return null;
-    }
+    checkError(resp, "req2");
     dynamic res = json.decode(resp.body);
     return res;
   }
 
+  // why the retry?
   Future<dynamic> reqWithRetry(String method, String req,
       {Map<String, String> headers, dynamic body}) async {
     dynamic res;
+    if (headers == null) {
+      headers = Map<String, String>();
+    }
+    headers["x-auth"] = LocAuth.instance.token();
     try {
       res = await _req2(
         method,
@@ -50,61 +67,65 @@ class LocationsClient {
         headers: headers,
         body: body,
       );
-    } catch (e) {
-      print("http exc $e");
-      res = await _req2(
-        method,
-        req,
-        headers: headers,
-        body: body,
-      );
+    } catch (ex) {
+      throw (ex);
+      // print("http exc $ex");
+      // res = await _req2(
+      //   method,
+      //   req,
+      //   headers: headers,
+      //   body: body,
+      // );
     }
     return res;
   }
 
   Future<Uint8List> _reqGetBytes(String req, {Map headers}) async {
     http.Response resp = await http.get(serverUrl + req, headers: headers);
-    if (resp.statusCode >= 400) {
-      print(
-          "reqBytes code ${resp.statusCode} ${resp.reasonPhrase} ${resp.body}");
-      return null;
-    }
+    checkError(resp, "reqGetBytes");
     return resp.bodyBytes;
   }
 
+  // why the retry?
   Future<Uint8List> reqGetBytesWithRetry(String req, {Map headers}) async {
     Uint8List res;
+    if (headers == null) {
+      headers = Map();
+    }
+    headers["x-auth"] = LocAuth.instance.token();
     try {
       res = await _reqGetBytes(req, headers: headers);
     } catch (e) {
-      print("http exc $e");
-      res = await _reqGetBytes(req, headers: headers);
+      throw (e);
+      // print("http exc $e");
+      // res = await _reqGetBytes(req, headers: headers);
     }
     return res;
   }
 
-  Future<Map> _reqPostBytes(String req, Uint8List body, {Map headers}) async {
+  Future<Map> _reqPostBytes(String req, Uint8List body,
+      {Map<String, String> headers}) async {
     http.Response resp =
         await http.post(serverUrl + req, headers: headers, body: body);
-    if (resp.statusCode >= 400) {
-      print("_reqPostBytes code ${resp.statusCode} ${resp.reasonPhrase}");
-      String errBody = resp.body;
-      print("_reqPostBytes errbody $errBody");
-      // throw HttpException(errBody);
-      return null;
-    }
+    checkError(resp, "reqPostBytes");
     Map res = json.decode(resp.body);
     return res;
   }
 
+  // why the retry?
   Future<Map> reqPostBytesWithRetry(String req, Uint8List body,
-      {Map headers}) async {
+      {Map<String, String> headers}) async {
+    if (headers == null) {
+      headers = {};
+    }
+    headers["x-auth"] = LocAuth.instance.token();
     Map res;
     try {
       res = await _reqPostBytes(req, body, headers: headers);
     } catch (e) {
-      print("http exc $e");
-      res = await _reqPostBytes(req, body, headers: headers);
+      throw (e);
+      // print("http exc $e");
+      // res = await _reqPostBytes(req, body, headers: headers);
     }
     return res;
   }
@@ -125,10 +146,6 @@ class LocationsClient {
     for (final table in values.keys) {
       String req = "/add/${tableBase}_$table";
       List vals = values[table];
-      if (vals.length == 0) continue;
-      for (Map val in vals) {
-        val.remove("new_or_modified");
-      }
       if (table == "zusatz") {
         for (Map val in vals) {
           val["nr"] = null;
@@ -136,6 +153,7 @@ class LocationsClient {
       }
 
       int vl = vals.length;
+      if (vl == 0) continue;
       int start = 0;
       while (start < vl) {
         int end = min(start + 100, vl);
@@ -197,5 +215,32 @@ class LocationsClient {
     final req = "/config/$name";
     Map res = await reqWithRetry("GET", req);
     return res;
+  }
+
+  Future<Map> kex(String id, String alicePubKey) async {
+    Map<String, String> headers = {"Content-type": "application/json"};
+    String req = "/kex";
+    String body = json.encode({"id": id, "pubkey": alicePubKey});
+    Map m = await reqWithRetry("POST", req, body: body, headers: headers);
+    return m;
+  }
+
+  Future<Map> postAuth(String loginOrSignon, String cred) async {
+    Map<String, String> headers = {
+      "Content-type": "application/json",
+    };
+    String req = "/auth/" + loginOrSignon;
+    Map m = await reqWithRetry("POST", req, body: cred, headers: headers);
+    id = m["id"];
+    return m;
+  }
+
+  void checkExpiration(String xauth) {
+    print("checkExp $xauth");
+    if (xauth == "SOON") {
+      LocAuth.instance.signOutSoon();
+    } else if (xauth == null) {
+      LocAuth.instance.signOut();
+    }
   }
 }

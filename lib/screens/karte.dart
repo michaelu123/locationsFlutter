@@ -15,6 +15,7 @@ import 'package:locations/providers/photos.dart';
 import 'package:locations/providers/settings.dart';
 import 'package:locations/providers/storage.dart';
 import 'package:locations/screens/daten.dart';
+import 'package:locations/screens/locaccount.dart';
 import 'package:locations/screens/splash_screen.dart';
 import 'package:locations/utils/db.dart';
 import 'package:locations/utils/felder.dart';
@@ -325,13 +326,13 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
   Widget build(BuildContext context) {
     // strgClnt.sayHello(tableBase);
     final settings = Provider.of<Settings>(context);
-    strgClntNL.setClnt(
-        settings.getConfigValueS("storage", defVal: "LocationsServer"));
-
     final settingsGPS = settings.getGPS();
     useGoogle =
         settings.getConfigValueS("mapprovider", defVal: "OpenStreetMap")[0] ==
             "G";
+    final useLoc =
+        settings.getConfigValueS("storage", defVal: "LocationsServer") ==
+            "LocationsServer";
 
     return WillPopScope(
       onWillPop: _onBackPressed,
@@ -342,7 +343,9 @@ class _KartenScreenState extends State<KartenScreen> with Felder {
           actions: [
             IconButton(
               icon: const Icon(Icons.exit_to_app),
-              onPressed: () => FirebaseAuth.instance.signOut(),
+              onPressed: () => useLoc
+                  ? LocAuth.instance.signOut()
+                  : FirebaseAuth.instance.signOut(),
             ),
             IconButton(
               icon: const Icon(Icons.delete),

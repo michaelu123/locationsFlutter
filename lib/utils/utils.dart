@@ -63,3 +63,26 @@ Future<bool> areYouSure(BuildContext context, String msg) {
       ) ??
       false;
 }
+
+Future<void> screenMessage(BuildContext context, String msg) {
+  return showDialog(
+    context: context,
+    builder: (context) => new AlertDialog(
+      title: const Text('Achtung'),
+      content: Text(msg),
+      actions: <Widget>[
+        TextButton(
+          child: const Text("OK"),
+          onPressed: () => Navigator.of(context).pop(false),
+        ),
+      ],
+    ),
+  );
+}
+
+// https://stackoverflow.com/questions/56280736/alertdialog-without-context-in-flutter
+final navigatorKey = GlobalKey<NavigatorState>(); // see main.dart
+
+Future<void> screenMessageNoContext(String msg) {
+  return screenMessage(navigatorKey.currentContext, msg);
+}

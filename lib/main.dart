@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:locations/providers/base_config.dart';
 import 'package:locations/providers/storage.dart';
 import 'package:locations/screens/account.dart';
+import 'package:locations/screens/locaccount.dart';
 import 'package:locations/utils/db.dart';
 import 'package:locations/utils/syntax.dart';
 import 'package:locations/utils/utils.dart';
@@ -29,6 +30,7 @@ void main() {
 
 class MyApp extends StatelessWidget {
   // https://pub.dev/packages/flutter_app_lock  ?
+  static bool useLoc = true;
 
   @override
   Widget build(BuildContext context) {
@@ -97,8 +99,10 @@ class MyApp extends StatelessWidget {
                     ),
                   );
                 }
-                return StreamBuilder<User>(
-                  stream: FirebaseAuth.instance.authStateChanges(),
+                return StreamBuilder(
+                  stream: useLoc
+                      ? LocAuth.instance.authStateChanges(strgClnt.locClnt)
+                      : FirebaseAuth.instance.authStateChanges(),
                   builder: (ctx, snapShot) {
                     if (snapShot.connectionState == ConnectionState.waiting) {
                       return SplashScreen();
@@ -106,7 +110,7 @@ class MyApp extends StatelessWidget {
                     if (snapShot.hasData) {
                       return KartenScreen();
                     }
-                    return AccountScreen();
+                    return useLoc ? LocAccountScreen() : AccountScreen();
                   },
                 );
               },
@@ -129,7 +133,7 @@ class MyApp extends StatelessWidget {
       Storage strgClnt, BuildContext ctx) async {
     MsgModel msgModel = Provider.of<MsgModel>(ctx, listen: false);
 
-    msgModel.setMessage("Loading...");
+    msgModel.setMessage("Laden...");
     await initExtPath();
     // allow external storage config files
     final extPath = getExtPath();
@@ -146,8 +150,21 @@ class MyApp extends StatelessWidget {
     final fbApp = await Firebase.initializeApp();
     print("fbapp $fbApp");
 
+    settings.setConfigValue(
+        "storage", "LocationsServer"); // until Firebase works on windows
+    useLoc = settings.getConfigValueS("storage", defVal: "LocationsServer") ==
+        "LocationsServer";
+    strgClnt.setClnt(useLoc);
+    strgClnt.init(
+      serverUrl: serverUrl,
+      extPath: extPath,
+      datenFelder: [],
+      zusatzFelder: [],
+      imagesFelder: [],
+    );
+
     var bc = Map<String, List>();
-    msgModel.setMessage("Loading config files from $configDir");
+    msgModel.setMessage("Lade Konfigurationsdateien von $configDir");
     List<FileSystemEntity> configFiles = await configDir.list().toList();
     await Future.forEach(configFiles, (f) async {
       if (f is File && f.path.endsWith(".json")) {
@@ -163,6 +180,7 @@ class MyApp extends StatelessWidget {
         }
       }
     });
+
     print("bc ${bc.keys}");
     if (bc.isEmpty) {
       msgModel.setMessage("Keine Konfigurationen gefunden");
@@ -194,8 +212,6 @@ class MyApp extends StatelessWidget {
     baseConfig.setInitially(bc, settings.initialBase());
     await LocationsDB.setBaseDB(baseConfig);
 
-    strgClnt.setClnt(
-        settings.getConfigValueS("storage", defVal: "LocationsServer"));
     strgClnt.init(
       serverUrl: serverUrl,
       extPath: extPath,

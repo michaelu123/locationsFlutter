@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:locations/parser/val.dart';
 import 'package:locations/providers/locations_client.dart';
+import 'package:locations/screens/locaccount.dart';
 
 import 'firebase.dart';
 
@@ -11,8 +13,15 @@ class Storage extends ChangeNotifier {
   LocationsClient locClnt;
   FirebaseClient fbClnt;
 
-  void setClnt(String clnt) {
-    useLoc = clnt == "LocationsServer";
+  void setClnt(bool useLoc) {
+    if (useLoc != this.useLoc) {
+      if (this.useLoc) {
+        LocAuth.instance.signOut();
+      } else {
+        fbClnt.logoff();
+      }
+    }
+    this.useLoc = useLoc;
     if (locClnt == null) locClnt = LocationsClient();
     if (fbClnt == null) fbClnt = FirebaseClient();
   }
@@ -22,7 +31,7 @@ class Storage extends ChangeNotifier {
       String extPath,
       List datenFelder,
       List zusatzFelder,
-      List imagesFelder}) {
+      List imagesFelder}) async {
     bool hasZusatz = zusatzFelder.length > 0;
     locClnt.init(serverUrl, extPath, hasZusatz);
     fbClnt.init(extPath);
@@ -44,6 +53,12 @@ class Storage extends ChangeNotifier {
   }
 
   Future<void> post(String tableBase, Map values) async {
+    for (Map val in (values["daten"] ?? [])) {
+      val = val.cast<String, Object>();
+      val.removeWhere((k, v) => v is Value);
+      val.removeWhere((k, v) => k.startsWith("_"));
+      val.remove("new_or_modified");
+    }
     if (useLoc) return locClnt.post(tableBase, values);
     return fbClnt.post(tableBase, values);
   }

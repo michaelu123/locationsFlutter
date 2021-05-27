@@ -344,6 +344,10 @@ class FirebaseClient {
     final Map map = json.decode(Utf8Decoder().convert(resBytes));
     return map;
   }
+
+  void logoff() {
+    //throw UnimplementedError();
+  }
 }
 
 // like within, but sw/ne instead of circle/radius
