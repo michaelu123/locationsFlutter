@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 
 class LocAuth {
   static LocAuth _instance;
+  Settings _settings;
   StreamController _controller;
   LocationsClient _locClnt;
   SecretKey _sharedSecret;
@@ -83,12 +84,13 @@ class LocAuth {
     final tokenJS = json.encode(tokenObj);
     final tokenB = utf8.encode(tokenJS);
     _token = base64.encode(tokenB);
-
+    _settings.setConfigValue("token", _token);
     return uc;
   }
 
-  Stream authStateChanges(LocationsClient locClnt) {
+  Stream authStateChanges(LocationsClient locClnt, Settings settings) {
     _locClnt = locClnt;
+    _settings = settings;
     if (_controller == null) {
       _controller = StreamController(onListen: () {
         if (loggedIn()) {
@@ -102,10 +104,14 @@ class LocAuth {
   }
 
   bool loggedIn() {
-    return false;
+    _token = _settings.getConfigValueS("token", defVal: "");
+    if (_token == "") return false;
+    return _locClnt.checkToken();
   }
 
   signOut() {
+    _settings.setConfigValue("token", "");
+    _token = "";
     if (_controller == null) return;
     print("Signed out");
     _controller.addError("error");

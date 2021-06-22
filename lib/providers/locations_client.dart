@@ -80,14 +80,16 @@ class LocationsClient {
     return res;
   }
 
-  Future<Uint8List> _reqGetBytes(String req, {Map headers}) async {
+  Future<Uint8List> _reqGetBytes(String req,
+      {Map<String, String> headers}) async {
     http.Response resp = await http.get(serverUrl + req, headers: headers);
     checkError(resp, "reqGetBytes");
     return resp.bodyBytes;
   }
 
   // why the retry?
-  Future<Uint8List> reqGetBytesWithRetry(String req, {Map headers}) async {
+  Future<Uint8List> reqGetBytesWithRetry(String req,
+      {Map<String, String> headers}) async {
     Uint8List res;
     if (headers == null) {
       headers = Map();
@@ -179,7 +181,7 @@ class LocationsClient {
 
   Future<Map> postImage(String tableBase, String imgName) async {
     String req = "/addimage/$tableBase/$imgName";
-    final headers = {"Content-type": "image/jpeg"};
+    final Map<String, String> headers = {"Content-type": "image/jpeg"};
 
     final imgPath = path.join(extPath, tableBase, "images", imgName);
     File f = File(imgPath);
@@ -241,6 +243,15 @@ class LocationsClient {
       LocAuth.instance.signOutSoon();
     } else if (xauth == null) {
       LocAuth.instance.signOut();
+    }
+  }
+
+  bool checkToken() {
+    try {
+      reqWithRetry("GET", "/checktoken");
+      return true;
+    } catch (ex) {
+      return false;
     }
   }
 }

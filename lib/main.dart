@@ -101,7 +101,8 @@ class MyApp extends StatelessWidget {
                 }
                 return StreamBuilder(
                   stream: useLoc
-                      ? LocAuth.instance.authStateChanges(strgClnt.locClnt)
+                      ? LocAuth.instance
+                          .authStateChanges(strgClnt.locClnt, settings)
                       : FirebaseAuth.instance.authStateChanges(),
                   builder: (ctx, snapShot) {
                     if (snapShot.connectionState == ConnectionState.waiting) {
