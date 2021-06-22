@@ -59,7 +59,7 @@ class LocationsClient {
     if (headers == null) {
       headers = Map<String, String>();
     }
-    headers["x-auth"] = LocAuth.instance.token();
+    headers["x-auth"] = await LocAuth.instance.token();
     try {
       res = await _req2(
         method,
@@ -94,7 +94,7 @@ class LocationsClient {
     if (headers == null) {
       headers = Map();
     }
-    headers["x-auth"] = LocAuth.instance.token();
+    headers["x-auth"] = await LocAuth.instance.token();
     try {
       res = await _reqGetBytes(req, headers: headers);
     } catch (e) {
@@ -120,7 +120,7 @@ class LocationsClient {
     if (headers == null) {
       headers = {};
     }
-    headers["x-auth"] = LocAuth.instance.token();
+    headers["x-auth"] = await LocAuth.instance.token();
     Map res;
     try {
       res = await _reqPostBytes(req, body, headers: headers);

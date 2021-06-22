@@ -18,7 +18,6 @@ class LocAuth {
   SecretKey _sharedSecret;
   AesCbc _cryptAlg;
   String _id;
-  String _token;
 
   static LocAuth get instance {
     if (_instance == null) _instance = LocAuth();
@@ -71,20 +70,13 @@ class LocAuth {
     final uc = UserCredential(map["id"], map["username"]);
     _controller.add(uc);
 
-    // compute token
-    final idB = utf8.encode(_id);
-    final idEnc = await _cryptAlg.encrypt(idB, secretKey: _sharedSecret);
-    ctxt = idEnc.cipherText;
-    iv = idEnc.nonce;
-    final tokenObj = {
+    // save id and secretKey
+    final authData = {
       "id": _id,
-      "idEnc": base64.encode(ctxt),
-      "iv": base64.encode(iv)
+      "secretKey": await _sharedSecret.extractBytes()
     };
-    final tokenJS = json.encode(tokenObj);
-    final tokenB = utf8.encode(tokenJS);
-    _token = base64.encode(tokenB);
-    _settings.setConfigValue("token", _token);
+    final authDataJS = json.encode(authData);
+    _settings.setConfigValue("authData", authDataJS);
     return uc;
   }
 
@@ -104,14 +96,17 @@ class LocAuth {
   }
 
   bool loggedIn() {
-    _token = _settings.getConfigValueS("token", defVal: "");
-    if (_token == "") return false;
+    final authDataJS = _settings.getConfigValueS("authData", defVal: "");
+    if (authDataJS == "") return false;
+    final authData = json.decode(authDataJS);
+    _sharedSecret = SecretKey(authData["secretKey"].cast<int>());
+    _id = authData["id"];
+    _cryptAlg = AesCbc.with256bits(macAlgorithm: MacAlgorithm.empty);
     return _locClnt.checkToken();
   }
 
   signOut() {
-    _settings.setConfigValue("token", "");
-    _token = "";
+    _settings.setConfigValue("authData", "");
     if (_controller == null) return;
     print("Signed out");
     _controller.addError("error");
@@ -122,8 +117,25 @@ class LocAuth {
     signOut();
   }
 
-  String token() {
-    return _token;
+  // compute a token that encrypts the current time. I hope this makes
+  // the protocol safe(r) against replay attacks. At least, the backend checks
+  // that the request and server time are not more than 10 minutes apart.
+  Future<String> token() async {
+    if (_cryptAlg == null) return "";
+    final nowS = DateTime.now().millisecondsSinceEpoch.toString();
+    final nowB = utf8.encode(nowS);
+    final nowSB = await _cryptAlg.encrypt(nowB, secretKey: _sharedSecret);
+    final nowEnc = nowSB.cipherText;
+    final iv = nowSB.nonce;
+    final tokenObj = {
+      "id": _id,
+      "now": nowS,
+      "nowEnc": base64.encode(nowEnc),
+      "iv": base64.encode(iv)
+    };
+    final tokenJS = json.encode(tokenObj);
+    final tokenB = utf8.encode(tokenJS);
+    return base64.encode(tokenB);
   }
 }
 
