@@ -80,7 +80,7 @@
     ]
   },
   "program": [
-    "foreach(modified, desc)",
+    "foreach(zusatz, modified, desc)",
       "if modified < 180 then return 2 end",
     "end"
   ]

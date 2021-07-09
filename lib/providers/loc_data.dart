@@ -114,8 +114,12 @@ class LocData with ChangeNotifier {
     }
   }
 
-  bool isEmpty() {
-    return (isZusatz ? locZusatz.length : locDaten.length) == 0;
+  bool isEmptyDaten() {
+    return locDaten.length == 0;
+  }
+
+  bool isEmptyZusatz() {
+    return locZusatz.length == 0;
   }
 
   void addZusatz() {

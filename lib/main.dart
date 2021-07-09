@@ -210,7 +210,13 @@ class MyApp extends StatelessWidget {
     }
 
     await settings.getSharedPreferences();
-    baseConfig.setInitially(bc, settings.initialBase());
+
+    var base = settings.initialBase();
+    if (base == null || base.isEmpty || !bc.keys.toList().contains(base)) {
+      base = bc.keys.toList()[0];
+      settings.setConfigValue("base", base);
+    }
+    baseConfig.setInitially(bc, base);
     await LocationsDB.setBaseDB(baseConfig);
 
     strgClnt.init(

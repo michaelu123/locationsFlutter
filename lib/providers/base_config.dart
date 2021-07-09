@@ -203,9 +203,6 @@ class BaseConfig extends ChangeNotifier {
       // Error message?
     }
 
-    if (base == null || base.isEmpty) {
-      base = bc.keys.toList()[0];
-    }
     _setFelder(base);
   }
 
@@ -312,7 +309,7 @@ class BaseConfig extends ChangeNotifier {
     final prog = baseJS["program"];
     if (prog != null) {
       if (prog is List) {
-        p = prog.join('');
+        p = prog.join(' ');
       } else if (prog is String) {
         p = prog;
       }
